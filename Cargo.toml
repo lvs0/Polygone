@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Max <polygone@proton.me>"]
 description = "Post-quantum ephemeral network — core protocol library"
 license = "MIT"
-repository = "https://github.com/polygone/core"
+repository = "https://github.com/lvs0/Polygone"
 keywords   = ["post-quantum", "p2p", "privacy", "cryptography", "ephemeral"]
 categories = ["cryptography", "network-programming"]
 
@@ -37,6 +37,7 @@ pqcrypto-traits   = "0.3"
 # ── Symmetric / Hash ──────────────────────────────────────
 aes-gcm           = { version = "0.10", features = ["aes"] }
 blake3            = "1"
+hex            = "0.4"
 zeroize           = { version = "1", features = ["derive"] }
 subtle            = "2"           # Constant-time comparisons
 
