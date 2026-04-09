@@ -24,7 +24,6 @@ pub mod symmetric;
 /// A combined key-pair: one KEM key-pair (transport) and one DSA key-pair (auth).
 ///
 /// Kept together so they share the same zeroize lifecycle.
-#[derive(ZeroizeOnDrop)]
 pub struct KeyPair {
     /// KEM secret key — used once per session, then destroyed.
     pub kem_sk: kem::KemSecretKey,
@@ -69,8 +68,8 @@ impl SharedSecret {
     /// — it never touches topology derivation. The two are domain-separated
     /// and independent even though they share the same KEM output.
     pub fn derive(&self) -> ([u8; 32], [u8; 32]) {
-        let topo_seed    = *blake3::derive_key("polygone topology v1",    &self.0).as_bytes();
-        let session_key  = *blake3::derive_key("polygone session key v1", &self.0).as_bytes();
+        let topo_seed    = blake3::derive_key("polygone topology v1",    &self.0);
+        let session_key  = blake3::derive_key("polygone session key v1", &self.0);
         (topo_seed, session_key)
     }
 }

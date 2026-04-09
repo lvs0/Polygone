@@ -31,7 +31,7 @@ pub struct Fragment {
 pub fn split(secret: &[u8], threshold: u8, n: u8) -> Result<Vec<Fragment>> {
     assert!(threshold > 0 && threshold <= n, "invalid threshold/n");
     let sharks = Sharks(threshold);
-    let dealer = sharks.dealer(secret);
+    let dealer = sharks.dealer_rng(secret, &mut rand::thread_rng());
     let shares: Vec<Share> = dealer.take(n as usize).collect();
     Ok(shares
         .into_iter()

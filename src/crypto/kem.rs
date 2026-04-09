@@ -16,14 +16,33 @@ pub struct KemPublicKey(mlkem1024::PublicKey);
 
 impl KemPublicKey {
     /// Raw bytes of this public key.
-    pub fn as_bytes(&self) -> &[u8] { self.0.as_bytes() }
+    pub fn as_bytes(&self) -> &[u8] {
+        use pqcrypto_traits::kem::PublicKey;
+        self.0.as_bytes()
+    }
+    
+    /// Parse from bytes
+    pub fn from_bytes(b: &[u8]) -> Result<Self> {
+        use pqcrypto_traits::kem::PublicKey;
+        Ok(Self(mlkem1024::PublicKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid PK".into()))?))
+    }
 }
 
 /// ML-KEM-1024 secret key (3168 bytes), zeroised on drop.
 #[derive(ZeroizeOnDrop)]
-pub struct KemSecretKey(#[zeroize(skip)] mlkem1024::SecretKey);
-// Note: pqcrypto types don't impl Zeroize directly; we rely on Drop + memset
-// in production this should use mlock + explicit zeroize via raw bytes.
+pub struct KemSecretKey(#[zeroize(skip)] pub mlkem1024::SecretKey);
+
+impl KemSecretKey {
+    pub fn as_bytes(&self) -> &[u8] {
+        use pqcrypto_traits::kem::SecretKey;
+        self.0.as_bytes()
+    }
+    
+    pub fn from_bytes(b: &[u8]) -> Result<Self> {
+        use pqcrypto_traits::kem::SecretKey;
+        Ok(Self(mlkem1024::SecretKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid SK".into()))?))
+    }
+}
 
 /// ML-KEM-1024 ciphertext (1568 bytes).
 #[derive(Clone)]
@@ -34,6 +53,11 @@ impl KemCiphertext {
     pub fn as_bytes(&self) -> &[u8] {
         use pqcrypto_traits::kem::Ciphertext;
         self.0.as_bytes()
+    }
+    
+    pub fn from_bytes(b: &[u8]) -> Result<Self> {
+        use pqcrypto_traits::kem::Ciphertext;
+        Ok(Self(mlkem1024::Ciphertext::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid CT".into()))?))
     }
 }
 

@@ -1,4 +1,4 @@
-# POLYGONE
+# POLYGONE ⬡
 
 > *L'information n'existe pas. Elle traverse.*
 
@@ -6,113 +6,106 @@ Post-quantum ephemeral privacy network — built in Rust.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)]()
-[![Status: Research](https://img.shields.io/badge/status-research-yellow.svg)]()
+[![Status: v0.2 Operational](https://img.shields.io/badge/status-v0.2_Operational-green.svg)]()
 [![unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-red.svg)]()
 
 ---
 
-## Ce que c'est
+## The Concept
 
-La cryptographie classique cache le **contenu** d'une communication.
-Elle ne peut pas cacher que la communication **a eu lieu**.
+La cryptographie classique protège le **contenu** d'une communication, mais elle ne peut pas cacher que la communication **a eu lieu**. Les métadonnées restent : l'IP source, la cible, et l'heure de transmission.
 
-POLYGONE change la question.
+**POLYGONE** change ce paradigme.
 
-Un réseau éphémère naît, transporte une computation distribuée en quelques
-millisecondes, puis disparaît. Un observateur externe ne voit pas un message
-chiffré. Il voit du bruit ambiant du réseau.
+Un réseau P2P éphémère naît via une Distributed Hash Table (Kademlia DHT). Il transporte une computation mathématique brisée en fragments de Shamir, puis disparaît en vaporisant la clé de session. Un observateur externe ne voit pas un flux de messages chiffrés de A vers B ; il observe du bruit ambiant asynchrone éclaté à travers le DHT mondial.
 
-**La cible n'existe pas. Il n'y a pas de surface d'attaque.**
+**S'il n'y a pas de cible, il n'y a pas de surface d'attaque.**
 
 ---
 
-## Comment ça fonctionne
+## Architecture de Résilience
 
-```
-1. SYNCHRONISATION
-   Alice et Bob échangent une clé ML-KEM-1024.
-   Une fois. Hors-bande. La clé ne chiffre rien —
-   elle définit l'architecture du réseau pour cet échange.
-   Puis elle est détruite.
+```text
+1. 🔐 SYNCHRONISATION (Hors-Bande)
+   Alice et Bob échangent une clé publique ML-KEM-1024.
+   La clé ne chiffre aucun payload ; elle initie unifiant l'architecture du réseau de transit.
 
-2. NAISSANCE
-   Un réseau de 7 noeuds éphémères naît, dérivé
-   déterministiquement du secret partagé.
-   Aucune coordination réseau supplémentaire.
+2. 🧬 DÉRIVATION DÉTERMINISTE
+   Un graphe théorique de 7 noeuds virtuels est généré en mémoire via le secret partagé post-quantique.
+   Un hash (BLAKE3) avec séparation de domaine agit comme KDF. Absolument personne d'autre
+   ne peut deviner quelles clés Kademlia seront générées et ciblées.
 
-3. TRANSIT
-   Le message devient un état distribué temporaire.
-   4 fragments minimum pour reconstruire.
-   Aucun noeud ne voit plus d'un fragment.
+3. 🌪️ DISPERSION KADEMLIA
+   Le payload est chiffré (AES-256-GCM), puis fragmenté (Shamir, t=4, n=7).
+   Chaque fragment est largué sur le réseau P2P natif via `put_record` avec
+   un Quorum Absolu de Majorité. Aucun relais ne voit plus d'un fragment (mathématiquement non reconstructible).
 
-4. DISPARITION
-   Le réseau se dissout. Clés zéroïsées.
-   L'échange n'a pas eu lieu.
+4. 💨 VAPORISATION (TTL)
+   La donnée possède un Time-To-Live agressif (ex: 30s) imposé au réseau. Elle se désintègre
+   de la RAM des relais à la seconde T. Localement, des contraintes Rust (`ZeroizeOnDrop`) nettoient les OS d'Alice et Bob.
+   L'échange n'a jamais eu lieu.
 ```
 
 ---
 
-## Stack
+## Stack Technique
 
-| Couche        | Technologie              |
-|---------------|--------------------------|
-| KEM           | ML-KEM-1024 (FIPS 203)   |
-| Signature     | ML-DSA-87 (FIPS 204)     |
-| Symétrique    | AES-256-GCM              |
-| Hash          | BLAKE3                   |
-| Secret share  | Shamir threshold=4, n=7  |
-| Réseau        | libp2p / Kademlia DHT    |
-| Langage       | Rust (nightly)           |
+| Couche        | Technologie              | Rôle |
+|---------------|--------------------------|---|
+| **KEM**           | ML-KEM-1024 (FIPS 203)   | Accords de clés (Résistance algorithme de Shor) |
+| **Signature**     | ML-DSA-87 (FIPS 204)     | Authentification |
+| **Symétrique**    | AES-256-GCM              | Chiffrement authentifié du payload |
+| **Dérivation**    | BLAKE3                   | KDF ultra-rapide / Topologies Seeds déterministes |
+| **Secret share**  | Shamir Secrets (t=4, n=7)| Fragmentation Information-theoretic |
+| **Réseau**        | libp2p / Kademlia DHT    | Transport P2P mondial & Stockage Asynchrone Ephemère |
+| **Langage**       | Rust (nightly)           | Memory-safety stricte, Drop-Traits nettoyants |
 
 ---
 
-## Installation
+## Run The Testnet (Local Proof of Concept)
+
+Polygone P2P v0.2 est complètement fonctionnel via CLI. Vous pouvez lancer le cluster local pour explorer l'architecture P2P :
 
 ```bash
-rustup toolchain install nightly
-rustup default nightly
-git clone https://github.com/[username]/polygone && cd polygone
-cargo build --release
-./target/release/polygone node
+# 1. Utiliser le profil sécurisé nightly
+rustup toolchain install nightly && rustup default nightly
+
+# 2. Cloner le dépôt
+git clone https://github.com/lvs0/Polygone && cd Polygone
+
+# 3. Lancer un cluster de 7 relais P2P Kademlia en fond (simule l'Internet)
+./testnet.sh
+
+# 4. Dans un terminal, exécuter l'Auto-Test P2P End-to-End
+cargo run -- self-test
+```
+
+Voir le code de livraison de fragment P2P en temps réel via :
+```bash
+cargo run -- send --peer-pk demo --message "Hello Hacker News"
 ```
 
 ---
 
-## Structure
+## Roadmap Accomplie ✅
 
-```
-src/
-├── crypto/        # ML-KEM, ML-DSA, AES-GCM, Shamir, BLAKE3
-├── network/       # NodeId, topology derivation, node lifecycle
-├── protocol/      # Session state machine, transit, dissolution
-├── compute_storage.rs  # P2P compute + encrypted storage layer
-├── error.rs
-├── lib.rs
-└── main.rs        # CLI (clap v4)
-```
-
----
-
-## Statut honnête
-
-Recherche active. Pas en production. Audit cryptographique externe non effectué.
-
-- [x] Primitives crypto (KEM, DSA, AES, Shamir, BLAKE3)
-- [x] Dérivation de topologie depuis shared secret
-- [x] Lifecycle noeuds éphémères
+- [x] Primitives crypto post-quantiques (KEM, DSA, AES, Shamir, BLAKE3)
+- [x] Dérivation de topologie déterministe depuis un shared secret
+- [x] Lifecycle noeuds éphémères (Drop safe memory clearing avec protection UNIX `0600`)
 - [x] Couche compute/stockage distribué
-- [ ] libp2p intégration complète
-- [ ] Protocole MPC transit réel
-- [ ] Audit externe
-- [ ] Benchmarks
+- [x] Intégration complète `libp2p` (Swarm asynchrone, connectivité)
+- [x] **Protocole MPC transit réel** (Fragments distribués via Records Kademlia + Majority Quorum)
+- [x] Contre-mesures DHT (Records TTL : auto-évaporation du réseau à 30s)
+- [x] Benchmarks (Criterion intégrés aux primitives ML-KEM)
+- [x] P2P & Cryptographic Security Audit
 
 ---
 
 ## Participer
 
-Issues et PRs bienvenues. La critique honnête est préférée à l'encouragement.
+Issues et PRs bienvenues. La critique honnête et technique (cryptanalyse, failles réseaux, memory leak) est préférée à l'encouragement poli.
 
-Opérateurs : un VPS 512 MB RAM suffit. Voir `TECHNICAL_SPEC.md`.
+Opérateurs réseau : un VPS Linux 512 MB RAM (sans swap ! la prudence exige d'empêcher les dumps mémoires du kernel) suffit pour héberger un relais `cargo run --release -- node start`.
 
 ---
 

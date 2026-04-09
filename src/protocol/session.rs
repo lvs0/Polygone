@@ -39,7 +39,7 @@ pub struct Session {
     session_key: Option<SessionKey>,
 
     /// Ephemeral network topology for this session.
-    topology: Option<Topology>,
+    pub topology: Option<Topology>,
 
     /// Live ephemeral nodes for this session.
     nodes: Vec<EphemeralNode>,
@@ -63,7 +63,7 @@ impl Session {
         let keypair = KeyPair::generate()?;
         let (ciphertext, shared_secret) = kem::encapsulate(peer_pk)?;
         let session = Self {
-            id: SessionId::generate(),
+            id: SessionId::generate()?,
             state: TransitState::Pending,
             keypair,
             shared_secret: Some(shared_secret),
@@ -86,7 +86,7 @@ impl Session {
     ) -> Result<Self> {
         let shared_secret = kem::decapsulate(&keypair.kem_sk, ciphertext)?;
         Ok(Self {
-            id: SessionId::generate(),
+            id: SessionId::generate()?,
             state: TransitState::Pending,
             keypair,
             shared_secret: Some(shared_secret),

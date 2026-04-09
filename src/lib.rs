@@ -31,7 +31,7 @@
 //! - [`error`]     — Unified error type.
 
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 #![warn(clippy::all, clippy::pedantic)]
 
 pub mod crypto;

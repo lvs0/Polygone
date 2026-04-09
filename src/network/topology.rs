@@ -68,7 +68,7 @@ impl Topology {
                 "polygone edge seed v1",
                 &[session_key.as_ref(), &[i as u8]].concat(),
             );
-            let seed_bytes = seed.as_bytes();
+            let seed_bytes = seed;
             // Pick up to max_edges_per_node neighbours from the seed
             for slot in 0..params.max_edges_per_node as usize {
                 let j = seed_bytes[slot] as usize % n;

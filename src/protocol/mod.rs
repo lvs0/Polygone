@@ -11,8 +11,14 @@ impl SessionId {
     pub fn from_shared_secret(ss: &crate::crypto::SharedSecret) -> Self {
         let hash = blake3::derive_key("polygone session id v1", &ss.0);
         let mut id = [0u8; 16];
-        id.copy_from_slice(&hash.as_bytes()[..16]);
+        id.copy_from_slice(&hash[..16]);
         Self(id)
+    }
+    
+    pub fn generate() -> Result<Self, crate::PolygoneError> {
+        let mut id = [0u8; 16];
+        getrandom::getrandom(&mut id).map_err(|e| crate::PolygoneError::RngError(e.to_string()))?;
+        Ok(Self(id))
     }
     pub fn as_bytes(&self) -> &[u8; 16] { &self.0 }
 }

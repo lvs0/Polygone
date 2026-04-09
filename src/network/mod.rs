@@ -1,4 +1,5 @@
 pub mod node;
+pub mod p2p;
 pub mod topology;
 pub use node::EphemeralNode;
 pub use topology::{Topology, TopologyParams};

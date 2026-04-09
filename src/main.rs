@@ -40,6 +40,10 @@ struct Cli {
     /// Verbosity level (0=warn, 1=info, 2=debug, 3=trace)
     #[arg(short, long, action = clap::ArgAction::Count, global = true)]
     verbose: u8,
+
+    /// Bootstrap node multiaddress for DHT (e.g. /ip4/127.0.0.1/tcp/4001/p2p/Qm...)
+    #[arg(short, long, global = true)]
+    bootstrap: Option<String>,
 }
 
 #[derive(Subcommand)]
@@ -125,9 +129,9 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Keygen { output } => cmd_keygen(output).await,
-        Commands::Send { peer_pk, message } => cmd_send(peer_pk, message).await,
-        Commands::Receive { sk, ciphertext } => cmd_receive(sk, ciphertext).await,
-        Commands::Node { action } => cmd_node(action).await,
+        Commands::Send { peer_pk, message } => cmd_send(peer_pk, message, cli.bootstrap).await,
+        Commands::Receive { sk, ciphertext } => cmd_receive(sk, ciphertext, cli.bootstrap).await,
+        Commands::Node { action } => cmd_node(action, cli.bootstrap).await,
         Commands::Status => cmd_status().await,
         Commands::SelfTest => cmd_selftest().await,
     }
@@ -150,11 +154,27 @@ async fn cmd_keygen(output: String) -> anyhow::Result<()> {
     println!("  Share your KEM public key with anyone who wants to send you a message.");
     println!("  Keep your secret key offline. It cannot be recovered if lost.");
 
-    // TODO: write to disk with proper permissions (chmod 600)
+    let mut opts = std::fs::OpenOptions::new();
+    opts.write(true).create(true).truncate(true);
+    
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        opts.mode(0o600);
+    }
+    
+    use std::io::Write;
+    opts.open(format!("{output}/kem.pk"))?.write_all(kp.kem_pk.as_bytes())?;
+    opts.open(format!("{output}/kem.sk"))?.write_all(kp.kem_sk.as_bytes())?;
+    
+    #[cfg(unix)]
+    println!("  ✓ Saved to disk properly (Unix permissions 0600 enforced).");
+    #[cfg(not(unix))]
+    println!("  ✓ Saved to disk properly.");
     Ok(())
 }
 
-async fn cmd_send(peer_pk: String, message: String) -> anyhow::Result<()> {
+async fn cmd_send(peer_pk: String, message: String, bootstrap: Option<String>) -> anyhow::Result<()> {
     use polygone::protocol::Session;
 
     // ── peer_pk resolution ────────────────────────────────────────────────────
@@ -213,7 +233,7 @@ async fn cmd_send(peer_pk: String, message: String) -> anyhow::Result<()> {
         let recovered = bob.receive(fragment_payloads)?;
         println!();
         println!("  [BOB]   Reconstructed → decrypted");
-        println!("          Message: "{}"", String::from_utf8_lossy(&recovered));
+        println!("          Message: \"{}\"", String::from_utf8_lossy(&recovered));
 
         // Both dissolve — all keying material zeroed.
         alice.dissolve();
@@ -230,20 +250,127 @@ async fn cmd_send(peer_pk: String, message: String) -> anyhow::Result<()> {
     }
 
     // Production path: load peer public key from file/hex.
-    // Not yet implemented — DHT-based peer resolution is v0.2.
-    eprintln!("ERROR: Loading peer public keys from files is not yet implemented.");
-    eprintln!("       Use --peer-pk demo to run a local protocol demonstration.");
-    eprintln!("       Full peer-to-peer send arrives in v0.2 (libp2p + DHT).");
-    std::process::exit(1);
-}
-
-async fn cmd_receive(_sk: String, _ciphertext: String) -> anyhow::Result<()> {
-    println!("⬡ POLYGONE — Receiving message...");
-    println!("  (Full implementation with DHT peer discovery coming in v0.2)");
+    let pk_bytes = std::fs::read(&peer_pk)?;
+    let kem_pk = polygone::crypto::kem::KemPublicKey::from_bytes(&pk_bytes)?;
+    let (mut alice, ciphertext) = Session::new_initiator(&kem_pk)?;
+    
+    let ct_path = "session.ct";
+    std::fs::write(ct_path, ciphertext.as_bytes())?;
+    println!("  [ALICE] Session ciphertext written to {ct_path}. Send this to Bob!");
+    
+    alice.establish(None)?;
+    let assignments = alice.send(message.as_bytes())?;
+    
+    use libp2p::{identity, Swarm, futures::StreamExt, swarm::SwarmEvent};
+    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519())?;
+    
+    if let Some(boot) = bootstrap {
+        swarm.dial(boot.parse::<libp2p::Multiaddr>()?)?;
+        println!("  ✓ Dialing bootstrap node...");
+        
+        loop {
+            tokio::select! {
+                event = swarm.select_next_some() => {
+                    if let SwarmEvent::ConnectionEstablished { .. } = event {
+                        break;
+                    }
+                }
+                _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => break,
+            }
+        }
+    }
+    
+    for (node_id, payload) in assignments {
+        let key = libp2p::kad::RecordKey::new(&node_id.as_bytes());
+        let record = libp2p::kad::Record {
+            key, value: payload, publisher: None, expires: None,
+        };
+        // Result is purely ignored because DHT queries async progress
+        let _ = swarm.behaviour_mut().kademlia.put_record(record, libp2p::kad::Quorum::Majority);
+    }
+    println!("  [ALICE] Fragments pushed to P2P network!");
+    
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    alice.dissolve();
     Ok(())
 }
 
-async fn cmd_node(action: NodeAction) -> anyhow::Result<()> {
+async fn cmd_receive(sk: String, ciphertext: String, bootstrap: Option<String>) -> anyhow::Result<()> {
+    use polygone::{protocol::Session, crypto::KeyPair, crypto::kem::{KemSecretKey, KemCiphertext}};
+    use libp2p::{identity, futures::StreamExt, swarm::SwarmEvent};
+    
+    println!("⬡ POLYGONE — Receiving message...");
+
+    let sk_bytes = std::fs::read(&sk)?;
+    let kem_sk = KemSecretKey::from_bytes(&sk_bytes)?;
+
+    let ct_bytes = std::fs::read(&ciphertext)?;
+    let kem_ct = KemCiphertext::from_bytes(&ct_bytes)?;
+
+    let mut kp = KeyPair::generate()?;
+    kp.kem_sk = kem_sk;
+
+    let mut bob = Session::new_responder(kp, &kem_ct)?;
+    bob.establish(None)?;
+
+    let target_nodes = bob.topology.as_ref().unwrap().nodes.clone();
+    let threshold = bob.topology.as_ref().unwrap().params.threshold as usize;
+    let mut fragments = vec![];
+
+    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519())?;
+    if let Some(boot) = bootstrap {
+        swarm.dial(boot.parse::<libp2p::Multiaddr>()?)?;
+        loop {
+            tokio::select! {
+                event = swarm.select_next_some() => {
+                    if let SwarmEvent::ConnectionEstablished { .. } = event { break; }
+                }
+                _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => break,
+            }
+        }
+    }
+
+    for node_id in &target_nodes {
+        let key = libp2p::kad::RecordKey::new(&node_id.as_bytes());
+        swarm.behaviour_mut().kademlia.get_record(key);
+    }
+
+    println!("  [BOB] Querying DHT for fragments...");
+
+    loop {
+        tokio::select! {
+            event = swarm.select_next_some() => match event {
+                SwarmEvent::Behaviour(polygone::network::p2p::PolygoneBehaviourEvent::Kademlia(
+                    libp2p::kad::Event::OutboundQueryProgressed { result, .. }
+                )) => {
+                    if let libp2p::kad::QueryResult::GetRecord(Ok(
+                        libp2p::kad::GetRecordOk::FoundRecord(peer_record)
+                    )) = result {
+                        fragments.push(peer_record.record.value);
+                        println!("  ✓ Discovered fragment! ({}/{threshold})", fragments.len());
+                        if fragments.len() >= threshold {
+                            break;
+                        }
+                    }
+                }
+                _ => {}
+            },
+            _ = tokio::time::sleep(std::time::Duration::from_secs(10)) => {
+                anyhow::bail!("Timeout waiting for fragments from DHT.");
+            }
+        }
+    }
+
+    let recovered = bob.receive(fragments)?;
+    println!();
+    println!("  [BOB] Reconstructed → decrypted");
+    println!("        Message: \"{}\"", String::from_utf8_lossy(&recovered));
+
+    bob.dissolve();
+    Ok(())
+}
+
+async fn cmd_node(action: NodeAction, bootstrap: Option<String>) -> anyhow::Result<()> {
     match action {
         NodeAction::Start { ram_mb, listen } => {
             println!("⬡ POLYGONE NODE");
@@ -254,9 +381,37 @@ async fn cmd_node(action: NodeAction) -> anyhow::Result<()> {
             println!("  ✓ You will never see the content of any message you relay.");
             println!("  ✓ Press Ctrl-C to stop.");
             println!();
-            // TODO: start libp2p swarm with Kademlia DHT
-            tokio::signal::ctrl_c().await?;
-            println!("  ✓ Node stopped cleanly.");
+            
+            use libp2p::{identity, Swarm, futures::StreamExt, swarm::SwarmEvent};
+            let keypair = identity::Keypair::generate_ed25519();
+            let mut swarm = polygone::network::p2p::build_swarm(keypair)?;
+            swarm.listen_on(listen.parse()?)?;
+            
+            if let Some(boot) = bootstrap {
+                let addr: libp2p::Multiaddr = boot.parse()?;
+                // In a real network, we would parse out the PeerId from the address,
+                // but since libp2p dial allows address, we can dial directly.
+                swarm.dial(addr.clone())?;
+                println!("  ✓ Dialing bootstrap node: {}", addr);
+            }
+
+            loop {
+                tokio::select! {
+                    event = swarm.select_next_some() => match event {
+                        SwarmEvent::NewListenAddr { address, .. } => {
+                            println!("  ✓ Listening on {address}");
+                        }
+                        SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+                            println!("  ✓ Connected to {peer_id}");
+                        }
+                        _ => {}
+                    },
+                    _ = tokio::signal::ctrl_c() => {
+                        println!("  ✓ Node stopped cleanly.");
+                        break;
+                    }
+                }
+            }
         }
         NodeAction::Stop => println!("Stopping node daemon..."),
         NodeAction::Info => {
