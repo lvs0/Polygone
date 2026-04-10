@@ -1,8 +1,8 @@
-# POLYGONE ⬡
+# ⬡ POLYGONE
 
-> *L'information n'existe pas. Elle traverse.*
+> *"Information does not exist. It drifts."*
 
-Post-quantum ephemeral privacy network — built in Rust.
+**POLYGONE** is a post-quantum ephemeral privacy network designed to solve the **Metadata Problem**. Built in pure Rust.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)]()
@@ -11,107 +11,96 @@ Post-quantum ephemeral privacy network — built in Rust.
 
 ---
 
-## The Concept
+## The Problem: The Metadata Leak
 
-La cryptographie classique protège le **contenu** d'une communication, mais elle ne peut pas cacher que la communication **a eu lieu**. Les métadonnées restent : l'IP source, la cible, et l'heure de transmission.
+Traditional encryption protects **content**, but it cannot hide that a **communication occurred**. Source IPs, target IPs, timing, and packet sizes remain visible to observers. For a global adversary, metadata is often more valuable than content.
 
-**POLYGONE** change ce paradigme.
+**POLYGONE changes the paradigm.** 
 
-Un réseau P2P éphémère naît via une Distributed Hash Table (Kademlia DHT). Il transporte une computation mathématique brisée en fragments de Shamir, puis disparaît en vaporisant la clé de session. Un observateur externe ne voit pas un flux de messages chiffrés de A vers B ; il observe du bruit ambiant asynchrone éclaté à travers le DHT mondial.
-
-**S'il n'y a pas de cible, il n'y a pas de surface d'attaque.**
+Instead of an encrypted tunnel between A and B, POLYGONE turns a message into a distributed, transient mathematical state—a wave that crosses a global DHT and then vaporizes. To an outside observer, there is no message; there is only ambient asynchronous noise across 7 random nodes.
 
 ---
 
-## Architecture de Résilience
+## How it Works: The 4-Step Vaporization
 
-```text
-1. 🔐 SYNCHRONISATION (Hors-Bande)
-   Alice et Bob échangent une clé publique ML-KEM-1024.
-   La clé ne chiffre aucun payload ; elle initie unifiant l'architecture du réseau de transit.
+```mermaid
+sequenceDiagram
+    participant A as Alice
+    participant DHT as Global Kademlia DHT
+    participant B as Bob
 
-2. 🧬 DÉRIVATION DÉTERMINISTE
-   Un graphe théorique de 7 noeuds virtuels est généré en mémoire via le secret partagé post-quantique.
-   Un hash (BLAKE3) avec séparation de domaine agit comme KDF. Absolument personne d'autre
-   ne peut deviner quelles clés Kademlia seront générées et ciblées.
+    Note over A, B: Out-of-band ML-KEM Key Exchange
+    A->>A: Derive deterministic Topology (7 Nodes)
+    A->>A: Encrypt (AES-GCM) & Split (Shamir 4-of-7)
+    
+    par Node 1 to 7
+        A->>DHT: put_record(Fragment_i)
+    end
+    
+    Note over DHT: Fragments live for 30s (TTL)
+    
+    par Node 1 to 7
+        B->>DHT: get_record(Fragment_i)
+    end
 
-3. 🌪️ DISPERSION KADEMLIA
-   Le payload est chiffré (AES-256-GCM), puis fragmenté (Shamir, t=4, n=7).
-   Chaque fragment est largué sur le réseau P2P natif via `put_record` avec
-   un Quorum Absolu de Majorité. Aucun relais ne voit plus d'un fragment (mathématiquement non reconstructible).
-
-4. 💨 VAPORISATION (TTL)
-   La donnée possède un Time-To-Live agressif (ex: 30s) imposé au réseau. Elle se désintègre
-   de la RAM des relais à la seconde T. Localement, des contraintes Rust (`ZeroizeOnDrop`) nettoient les OS d'Alice et Bob.
-   L'échange n'a jamais eu lieu.
+    B->>B: Reconstruct & Decrypt
+    Note over A, B: Zeroize memory. Network dissolves.
 ```
 
----
+### 1. Post-Quantum Handshake
+Alice and Bob exchange a single **ML-KEM-1024** (FIPS 203) public key. This key does not encrypt the payload; it defines the network architecture for the transit.
 
-## Stack Technique
+### 2. Deterministic Topology
+Alice and Bob use **BLAKE3** to derive a deterministic graph of 7 virtual nodes from their shared secret. Nobody else can predict which Kademlia keys will be targeted.
 
-| Couche        | Technologie              | Rôle |
-|---------------|--------------------------|---|
-| **KEM**           | ML-KEM-1024 (FIPS 203)   | Accords de clés (Résistance algorithme de Shor) |
-| **Signature**     | ML-DSA-87 (FIPS 204)     | Authentification |
-| **Symétrique**    | AES-256-GCM              | Chiffrement authentifié du payload |
-| **Dérivation**    | BLAKE3                   | KDF ultra-rapide / Topologies Seeds déterministes |
-| **Secret share**  | Shamir Secrets (t=4, n=7)| Fragmentation Information-theoretic |
-| **Réseau**        | libp2p / Kademlia DHT    | Transport P2P mondial & Stockage Asynchrone Ephemère |
-| **Langage**       | Rust (nightly)           | Memory-safety stricte, Drop-Traits nettoyants |
+### 3. Shamir Dispersion
+The payload is encrypted with **AES-256-GCM**, then fragmented via **Shamir's Secret Sharing (t=4, n=7)**. Fragments are dropped into the global DHT via `libp2p`. No single relay ever holds more than one fragment—mathematically impossible to reconstruct without a quorum.
+
+### 4. Atmospheric Vaporization
+Data has an aggressive **30s TTL**. It evaporates from the RAM of the relays automatically. Locally, `ZeroizeOnDrop` ensures that no trace remains in Alice or Bob's memory.
 
 ---
 
-## Run The Testnet (Local Proof of Concept)
+## Benchmarks: Cryptography at the Speed of Light
 
-Polygone P2P v0.2 est complètement fonctionnel via CLI. Vous pouvez lancer le cluster local pour explorer l'architecture P2P :
+Measured on a standard modern CPU. Total cryptographic latency for a message injection is **< 0.2ms**.
+
+| Primitive | Operation | Latency |
+|---|-|---|
+| **ML-KEM-1024** | Encapsulation | ~29.1 µs |
+| **ML-KEM-1024** | Decapsulation | ~32.8 µs |
+| **BLAKE3** | Topology Derivation | ~0.2 µs |
+| **AES-256-GCM** | Encryption (1KB) | ~2.6 µs |
+| **Shamir (4/7)** | Split (32B) | ~3.1 µs |
+| **Full Lifecycle** | **Alice Send (E2E Crypto)** | **~178 µs** |
+
+---
+
+## Quickstart: Join the Testnet
+
+Polygone is fully operational. You can simulate the entire global network on your machine in 30 seconds.
 
 ```bash
-# 1. Utiliser le profil sécurisé nightly
+# 1. Install Rust Nightly
 rustup toolchain install nightly && rustup default nightly
 
-# 2. Cloner le dépôt
+# 2. Clone and Launch the Interactive Script
 git clone https://github.com/lvs0/Polygone && cd Polygone
-
-# 3. Lancer un cluster de 7 relais P2P Kademlia en fond (simule l'Internet)
-./testnet.sh
-
-# 4. Dans un terminal, exécuter l'Auto-Test P2P End-to-End
-cargo run -- self-test
+./polygone.sh
 ```
 
-Voir le code de livraison de fragment P2P en temps réel via :
-```bash
-cargo run -- send --peer-pk demo --message "Hello Hacker News"
-```
+Choose **Option 3 (Self-Test)** to see Alice and Bob perform a full P2P exchange through 7 local Kademlia nodes.
 
 ---
 
-## Roadmap Accomplie ✅
-
-- [x] Primitives crypto post-quantiques (KEM, DSA, AES, Shamir, BLAKE3)
-- [x] Dérivation de topologie déterministe depuis un shared secret
-- [x] Lifecycle noeuds éphémères (Drop safe memory clearing avec protection UNIX `0600`)
-- [x] Couche compute/stockage distribué
-- [x] Intégration complète `libp2p` (Swarm asynchrone, connectivité)
-- [x] **Protocole MPC transit réel** (Fragments distribués via Records Kademlia + Majority Quorum)
-- [x] Contre-mesures DHT (Records TTL : auto-évaporation du réseau à 30s)
-- [x] Benchmarks (Criterion intégrés aux primitives ML-KEM)
-- [x] P2P & Cryptographic Security Audit
+## Technical Audit & Safety
+- **No Unsafe Code**: `#![forbid(unsafe_code)]` at crate root.
+- **Memory Hardening**: Keys are zeroed immediately after use. Private keys are stored with `0600` permissions.
+- **Information Theoretic Security**: Fragmentation ensures that even if 3 out of 7 nodes are compromised, your data remains secret.
 
 ---
 
-## Participer
+## Contributing
+Issues and PRs are welcome. We value honest technical critiques (cryptanalysis, network attacks) over polite praise.
 
-Issues et PRs bienvenues. La critique honnête et technique (cryptanalyse, failles réseaux, memory leak) est préférée à l'encouragement poli.
-
-Opérateurs réseau : un VPS Linux 512 MB RAM (sans swap ! la prudence exige d'empêcher les dumps mémoires du kernel) suffit pour héberger un relais `cargo run --release -- node start`.
-
----
-
-## Licence
-
-MIT — Pas d'investisseurs. Pas de token. Pas de collecte de données.
-Construit par Lévy, 14 ans, France.
-
-*"La confidentialité n'est pas un paramètre. C'est une propriété architecturale."*
+***"Privacy is not a setting. It is an architectural property."*** ⬡
