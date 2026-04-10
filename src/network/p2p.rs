@@ -7,7 +7,29 @@ use libp2p::{
     noise, tcp, yamux, PeerId, StreamProtocol, Swarm, SwarmBuilder,
 };
 use std::time::Duration;
+use std::path::Path;
+use std::fs;
 use libp2p::swarm::NetworkBehaviour;
+
+/// Load a libp2p identity keypair from a file or generate and save a new one.
+pub fn load_or_generate_identity(path: &Path) -> anyhow::Result<Keypair> {
+    if path.exists() {
+        let bytes = fs::read(path)?;
+        let keypair = Keypair::from_protobuf_encoding(&bytes)
+            .map_err(|e| anyhow::anyhow!("Failed to decode identity key: {}", e))?;
+        println!("  ✓ Loaded persistent identity from {}", path.display());
+        Ok(keypair)
+    } else {
+        let keypair = Keypair::generate_ed25519();
+        let bytes = keypair.to_protobuf_encoding()?;
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(path, bytes)?;
+        println!("  ✓ Generated and saved new identity to {}", path.display());
+        Ok(keypair)
+    }
+}
 
 #[derive(NetworkBehaviour)]
 pub struct PolygoneBehaviour {

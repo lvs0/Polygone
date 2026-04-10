@@ -105,6 +105,10 @@ enum NodeAction {
         /// Listen address
         #[arg(short, long, default_value = "0.0.0.0:4001")]
         listen: String,
+
+        /// Path to the identity key file (for persistent PeerId)
+        #[arg(short, long)]
+        identity: Option<String>,
     },
     /// Stop the running daemon
     Stop,
@@ -372,18 +376,28 @@ async fn cmd_receive(sk: String, ciphertext: String, bootstrap: Option<String>) 
 
 async fn cmd_node(action: NodeAction, bootstrap: Option<String>) -> anyhow::Result<()> {
     match action {
-        NodeAction::Start { ram_mb, listen } => {
+        NodeAction::Start { ram_mb, listen, identity } => {
             println!("⬡ POLYGONE NODE");
             println!("  Listen  : {listen}");
             println!("  RAM cap : {ram_mb} MB");
             println!();
+            
+            use libp2p::{identity as lp2p_id, Swarm, futures::StreamExt, swarm::SwarmEvent};
+            use std::path::Path;
+
+            let keypair = if let Some(path) = identity {
+                polygone::network::p2p::load_or_generate_identity(Path::new(&path))?
+            } else {
+                lp2p_id::Keypair::generate_ed25519()
+            };
+
+            let peer_id = libp2p::PeerId::from(keypair.public());
+            println!("  ✓ Identity : {peer_id}");
             println!("  ✓ Node started — participating in ephemeral transit network");
             println!("  ✓ You will never see the content of any message you relay.");
             println!("  ✓ Press Ctrl-C to stop.");
             println!();
             
-            use libp2p::{identity, Swarm, futures::StreamExt, swarm::SwarmEvent};
-            let keypair = identity::Keypair::generate_ed25519();
             let mut swarm = polygone::network::p2p::build_swarm(keypair)?;
             swarm.listen_on(listen.parse()?)?;
             
