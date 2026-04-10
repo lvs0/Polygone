@@ -2,7 +2,7 @@
 name    = "polygone-core"
 version = "0.1.0"
 edition = "2021"
-authors = ["Max <polygone@proton.me>"]
+authors = ["Lévy <lvs0@proton.me>"]
 description = "Post-quantum ephemeral network — core protocol library"
 license = "MIT"
 repository = "https://github.com/lvs0/Polygone"
