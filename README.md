@@ -104,3 +104,4 @@ Choose **Option 3 (Self-Test)** to see Alice and Bob perform a full P2P exchange
 Issues and PRs are welcome. We value honest technical critiques (cryptanalysis, network attacks) over polite praise.
 
 ***"Privacy is not a setting. It is an architectural property."*** ⬡
+by Hope
