@@ -92,6 +92,23 @@ enum Commands {
 
     /// Run the self-test suite (crypto + network integration)
     SelfTest,
+
+    /// Manage resource sharing and Karma (compute economy)
+    Power {
+        #[command(subcommand)]
+        action: PowerAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum PowerAction {
+    /// Turn on the intelligent background node (activates when system is idle)
+    On {
+        #[arg(short, long, default_value = "0.2")]
+        idle_threshold: f32,
+    },
+    /// Show your current Karma balance and vouchers
+    Wallet,
 }
 
 #[derive(Subcommand)]
@@ -138,6 +155,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Node { action } => cmd_node(action, cli.bootstrap).await,
         Commands::Status => cmd_status().await,
         Commands::SelfTest => cmd_selftest().await,
+        Commands::Power { action } => cmd_power(action).await,
     }
 }
 
@@ -443,6 +461,38 @@ async fn cmd_status() -> anyhow::Result<()> {
     println!("  Active sessions : 0");
     println!("  Network peers   : 0 (not connected)");
     println!("  Node status     : offline");
+    Ok(())
+}
+
+async fn cmd_power(action: PowerAction) -> anyhow::Result<()> {
+    use polygone::crypto::karma::{KarmaStore, IdleMonitor};
+    use std::path::Path;
+
+    match action {
+        PowerAction::Wallet => {
+            let path = Path::new("~/.polygone/karma.db"); // Simplified path for demo
+            let store = KarmaStore::load_from_file(path).unwrap_or_default();
+            println!("⬡ POLYGONE KARMA WALLET");
+            println!("  Karma Balance : {} units", store.total_units());
+            println!("  Vouchers      : {} collected", store.vouchers.len());
+        }
+        PowerAction::On { idle_threshold } => {
+            println!("⬡ POLYGONE POWER : INTELLIGENT MODE");
+            println!("  Threshold : {} (Load Avg 1m)", idle_threshold);
+            println!("  Status    : Monitoring system load...");
+            
+            loop {
+                let idle = IdleMonitor::is_idle(idle_threshold);
+                if idle {
+                    println!("  [IDLE] System quiet. Waking up background node...");
+                    // (Here we would trigger the node logic - for demo we just sleep)
+                } else {
+                    // println!("  [BUSY] System active. Sleeping...");
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            }
+        }
+    }
     Ok(())
 }
 

@@ -46,6 +46,7 @@ pub use crypto::{
     sign::{SignPublicKey, SignSecretKey, Signature},
     symmetric::EncryptedPayload,
     shamir::{Fragment, FragmentId},
+    karma::WorkVoucher,
 };
 pub use error::PolygoneError;
 pub use network::{

@@ -5,9 +5,28 @@ use pqcrypto_traits::sign::{PublicKey, SecretKey, SignedMessage};
 use zeroize::ZeroizeOnDrop;
 use crate::{PolygoneError, Result};
 
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
+
 /// ML-DSA-87 public key.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SignPublicKey(mldsa87::PublicKey);
+
+impl Serialize for SignPublicKey {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where S: Serializer {
+        serializer.serialize_bytes(self.0.as_bytes())
+    }
+}
+
+impl<'de> Deserialize<'de> for SignPublicKey {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where D: Deserializer<'de> {
+        let bytes: Vec<u8> = Deserialize::deserialize(deserializer)?;
+        let pk = mldsa87::PublicKey::from_bytes(&bytes).map_err(serde::de::Error::custom)?;
+        Ok(SignPublicKey(pk))
+    }
+}
+
 impl SignPublicKey {
     /// Raw bytes.
     pub fn as_bytes(&self) -> &[u8] { self.0.as_bytes() }
@@ -18,7 +37,7 @@ impl SignPublicKey {
 pub struct SignSecretKey(#[zeroize(skip)] mldsa87::SecretKey);
 
 /// A detached signature (4627 bytes for ML-DSA-87).
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Signature(Vec<u8>);
 impl Signature {
     /// Raw bytes.

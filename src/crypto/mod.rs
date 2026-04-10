@@ -18,6 +18,7 @@ pub mod kem;
 pub mod shamir;
 pub mod sign;
 pub mod symmetric;
+pub mod karma;
 
 // ── KeyPair ──────────────────────────────────────────────────────────────────
 
