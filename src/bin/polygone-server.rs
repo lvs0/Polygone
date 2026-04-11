@@ -84,10 +84,13 @@ async fn main() -> polygone::anyhow::Result<()> {
     let status_path = "/tmp/polygone_status.json";
     let p_id = peer_id.to_string();
     let start_time = std::time::Instant::now();
+    let mut peer_count = 0;
+
     loop {
         let status = json!({
             "peer_id": p_id,
             "uptime_secs": start_time.elapsed().as_secs(),
+            "peers": peer_count,
             "status": "online"
         });
         let _ = fs::write(status_path, status.to_string());
@@ -97,12 +100,21 @@ async fn main() -> polygone::anyhow::Result<()> {
                 SwarmEvent::NewListenAddr { address, .. } => {
                     println!("  📡 Real Listen Address: {}", address);
                 }
+                SwarmEvent::ConnectionEstablished { .. } => {
+                    peer_count += 1;
+                    println!("  🤝 NEW PEER: Network size -> {} nodes", peer_count + 1);
+                }
+                SwarmEvent::ConnectionClosed { .. } => {
+                    peer_count = peer_count.saturating_sub(1);
+                    println!("  🚪 PEER DISCONNECTED: Network size -> {} nodes", peer_count + 1);
+                }
                 SwarmEvent::IncomingConnection { .. } => {
-                    println!("  📥 Incoming P2P connection...");
+                    println!("  📥 Incoming P2P connection attempt...");
                 }
                 _ => {}
             },
             _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
+                println!("  [NETWORK STATUS] {} peers connected | Uptime: {}s", peer_count, start_time.elapsed().as_secs());
                 if let Some(url) = &render_url {
                     // Self-ping to keep Render alive
                     let _ = reqwest::get(url).await;
