@@ -55,6 +55,11 @@ pub use network::{
 };
 pub use protocol::{Session, SessionId, TransitState};
 
+// Re-export major dependencies for ecosystem synchronization
+pub use libp2p;
+pub use anyhow;
+pub use base64;
+
 /// Convenience alias for results throughout the crate.
 pub type Result<T> = std::result::Result<T, PolygoneError>;
 

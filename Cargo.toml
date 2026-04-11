@@ -58,6 +58,7 @@ getrandom        = { version = "0.2", features = ["js"] }
 # ── Serialization ─────────────────────────────────────────
 serde            = { version = "1", features = ["derive"] }
 bincode          = "1"
+base64           = "0.22"
 
 # ── Error Handling ────────────────────────────────────────
 thiserror        = "1"
