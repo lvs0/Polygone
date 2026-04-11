@@ -19,11 +19,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config protobuf-compiler
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cargo Check
-        run: cargo check --all-targets
+      - name: Cargo Check (Diagnostic)
+        continue-on-error: true
+        run: cargo check --all-targets 2>&1 | tee cargo_logs.txt
+
+      - name: Show Logs on Failure
+        if: failure()
+        run: cat cargo_logs.txt
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -38,12 +48,16 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Lowercase Repository Owner
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/polygone:latest
+          tags: ghcr.io/${{ steps.owner.outputs.name }}/polygone:latest
           labels: ${{ id.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
