@@ -20,17 +20,21 @@ use polygone::{KeyPair, VERSION};
 #[command(
     name    = "polygone",
     version = VERSION,
-    author  = "Max <polygone@proton.me>",
+    author  = "Lévy <contact@soe-ai.dev>",
     about   = "Post-quantum ephemeral transit network",
     long_about = "\
-POLYGONE — L'information n'existe pas. Elle traverse.
+⬡ POLYGONE — L'information n'existe pas. Elle traverse.
 
-A post-quantum ephemeral network where messages become distributed
-computational state. No server sees the message. No observer can
-prove a message existed. Classical encryption hides content.
-POLYGONE hides the communication itself.
+Polygone is a post-quantum privacy network where messages become distributed 
+computational states. Instead of an encrypted tunnel, Polygone creates a 
+transient 'wave' across a global DHT. 
 
-Source: https://github.com/polygone/core
+- Unobservable: No server sees the message. No observer can prove communication existed.
+- Post-Quantum: Built on ML-KEM-1024 and ML-DSA-87.
+- Ephemeral: 30s TTL for all data fragments.
+- Memory Safe: ZeroizeOnDrop and Unix-level hardening.
+
+Source: https://github.com/lvs0/Polygone
 Licence: MIT"
 )]
 struct Cli {
@@ -93,7 +97,7 @@ enum Commands {
     /// Run the self-test suite (crypto + network integration)
     SelfTest,
 
-    /// Manage resource sharing and Karma (compute economy)
+    /// Manage resource sharing and Karma (the compute economy)
     Power {
         #[command(subcommand)]
         action: PowerAction,

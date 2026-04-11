@@ -67,12 +67,12 @@ Measured on a standard modern CPU. Total cryptographic latency for a message inj
 
 | Primitive | Operation | Latency |
 |---|-|---|
-| **ML-KEM-1024** | Encapsulation | ~29.1 µs |
-| **ML-KEM-1024** | Decapsulation | ~32.8 µs |
-| **BLAKE3** | Topology Derivation | ~0.2 µs |
-| **AES-256-GCM** | Encryption (1KB) | ~2.6 µs |
-| **Shamir (4/7)** | Split (32B) | ~3.1 µs |
-| **Full Lifecycle** | **Alice Send (E2E Crypto)** | **~178 µs** |
+| **ML-KEM-1024** | Encapsulation | ~34.1 µs |
+| **ML-KEM-1024** | Decapsulation | ~35.3 µs |
+| **BLAKE3** | Topology Derivation | ~0.23 µs |
+| **AES-256-GCM** | Encryption (1KB) | ~3.80 µs |
+| **Shamir (4/7)** | Split (32B) | ~4.21 µs |
+| **Full Lifecycle** | **Alice Send (E2E Crypto)** | **~207.6 µs** |
 
 ---
 
@@ -93,10 +93,26 @@ Choose **Option 3 (Self-Test)** to see Alice and Bob perform a full P2P exchange
 
 ---
 
-## Technical Audit & Safety
-- **No Unsafe Code**: `#![forbid(unsafe_code)]` at crate root.
-- **Memory Hardening**: Keys are zeroed immediately after use. Private keys are stored with `0600` permissions.
-- **Information Theoretic Security**: Fragmentation ensures that even if 3 out of 7 nodes are compromised, your data remains secret.
+## Security Model & Philosophy
+
+Polygone is built on the principle of **Inobservable Communication**. 
+
+- **Post-Quantum Resistance**: All key exchanges use **ML-KEM-1024**. Signatures use **ML-DSA-87**. We assume the existence of a cryptographically relevant quantum computer (CRQC).
+- **Forward Secrecy**: Every session derives a unique set of keys and a unique network topology. Even a total compromise of a peer's long-term identity does not reveal past communications.
+- **Information-Theoretic Privacy**: Using Shamir Secret Sharing, we ensure that an adversary observing the DHT or controlling up to `threshold - 1` nodes gains **zero bits of information** about the payload or the target.
+- **Memory Safety**: 
+    - `#![forbid(unsafe_code)]` at crate root.
+    - `ZeroizeOnDrop` integration for all sensitive key material.
+    - Unix-level hardening (`0600` permissions for identity files).
+
+## Known Limitations (v0.2-alpha)
+
+Polygone is currently in an early alpha stage. The following limitations apply:
+
+- **Local Discovery**: The current version is optimized for local or reliable VPS-to-VPS communication. NAT traversal and complex peer discovery in mobile/home networks are in active development.
+- **DHT Spam**: The network does not yet implement staking or proof-of-work for `put_record` operations, making it susceptible to flood attacks in a public production environment.
+- **Static Quorum**: Threshold (t=4, n=7) is currently hardcoded for stability. Dynamic adjustment of resilience vs. latency is planned for v0.3.
+- **Formal Verification**: While the primitives used are standard, the full protocol state machine has not yet undergone formal verification.
 
 ---
 
