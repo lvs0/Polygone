@@ -38,7 +38,7 @@ async fn main() -> polygone::anyhow::Result<()> {
     } else if let Ok(seed_b64) = std::env::var("POLY_P2P_SEED") {
         let seed = BASE64.decode(seed_b64.trim())?;
         if seed.len() != 32 {
-            anyhow::bail!("POLY_P2P_SEED must be 32 bytes Base64-encoded");
+            anyhow::bail!("POLY_P2P_SEED must be 32 bytes Base64-encoded (found {} bytes)", seed.len());
         }
         let mut seed_arr = [0u8; 32];
         seed_arr.copy_from_slice(&seed);
