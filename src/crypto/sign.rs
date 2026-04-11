@@ -30,7 +30,16 @@ impl<'de> Deserialize<'de> for SignPublicKey {
 impl SignPublicKey {
     /// Raw bytes.
     pub fn as_bytes(&self) -> &[u8] { self.0.as_bytes() }
+
+    /// Parse from bytes.
+    pub fn from_bytes(b: &[u8]) -> Result<Self> {
+        Ok(Self(mldsa87::PublicKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid Sign PK".into()))?))
+    }
 }
+
+/// ML-DSA-87 secret key (sensitive).
+#[derive(ZeroizeOnDrop)]
+pub struct SignSecretKey(mldsa87::SecretKey);
 
 impl SignSecretKey {
     /// Raw bytes.
