@@ -49,6 +49,10 @@ pub fn build_swarm(
             noise::Config::new,
             yamux::Config::default,
         )?
+        .with_websocket(
+            noise::Config::new,
+            yamux::Config::default,
+        )
         .with_behaviour(|key| {
             let local_peer_id = PeerId::from(key.public());
 

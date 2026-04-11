@@ -19,24 +19,25 @@ COPY . .
 RUN cargo build --release --bin polygone-server
 
 # --- Runtime Stage ---
-FROM python:3.11-slim-bookworm
+FROM debian:bookworm-slim
 
-# Install CA certificates
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install CA certificates and networking tools
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy binary from build stage
 COPY --from=builder /usr/src/polygone/target/release/polygone-server /usr/local/bin/polygone-server
 
-# Copy pulse and entrypoint (now at root)
-COPY pulse.py .
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
+# Identity directory
+RUN mkdir -p /data
 
 # Render expects the app to bind to $PORT
 EXPOSE 8080
 EXPOSE 4001
 
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["--identity", "/app/identity.p2p", "--listen", "/ip4/0.0.0.0/tcp/4001"]
+ENTRYPOINT ["polygone-server"]
+CMD ["--identity", "/data/identity.p2p"]

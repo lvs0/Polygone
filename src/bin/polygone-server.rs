@@ -21,6 +21,10 @@ struct Cli {
     /// Bootstrap node (optional)
     #[arg(short, long)]
     bootstrap: Option<String>,
+
+    /// Public URL for self-ping (optional)
+    #[arg(long)]
+    render_url: Option<String>,
 }
 
 #[tokio::main]
@@ -55,13 +59,24 @@ async fn main() -> polygone::anyhow::Result<()> {
     let mut swarm = build_swarm(p2p_keypair)?;
 
     // 3. Listen
-    swarm.listen_on(cli.listen.parse::<libp2p::Multiaddr>()?)?;
+    // On Render, we must listen on the port provided by the environment
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let ws_addr = format!("/ip4/0.0.0.0/tcp/{}/ws", port);
+    println!("  📡 Listening on WebSocket: {}", ws_addr);
+    swarm.listen_on(ws_addr.parse::<libp2p::Multiaddr>()?)?;
+
+    // Also listen on standard TCP if possible (internal)
+    let tcp_addr = "/ip4/0.0.0.0/tcp/4001";
+    let _ = swarm.listen_on(tcp_addr.parse::<libp2p::Multiaddr>()?);
 
     // 4. Dial Bootstrap if provided
     if let Some(addr) = cli.bootstrap {
         println!("  ▸ Connecting to bootstrap: {}", addr);
-        swarm.dial(addr.parse::<libp2p::Multiaddr>()?)?;
+        let _ = swarm.dial(addr.parse::<libp2p::Multiaddr>()?);
     }
+
+    // 5. Self-Ping (Pulse) logic
+    let render_url = cli.render_url.or_else(|| std::env::var("RENDER_URL").ok());
 
     println!(" ⬢ Node is live and relaying traffic.");
 
@@ -80,11 +95,19 @@ async fn main() -> polygone::anyhow::Result<()> {
         tokio::select! {
             event = swarm.select_next_some() => match event {
                 SwarmEvent::NewListenAddr { address, .. } => {
-                    println!("  📡 Listening on: {}", address);
+                    println!("  📡 Real Listen Address: {}", address);
+                }
+                SwarmEvent::IncomingConnection { .. } => {
+                    println!("  📥 Incoming P2P connection...");
                 }
                 _ => {}
             },
-            _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {}
+            _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
+                if let Some(url) = &render_url {
+                    // Self-ping to keep Render alive
+                    let _ = reqwest::get(url).await;
+                }
+            }
         }
     }
 }
