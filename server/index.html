@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POLYGONE-SERVER — Deploy a Post-Quantum Relay in One Command</title>
+  <meta name="description" content="Run a persistent Polygone node 24/7. Docker-based, self-healing, identity-persistent relay for the ephemeral network.">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{--void:#0A0A0F;--surface:#111118;--border:#1E1E2E;--cobalt:#1A6BFF;--green:#28C840;--text:#C8C8E8;--text-dim:#4A4A6A;--text-bright:#F0F0FF;--ease:cubic-bezier(.25,.46,.45,.94);--font-d:'Bebas Neue',sans-serif;--font-m:'IBM Plex Mono',monospace;}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--void);color:var(--text);font-family:var(--font-m);font-size:13px;line-height:1.8;overflow-x:hidden;}a{color:inherit;text-decoration:none;}
+    nav{position:fixed;top:0;left:0;right:0;height:50px;z-index:100;background:rgba(10,10,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px;justify-content:space-between;}
+    .nav-logo{font-family:var(--font-d);font-size:18px;letter-spacing:.1em;}.nav-logo span{color:var(--cobalt);}
+    .nav-links{display:flex;gap:28px;}.nav-links a{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);transition:.3s;}.nav-links a:hover{color:var(--cobalt);}
+    #hero{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    canvas{position:absolute;inset:0;width:100%;height:100%;}
+    .hero-c{position:relative;z-index:2;text-align:center;padding:0 24px;max-width:900px;}
+    .status-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(40,200,64,.3);padding:5px 14px;margin-bottom:28px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--green);}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+    .hero-title{font-family:var(--font-d);font-size:clamp(48px,12vw,160px);color:var(--text-bright);line-height:.9;letter-spacing:.04em;}
+    .hero-sub{font-size:12px;letter-spacing:.4em;text-transform:uppercase;color:var(--cobalt);margin-top:20px;}
+    .hero-desc{font-size:13px;color:var(--text-dim);margin:16px auto 0;max-width:540px;}
+    .hero-ctas{display:flex;gap:16px;justify-content:center;margin-top:40px;flex-wrap:wrap;}
+    .btn{display:inline-block;padding:11px 26px;border:1px solid var(--cobalt);font-family:var(--font-m);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--cobalt);position:relative;overflow:hidden;transition:color .3s;}
+    .btn::before{content:'';position:absolute;inset:0;background:var(--cobalt);transform:translateX(-100%);transition:transform .3s var(--ease);}
+    .btn:hover::before{transform:translateX(0);}.btn:hover{color:var(--void);}.btn span{position:relative;z-index:1;}
+    .btn-ghost{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);transition:.3s;padding:11px 0;}.btn-ghost:hover{color:var(--text-bright);}
+    .sec{max-width:1000px;margin:0 auto;padding:100px 40px;border-top:1px solid var(--border);}
+    .sec-label{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--cobalt);margin-bottom:16px;}
+    .sec-title{font-family:var(--font-d);font-size:clamp(28px,5vw,56px);color:var(--text-bright);line-height:1;margin-bottom:40px;}
+    .cmd-block{background:var(--surface);border:1px solid var(--border);}
+    .cmd-bar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+    .cmd-dot{width:8px;height:8px;border-radius:50%;}
+    .cmd-body{padding:20px 24px;font-size:12px;}
+    .cmd-body .p{color:var(--text-dim);}.cmd-body .c{color:var(--cobalt);}.cmd-body .s{color:#E0E0FF;}.cmd-body .g{color:var(--green);}
+    .cmd-line{margin-bottom:8px;}
+    .req-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);}
+    .req{background:var(--surface);padding:32px 24px;}
+    .req h3{font-family:var(--font-d);font-size:20px;color:var(--text-bright);margin-bottom:12px;}
+    .req p{font-size:12px;color:var(--text-dim);}
+    .req .ok{color:var(--green);font-size:10px;letter-spacing:.2em;margin-top:12px;}
+    footer{border-top:1px solid var(--border);padding:36px 40px;max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+    .ft-l{font-size:10px;color:var(--text-dim);line-height:1.9;}.ft-l strong{color:var(--cobalt);font-weight:400;}
+    .ft-links{display:flex;gap:20px;}.ft-links a{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-dim);transition:.3s;}.ft-links a:hover{color:var(--cobalt);}
+    .rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease);}.rv.on{opacity:1;transform:none;}
+    @media(max-width:800px){.req-grid{grid-template-columns:1fr;}.sec{padding:70px 24px;}nav{padding:0 20px;}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="https://github.com/lvs0/Polygone" class="nav-logo">POLYGONE · <span>SERVER</span></a>
+    <div class="nav-links">
+      <a href="#deploy">Deploy</a>
+      <a href="#requirements">Requirements</a>
+      <a href="https://github.com/lvs0/Polygone-Server" target="_blank">↗ GitHub</a>
+    </div>
+  </nav>
+  <section id="hero">
+    <canvas id="cnv"></canvas>
+    <div class="hero-c">
+      <div class="status-pill"><span class="status-dot"></span>Node Ready to Deploy</div>
+      <h1 class="hero-title">SERVER</h1>
+      <p class="hero-sub">Persistent Relay Deployment</p>
+      <p class="hero-desc">One command. Your machine becomes a permanent node in the ephemeral Polygone network. Docker-managed. Identity-persistent. Self-healing.</p>
+      <div class="hero-ctas">
+        <a href="#deploy" class="btn"><span>Deploy a Node</span></a>
+        <a href="https://github.com/lvs0/Polygone-Server" target="_blank" class="btn-ghost">↗ View Source</a>
+      </div>
+    </div>
+  </section>
+  <section id="deploy" class="sec">
+    <div class="sec-label rv">One-Line Deploy</div>
+    <h2 class="sec-title rv">UP IN<br>60 SECONDS</h2>
+    <div class="cmd-block rv">
+      <div class="cmd-bar">
+        <div class="cmd-dot" style="background:#FF5F57"></div>
+        <div class="cmd-dot" style="background:#FFBD2E"></div>
+        <div class="cmd-dot" style="background:#28C840"></div>
+      </div>
+      <div class="cmd-body">
+        <div class="cmd-line"><span class="p">$ </span><span class="c">git clone</span><span class="s"> https://github.com/lvs0/Polygone-Server && cd Polygone-Server</span></div>
+        <div class="cmd-line"><span class="p">$ </span><span class="c">docker-compose</span><span class="s"> up -d</span></div>
+        <div class="cmd-line" style="margin-top:12px;color:var(--text-dim);font-size:11px;"># That's it. Your node is live.</div>
+        <div class="cmd-line" style="color:var(--green);font-size:11px;">⬡ POLYGONE-SERVER — Node Active</div>
+        <div class="cmd-line" style="color:var(--text-dim);font-size:11px;">  PeerID  : 12D3KooW... (persistent)</div>
+        <div class="cmd-line" style="color:var(--text-dim);font-size:11px;">  Port    : 4001</div>
+        <div class="cmd-line" style="color:var(--text-dim);font-size:11px;">  Cache   : 10 GB allocated</div>
+        <div class="cmd-line" style="color:var(--cobalt);font-size:11px;">  Status  : Connected to Polygone DHT ✓</div>
+      </div>
+    </div>
+  </section>
+  <section id="requirements" class="sec">
+    <div class="sec-label rv">Requirements</div>
+    <h2 class="sec-title rv">MINIMUM<br>SPECS</h2>
+    <div class="req-grid rv">
+      <div class="req"><h3>CPU</h3><p>Any modern CPU. The server uses minimal compute. It primarily routes, stores, and verifies ML-DSA signatures.</p><div class="ok">✓ 1 vCPU minimum</div></div>
+      <div class="req"><h3>RAM</h3><p>Rust's zero-copy architecture keeps memory usage low. Drive relay caching scales with your allocation.</p><div class="ok">✓ 512 MB minimum</div></div>
+      <div class="req"><h3>STORAGE</h3><p>Configure <code>POLY_CACHE_GB</code> in docker-compose.yml. Only ephemeral fragments — cleared on TTL.</p><div class="ok">✓ 5 GB recommended</div></div>
+    </div>
+  </section>
+  <footer>
+    <div class="ft-l"><strong>POLYGONE-SERVER</strong> — MIT License — 2026<br>Part of the Polygone post-quantum ecosystem</div>
+    <div class="ft-links">
+      <a href="https://github.com/lvs0/Polygone-Server" target="_blank">GitHub</a>
+      <a href="https://github.com/lvs0/Polygone" target="_blank">Core Protocol</a>
+    </div>
+  </footer>
+  <script>
+    const cv=document.getElementById('cnv'),ctx=cv.getContext('2d');let W,H;
+    const resize=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;};resize();addEventListener('resize',resize);
+    const pts=Array.from({length:40},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2}));
+    function draw(){ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.fillStyle='rgba(40,200,64,.3)';ctx.arc(p.x,p.y,1.5,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
+    draw();
+    const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on');}),{threshold:.1});
+    document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+  </script>
+</body>
+</html>
