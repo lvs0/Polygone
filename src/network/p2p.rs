@@ -37,11 +37,9 @@ pub struct PolygoneBehaviour {
     pub identify: Identify,
 }
 
-pub async fn build_swarm(
+pub fn build_swarm(
     keypair: Keypair,
 ) -> anyhow::Result<Swarm<PolygoneBehaviour>> {
-    let peer_id = PeerId::from(keypair.public());
-
     let swarm = SwarmBuilder::with_existing_identity(keypair.clone())
         .with_tokio()
         .with_tcp(
@@ -49,11 +47,11 @@ pub async fn build_swarm(
             noise::Config::new,
             yamux::Config::default,
         )?
-        .with_dns().await?
+        .with_dns()?
         .with_websocket(
             noise::Config::new,
             yamux::Config::default,
-        ).await?
+        )?
         .with_behaviour(|key: &libp2p::identity::Keypair| {
             let local_peer_id = PeerId::from(key.public());
 

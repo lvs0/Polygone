@@ -288,7 +288,7 @@ async fn cmd_send(peer_pk: String, message: String, bootstrap: Option<String>) -
     let assignments = alice.send(message.as_bytes())?;
     
     use libp2p::{identity, Swarm, futures::StreamExt, swarm::SwarmEvent};
-    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519()).await?;
+    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519())?;
     
     if let Some(boot) = bootstrap {
         swarm.dial(boot.parse::<libp2p::Multiaddr>()?)?;
@@ -343,7 +343,7 @@ async fn cmd_receive(sk: String, ciphertext: String, bootstrap: Option<String>) 
     let threshold = bob.topology.as_ref().unwrap().params.threshold as usize;
     let mut fragments = vec![];
 
-    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519()).await?;
+    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519())?;
     if let Some(boot) = bootstrap {
         swarm.dial(boot.parse::<libp2p::Multiaddr>()?)?;
         loop {
@@ -420,7 +420,7 @@ async fn cmd_node(action: NodeAction, bootstrap: Option<String>) -> anyhow::Resu
             println!("  ✓ Press Ctrl-C to stop.");
             println!();
             
-            let mut swarm = polygone::network::p2p::build_swarm(keypair).await?;
+            let mut swarm = polygone::network::p2p::build_swarm(keypair)?;
             swarm.listen_on(listen.parse::<libp2p::Multiaddr>()?)?;
             
             if let Some(boot) = bootstrap {
