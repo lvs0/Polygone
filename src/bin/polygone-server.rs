@@ -54,12 +54,12 @@ async fn main() -> polygone::anyhow::Result<()> {
     let mut swarm = build_swarm(p2p_keypair)?;
 
     // 3. Listen
-    swarm.listen_on(cli.listen.parse()?)?;
+    swarm.listen_on(cli.listen.parse::<libp2p::Multiaddr>()?)?;
 
     // 4. Dial Bootstrap if provided
     if let Some(addr) = cli.bootstrap {
         println!("  ▸ Connecting to bootstrap: {}", addr);
-        swarm.dial(addr.parse()?)?;
+        swarm.dial(addr.parse::<libp2p::Multiaddr>()?)?;
     }
 
     println!(" ⬢ Node is live and relaying traffic.");
