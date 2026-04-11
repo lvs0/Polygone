@@ -64,7 +64,6 @@ pub fn build_swarm(
             kad_config.set_record_ttl(Some(Duration::from_secs(30)));
             kad_config.set_provider_record_ttl(Some(Duration::from_secs(30)));
             let mut kademlia = Kademlia::with_config(local_peer_id, store, kad_config);
-            // By default, only act as a node if configured or explicitly
             kademlia.set_mode(Some(Mode::Server));
 
             // Identify
@@ -77,7 +76,7 @@ pub fn build_swarm(
                 identify,
             }
         })?
-        .with_swarm_config(|c: libp2p::swarm::Config| c.with_idle_connection_timeout(Duration::from_secs(60)))
+        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
 
     Ok(swarm)
