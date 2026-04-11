@@ -56,7 +56,7 @@ async fn main() -> polygone::anyhow::Result<()> {
     println!("  ✓ Local PeerID: {}", peer_id);
 
     // 2. Build Swarm
-    let mut swarm = build_swarm(p2p_keypair)?;
+    let mut swarm = build_swarm(p2p_keypair).await?;
 
     // 3. Listen
     // On Render, we must listen on the port provided by the environment
