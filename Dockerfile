@@ -13,11 +13,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/polygone
-# Copy the whole workspace (important for local dependencies)
 COPY . .
 
-# Build the server package
-RUN cargo build --release -p polygone-server
+# Build the server binary
+RUN cargo build --release --bin polygone-server
 
 # --- Runtime Stage ---
 FROM python:3.11-slim-bookworm
@@ -27,12 +26,12 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 
 WORKDIR /app
 
-# Copy binary from the workspace build
+# Copy binary from build stage
 COPY --from=builder /usr/src/polygone/target/release/polygone-server /usr/local/bin/polygone-server
 
-# Copy pulse and entrypoint from the server directory
-COPY server/pulse.py .
-COPY server/entrypoint.sh .
+# Copy pulse and entrypoint (now at root)
+COPY pulse.py .
+COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 # Render expects the app to bind to $PORT

@@ -1,14 +1,61 @@
-[workspace]
-resolver = "2"
+[package]
+name    = "polygone"
+version = "0.1.0"
+edition = "2021"
+authors = ["Lévy <contact@soe-ai.dev>"]
+description = "Post-quantum ephemeral network - Unified Ecosystem"
 
-members = [
-    "core",
-    "server",
-]
+[dependencies]
+# ── Post-Quantum Cryptography ──────────────────────────────
+pqcrypto-mlkem    = "0.1"
+pqcrypto-mldsa    = "0.1"
+pqcrypto-traits   = "0.3"
+
+# ── Symmetric / Hash ──────────────────────────────────────
+aes-gcm           = { version = "0.10", features = ["aes"] }
+blake3            = "1"
+hex               = "0.4"
+zeroize           = { version = "1", features = ["derive"] }
+subtle            = "2"
+
+# ── Secret Sharing ────────────────────────────────────────
+sharks            = { version = "0.5", default-features = false }
+
+# ── Async Runtime + Networking ────────────────────────────
+tokio             = { version = "1", features = ["full"] }
+libp2p            = { version = "0.53", features = [
+                      "tokio", "tcp", "noise", "yamux", "macros",
+                      "kad", "identify", "ping", "gossipsub", "request-response", "cbor"] }
+futures           = "0.3"
+
+# ── Serialization ─────────────────────────────────────────
+serde             = { version = "1", features = ["derive"] }
+bincode           = "1"
+base64            = "0.22"
+
+# ── Error Handling ────────────────────────────────────────
+thiserror         = "1"
+anyhow            = "1"
+
+# ── CLI & Logging ─────────────────────────────────────────
+clap              = { version = "4", features = ["derive"] }
+tracing           = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# ── Time ──────────────────────────────────────────────────
+tokio-util        = { version = "0.7", features = ["time"] }
 
 [profile.release]
-opt-level = 3
+opt-level     = 3
+lto           = true
 codegen-units = 1
-lto = "fat"
-panic = "abort"
-strip = true
+panic         = "abort"
+strip         = true
+
+[[bin]]
+name = "polygone-cli"
+path = "src/main.rs"
+
+[[bin]]
+name = "polygone-server"
+path = "src/bin/polygone-server.rs"
