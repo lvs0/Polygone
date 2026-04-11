@@ -42,15 +42,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Lowercase Repository Owner
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Lowercase Repository Owner
-        id: owner
-        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
+          images: ghcr.io/${{ steps.owner.outputs.name }}/polygone
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -58,6 +58,6 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ steps.owner.outputs.name }}/polygone:latest
-          labels: ${{ id.meta.outputs.labels }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
