@@ -421,10 +421,10 @@ async fn cmd_node(action: NodeAction, bootstrap: Option<String>) -> anyhow::Resu
             println!();
             
             let mut swarm = polygone::network::p2p::build_swarm(keypair)?;
-            swarm.listen_on(listen.parse()?)?;
+            swarm.listen_on(listen.parse::<libp2p::Multiaddr>()?)?;
             
             if let Some(boot) = bootstrap {
-                let addr: libp2p::Multiaddr = boot.parse()?;
+                let addr: libp2p::Multiaddr = boot.parse::<libp2p::Multiaddr>()?;
                 // In a real network, we would parse out the PeerId from the address,
                 // but since libp2p dial allows address, we can dial directly.
                 swarm.dial(addr.clone())?;
