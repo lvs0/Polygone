@@ -5,8 +5,7 @@ edition = "2021"
 authors = ["Lévy <contact@soe-ai.dev>"]
 
 [dependencies]
-[dependencies]
-polygone = { path = "../core" }
+polygone-core = { path = "../core" }
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

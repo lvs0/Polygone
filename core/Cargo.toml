@@ -9,13 +9,7 @@ repository = "https://github.com/lvs0/Polygone"
 keywords   = ["post-quantum", "p2p", "privacy", "cryptography", "ephemeral"]
 categories = ["cryptography", "network-programming"]
 
-# Harden the binary
-[profile.release]
-opt-level     = 3
-lto           = true
-codegen-units = 1
-panic         = "abort"
-strip         = true
+# Harden the binary - Profile is now handled at workspace root
 
 [profile.dev]
 opt-level = 1

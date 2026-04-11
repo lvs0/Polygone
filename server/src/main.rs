@@ -23,7 +23,7 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> polygone::anyhow::Result<()> {
     fmt().with_env_filter(EnvFilter::new("info")).init();
     let cli = Cli::parse();
 
