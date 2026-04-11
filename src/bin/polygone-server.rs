@@ -84,7 +84,7 @@ async fn main() -> polygone::anyhow::Result<()> {
     let status_path = "/tmp/polygone_status.json";
     let p_id = peer_id.to_string();
     let start_time = std::time::Instant::now();
-    let mut peer_count = 0;
+    let mut peer_count: usize = 0;
 
     loop {
         let status = json!({
