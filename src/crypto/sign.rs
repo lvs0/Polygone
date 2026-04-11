@@ -38,7 +38,6 @@ impl SignPublicKey {
 }
 
 /// ML-DSA-87 secret key (sensitive).
-#[derive(ZeroizeOnDrop)]
 pub struct SignSecretKey(mldsa87::SecretKey);
 
 impl SignSecretKey {

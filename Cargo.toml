@@ -20,6 +20,8 @@ subtle            = "2"
 
 # ── Secret Sharing ────────────────────────────────────────
 sharks            = { version = "0.5", default-features = false }
+rand              = "0.8"
+getrandom         = "0.2"
 
 # ── Async Runtime + Networking ────────────────────────────
 tokio             = { version = "1", features = ["full"] }
