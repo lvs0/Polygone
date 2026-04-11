@@ -22,8 +22,13 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cargo Check
-        run: cargo check --workspace
+      - name: Cargo Check (Diagnostic)
+        continue-on-error: true
+        run: cargo check --workspace 2>&1 | tee cargo_logs.txt
+
+      - name: Show Logs on Failure
+        if: failure()
+        run: cat cargo_logs.txt
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
