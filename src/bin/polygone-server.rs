@@ -5,6 +5,7 @@ use std::fs;
 use polygone::base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use polygone::libp2p::{self, futures::StreamExt, swarm::SwarmEvent};
 use polygone::network::p2p::{build_swarm, load_or_generate_identity};
+use serde_json::json;
 
 #[derive(Parser)]
 #[command(name = "polygone-server", about = "Polygone Persistent Node Runner")]
@@ -64,17 +65,26 @@ async fn main() -> polygone::anyhow::Result<()> {
 
     println!(" ⬢ Node is live and relaying traffic.");
 
-    // 5. Event Loop
+    // 5. Periodic Status Update
+    let status_path = "/tmp/polygone_status.json";
+    let p_id = peer_id.to_string();
+    let start_time = std::time::Instant::now();
     loop {
-        match swarm.select_next_some().await {
-            SwarmEvent::NewListenAddr { address, .. } => {
-                println!("  📡 Listening on: {}", address);
-            }
-            SwarmEvent::Behaviour(ev) => {
-                // Handling Kademlia or Identify events if needed
-                tracing::debug!("Behaviour event: {:?}", ev);
-            }
-            _ => {}
+        let status = json!({
+            "peer_id": p_id,
+            "uptime_secs": start_time.elapsed().as_secs(),
+            "status": "online"
+        });
+        let _ = fs::write(status_path, status.to_string());
+
+        tokio::select! {
+            event = swarm.select_next_some() => match event {
+                SwarmEvent::NewListenAddr { address, .. } => {
+                    println!("  📡 Listening on: {}", address);
+                }
+                _ => {}
+            },
+            _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {}
         }
     }
 }
