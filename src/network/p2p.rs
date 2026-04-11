@@ -54,7 +54,7 @@ pub fn build_swarm(
             noise::Config::new,
             yamux::Config::default,
         )?
-        .with_behaviour(|key| {
+        .with_behaviour(|key: &libp2p::identity::Keypair| {
             let local_peer_id = PeerId::from(key.public());
 
             // Kademlia
@@ -77,7 +77,7 @@ pub fn build_swarm(
                 identify,
             }
         })?
-        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
+        .with_swarm_config(|c: libp2p::swarm::Config| c.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
 
     Ok(swarm)
