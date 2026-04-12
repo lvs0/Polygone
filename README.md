@@ -5,6 +5,7 @@
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange)](https://www.rust-lang.org)
 [![Security: ZeroizeOnDrop](https://img.shields.io/badge/Security-ZeroizeOnDrop-brightgreen)](https://crates.io/crates/zeroize)
 [![Privacy](https://img.shields.io/badge/Privacy-Ephemeral%20Metadata-red)](https://github.com/lvs0/Polygone)
+[![Status](https://img.shields.io/badge/Status-v0.1%20Alpha-orange)](https://github.com/lvs0/Polygone)
 
 > *"Information does not exist. It drifts."*  
 > *"L'information n'existe pas. Elle traverse."*
@@ -13,10 +14,39 @@
 
 ---
 
+## ⚠️ Current Status: v0.1 Alpha
+
+**This is experimental software.** The cryptographic primitives are fully implemented and tested. The P2P network layer is functional but requires bootstrap nodes to operate in production.
+
+### What's Implemented ✅
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| ML-KEM-1024 Key Exchange | ✅ Complete | NIST Level 5 |
+| ML-DSA-87 Signatures | ✅ Complete | NIST Level 5 |
+| AES-256-GCM Encryption | ✅ Complete | |
+| Shamir Secret Sharing | ✅ Complete | 4-of-7 threshold |
+| Session Protocol | ✅ Complete | Full cryptographic flow |
+| libp2p/Kademlia DHT | ✅ Complete | Memory-based, needs bootstrap |
+| CLI Interface | ✅ Complete | All commands functional |
+| Memory Protection | ✅ Complete | mlock(), ZeroizeOnDrop |
+| Path Sanitization | ✅ Complete | Traversal protection |
+
+### What's Planned 🚧
+
+| Feature | Target | Status |
+|---------|--------|--------|
+| Persistent DHT Storage | v0.2 | Bootstrap nodes needed |
+| NAT Traversal | v0.3 | Relay infrastructure |
+| Mobile Clients | v0.4 | iOS/Android |
+| Anonymous Credentials | v0.5 | |
+| Mainnet | v1.0 | |
+
+---
+
 ## The Problem Traditional Encryption Can't Solve
 
 ```
-Traditional VPN/Encryption:
 ┌─────────────────────────────────────────────────────────┐
 │  Alice ──────── [encrypted tunnel] ──────── Bob        │
 │   IP │                                        │ IP     │
@@ -25,33 +55,15 @@ Traditional VPN/Encryption:
 │   Source/Destination/Timing always visible             │
 └─────────────────────────────────────────────────────────┘
 
-POLYGONE:
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│         ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐        │
-│         │ N1│   │ N2│   │ N3│   │ N4│   │ N5│        │
-│         └───┘   └───┘   └───┘   └───┘   └───┘        │
-│              ↘       ↑       ↓       ↑       ↙         │
-│                   (DHT Wave)                            │
-│                                                         │
-│   Alice sends fragments → Distributed → Bob reconstructs │
-│   No tunnel. No connection. No metadata.                 │
-└─────────────────────────────────────────────────────────┘
+POLYGONE turns messages into distributed mathematical waves
+that evaporate. No tunnel. No metadata.
 ```
-
-**Polygone turns messages into mathematical waves that evaporate.**
 
 ---
 
 ## Quick Start
 
-### One-Line Install
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
-```
-
-### Or From Source
+### Install
 
 ```bash
 git clone https://github.com/lvs0/Polygone
@@ -60,26 +72,27 @@ cargo build --release
 cargo install --path .
 ```
 
-### Verify Installation
-
-```bash
-polygone selftest
-```
-
----
-
-## Usage
-
-### Generate Keys
-
-```bash
-polygone keygen --output ~/.polygone/keys
-```
-
-### Send a Message (Demo Mode)
+### Demo Mode (No Network Required)
 
 ```bash
 polygone send --peer-pk demo --message "Hello, anonymous world."
+```
+
+This runs a complete cryptographic session locally to verify the protocol works.
+
+### Real Network Mode
+
+```bash
+# 1. Generate your keypair
+polygone keygen --output ~/.polygone/keys
+
+# 2. Share your kem.pk with your contact (out-of-band)
+
+# 3. Send a message
+polygone send --peer-pk /path/to/contact/kem.pk --message "Hello"
+
+# 4. Receive the session ciphertext from your contact
+polygone receive --sk ~/.polygone/keys/kem.sk --ciphertext session.ct
 ```
 
 ### Start a Relay Node
@@ -88,228 +101,119 @@ polygone send --peer-pk demo --message "Hello, anonymous world."
 polygone node start --listen /ip4/0.0.0.0/tcp/4001
 ```
 
-### Full Command List
-
-| Command | Description |
-|---------|-------------|
-| `polygone keygen` | Generate ML-KEM-1024 + ML-DSA-87 keypair |
-| `polygone send <pk> <msg>` | Send encrypted message |
-| `polygone receive <sk> <ct>` | Receive and decrypt |
-| `polygone node start` | Start relay node |
-| `polygone node info` | Node information |
-| `polygone status` | Network status |
-| `polygone selftest` | Run self-tests |
-| `polygone update` | Update to latest |
-| `polygone uninstall` | Remove Polygone |
-
 ---
 
 ## Architecture
 
-### How Messages Become Waves
+### How It Works
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         SENDER (Alice)                           │
 │                                                                 │
-│  1. Generate shared secret via ML-KEM-1024                     │
-│     ┌─────────────────────────────────────────────────────┐     │
-│     │  Alice + Bob's PK → Ciphertext + Shared Secret     │     │
-│     └─────────────────────────────────────────────────────┘     │
+│  1. ML-KEM-1024 Encapsulation                                   │
+│     Alice + Bob's PK → Ciphertext + Shared Secret               │
 │                                                                 │
-│  2. Derive topology from shared secret                         │
-│     ┌─────────────────────────────────────────────────────┐     │
-│     │  BLAKE3(seed) → 7 random node IDs                 │     │
-│     │  AES-256-GCM key derived per session               │     │
-│     └─────────────────────────────────────────────────────┘     │
+│  2. Topology Derivation (BLAKE3)                                │
+│     Shared Secret → 7 node IDs + AES-256-GCM key               │
 │                                                                 │
-│  3. Encrypt + Fragment via Shamir                               │
-│     ┌─────────────────────────────────────────────────────┐     │
-│     │  Message → AES-256-GCM → 7 fragments (4-of-7)     │     │
-│     │  Each fragment is useless without 4 others          │     │
-│     └─────────────────────────────────────────────────────┘     │
+│  3. Encryption + Fragmentation                                   │
+│     Message → AES-256-GCM → 7 fragments (4-of-7 Shamir)        │
 │                                                                 │
-│  4. Push to DHT (ephemeral, 30s TTL)                           │
+│  4. DHT Storage (30s TTL)                                       │
 │                         ↓                                       │
 └─────────────────────────────────────────────────────────────────┘
                           ↓
-        ┌─────────────────────────────────────────┐
-        │              DHT WAVE                    │
-        │  ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐       │
-        │  │N1 │ │N2 │ │N3 │ │N4 │ │N5 │ ...    │
-        │  └───┘ └───┘ └───┘ └───┘ └───┘       │
-        │  Fragments stored temporarily           │
-        │  TTL = 30 seconds                       │
-        └─────────────────────────────────────────┘
+         ┌─────────────────────────────────┐
+         │              DHT                │
+         │  Fragments evaporate after 30s   │
+         └─────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                         RECEIVER (Bob)                           │
 │                                                                 │
-│  1. Query DHT for 4 random fragments                           │
-│  2. Reconstruct message from fragments                          │
+│  1. Collect 4 random fragments from DHT                         │
+│  2. Reconstruct via Shamir                                       │
 │  3. Decrypt with shared secret                                  │
-│  4. Session dissolves → keys zeroized                          │
-│                                                                 │
-│  THE MESSAGE NEVER EXISTED AS A UNIT.                          │
+│  4. Session dissolves, keys zeroized                            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Cryptographic Stack
 
-| Layer | Algorithm | Purpose |
-|-------|-----------|---------|
-| Key Exchange | ML-KEM-1024 (Kyber) | Post-quantum KEX |
-| Signing | ML-DSA-87 (Dilithium) | Authentication |
-| Encryption | AES-256-GCM | Symmetric encryption |
-| Fragmentation | Shamir Secret Sharing (4-of-7) | Distributed storage |
-| Hashing | BLAKE3 | Topology derivation |
+| Layer | Algorithm | Standard |
+|-------|-----------|----------|
+| Key Exchange | ML-KEM-1024 | NIST FIPS 203 |
+| Signing | ML-DSA-87 | NIST FIPS 204 |
+| Encryption | AES-256-GCM | NIST SP 800-38D |
+| Fragmentation | Shamir (4-of-7) | Information-theoretic |
+| Hashing | BLAKE3 | |
 
 ---
 
 ## Security Properties
 
-### Post-Quantum Security
-- **ML-KEM-1024**: Resistant to quantum attacks (NIST Level 5)
-- **ML-DSA-87**: Quantum-resistant signatures
-
-### Information-Theoretic Privacy
-- **Shamir Secret Sharing**: Even with 6/7 fragments = 0 information
-- No subset of fragments can reveal anything
-
-### Memory Safety
+### Memory Protection
 - `#![forbid(unsafe_code)]` - No unsafe Rust
-- **ZeroizeOnDrop**: Keys zeroed from memory on drop
-- No secrets in logs, stack traces, or core dumps
+- **ZeroizeOnDrop** on all key material
+- **mlock()** support to prevent swap
+- Secure memory wrapper for pqcrypto types
 
 ### Forward Secrecy
 - Unique session keys per message
 - Keys destroyed after use
-- No long-term key reuse
 
-### Path Traversal Protection
-- All file paths canonicalized
-- Tilde (`~`) expansion validated
-- 0o600 permissions on key files
+### File Permissions
+- Secret keys: `0o600`
+- Public keys: `0o644`
 
 ---
 
-## Benchmarks
+## Documentation
 
-```
-ML-KEM-1024 Encapsulation:    ~34 µs
-AES-256-GCM Encrypt (1KB):     ~3.8 µs
-Shamir Split (7 fragments):   ~12 µs
-Full E2E Send (1KB message):   ~208 µs
-```
-
-*Measured on AMD Ryzen 9 5950X*
-
----
-
-## Ecosystem
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      POLYGONE ECOSYSTEM                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
-│  │  Polygone   │  │  Polygone   │  │  Polygone   │            │
-│  │   Core      │  │   Drive     │  │   Hide      │            │
-│  │  (Network)  │  │  (Storage)  │  │  (Routing)  │            │
-│  └─────────────┘  └─────────────┘  └─────────────┘            │
-│                                                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
-│  │  Polygone   │  │  Polygone   │  │  Polygone   │            │
-│  │   Shell     │  │   Brain     │  │   Server    │            │
-│  │  (Terminal) │  │    (LLM)    │  │  (Hosting)  │            │
-│  └─────────────┘  └─────────────┘  └─────────────┘            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Modules
-
-| Module | Description | Status |
-|--------|-------------|--------|
-| **Core** | Post-quantum network layer | ✅ Stable |
-| **Drive** | Encrypted distributed storage | 🚧 WIP |
-| **Hide** | Anonymous routing | 🚧 WIP |
-| **Shell** | Terminal interface | 🚧 WIP |
-| **Brain** | LLM integration (Granite) | ✅ Ready |
-| **Server** | Self-hosting solutions | 🚧 WIP |
-
----
-
-## Installation Options
-
-### Full Installation
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash -s -- --all
-```
-
-### Selective Installation
-
-```bash
-# Core + LLM
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash -s -- --core --brain
-
-# Core + Storage
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash -s -- --core --drive
-```
-
-### Modules Available
-
-| Flag | Module | Description |
-|------|--------|-------------|
-| `--core` | Polygone Core | Required, network layer |
-| `--drive` | Polygone-Drive | Distributed storage |
-| `--hide` | Polygone-Hide | Anonymous routing |
-| `--petals` | Petals | LLM inference |
-| `--shell` | Polygone-Shell | Terminal UI |
-| `--brain` | Polygone-Brain | AI assistant |
-| `--server` | Polygone-Server | Self-hosting |
+| Document | Description |
+|----------|-------------|
+| [PROTOCOL.md](docs/PROTOCOL.md) | Out-of-band key exchange specification |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design and components |
+| [SECURITY.md](docs/SECURITY.md) | Security guarantees and threat model |
 
 ---
 
 ## Contributing
 
-Contributions welcome. Privacy is an **architectural property**, not a setting.
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+For security issues: **contact@soe-ai.dev** (do not open public issues)
 
 ```bash
-# Fork, then:
-git clone https://github.com/YOUR_USER/Polygone
-cd Polygone
 cargo build --release
 cargo test
+cargo clippy -- -D warnings
 ```
-
-### Security
-
-For security issues, please email `contact@soe-ai.dev` directly. Do not open public issues for vulnerabilities.
 
 ---
 
 ## Roadmap
 
-- [ ] v0.2: Production DHT dispatch
-- [ ] v0.3: NAT traversal (libp2p relay)
-- [ ] v0.4: Mobile clients (iOS/Android)
+- [x] v0.1: Core cryptography + CLI
+- [ ] v0.2: Persistent DHT + bootstrap network
+- [ ] v0.3: NAT traversal (relay)
+- [ ] v0.4: Mobile clients
 - [ ] v0.5: Anonymous credentials
-- [ ] v1.0: Mainnet launch
+- [ ] v1.0: Mainnet
 
 ---
 
 ## License
 
-MIT License - See [LICENSE](LICENSE)
+MIT - See [LICENSE](LICENSE)
 
 ---
 
 ## Credits
 
-Created by **Lévy** (@lvs0)  
+Created by **Lévy** (@lvs0), 14 years old, France.
+
 *"L'information n'existait pas. Elle a traversé."*
 
 Built with:

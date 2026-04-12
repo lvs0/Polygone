@@ -39,6 +39,7 @@ pub mod crypto;
 pub mod error;
 pub mod network;
 pub mod protocol;
+pub mod security;
 
 // Re-export the most important types at crate root for ergonomics
 pub use crypto::{
