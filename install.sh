@@ -158,18 +158,24 @@ install_core() {
     fi
     
     # Get latest release
-    GITHUB_API="https://api.github.com/repos/lvs0/Polygone/releases/latest"
-    API_RESPONSE=$(curl -s "$GITHUB_API")
-    LATEST_VERSION=$(echo "$API_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+    LATEST_VERSION="v0.1.0"
     
-    if [[ -n "$LATEST_VERSION" ]]; then
-        echo "  → Version: $LATEST_VERSION"
-    fi
+    echo "  → Version: $LATEST_VERSION"
     
     DOWNLOAD_URL="https://github.com/lvs0/Polygone/releases/download/$LATEST_VERSION/$BINARY_NAME"
     echo "  → Downloading: $BINARY_NAME"
     
-    if curl -fL "$DOWNLOAD_URL" -o "$INSTALL_DIR/polygone"; then
+    # Try wget first (better proxy handling), fallback to curl
+    if wget "$DOWNLOAD_URL" -O "$INSTALL_DIR/polygone" 2>&1 | grep -q "saved"; then
+        chmod +x "$INSTALL_DIR/polygone"
+        echo -e "  ${GREEN}✓ Polygone Core installed!${NC}"
+    elif curl -sL "$DOWNLOAD_URL" -o "$INSTALL_DIR/polygone"; then
+        chmod +x "$INSTALL_DIR/polygone"
+        echo -e "  ${GREEN}✓ Polygone Core installed!${NC}"
+    else
+        echo -e "  ${RED}✗ Download failed${NC}"
+        return 1
+    fi
         chmod +x "$INSTALL_DIR/polygone"
         echo -e "  ${GREEN}✓ Polygone Core installed!${NC}"
     else
