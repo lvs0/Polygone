@@ -23,14 +23,14 @@ pub fn encode(
         padded_data.push(vec![0u8; shard_size]);
     }
 
-    let mut result: Vec<Vec<u8>> = padded_data.iter().cloned().collect();
+    let mut result: Vec<Vec<u8>> = padded_data.to_vec();
 
     for p in 0..parity_shards {
         let mut parity = vec![0u8; shard_size];
         let coefficient = vdm_element(p as usize + 1, shard_size);
 
-        for i in 0..padded_data.len() {
-            xor_encode(&mut parity, &padded_data[i], coefficient);
+        for chunk in &padded_data {
+            xor_encode(&mut parity, chunk, coefficient);
         }
 
         result.push(parity);

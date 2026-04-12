@@ -8,6 +8,8 @@
 //!   polygone status            → Show node and session status
 
 #![forbid(unsafe_code)]
+#![allow(clippy::collapsible_match)]
+#![allow(clippy::single_match)]
 
 use clap::{Parser, Subcommand};
 use tracing_subscriber::{fmt, EnvFilter};

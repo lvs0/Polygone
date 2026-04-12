@@ -32,10 +32,16 @@ impl<'de> Deserialize<'de> for SignPublicKey {
 }
 
 impl SignPublicKey {
+    /// Raw bytes of the public key.
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_bytes()
     }
 
+    /// Parse from bytes.
+    ///
+    /// # Errors
+    /// Returns error if bytes are invalid.
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
         Ok(Self(mldsa87::PublicKey::from_bytes(b).map_err(|_| {
             PolygoneError::Serialization("Invalid Sign PK".into())
@@ -50,16 +56,24 @@ pub struct SignSecretKey {
 }
 
 impl SignSecretKey {
+    /// Create from a raw secret key.
+    #[must_use]
     pub fn from_secret_key(sk: mldsa87::SecretKey) -> Self {
         Self {
             bytes: zeroize::Zeroizing::new(sk.as_bytes().to_vec()),
         }
     }
 
+    /// Raw bytes of the secret key.
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
 
+    /// Parse from bytes.
+    ///
+    /// # Errors
+    /// Returns error if bytes are invalid.
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
         mldsa87::SecretKey::from_bytes(b)
             .map_err(|_| PolygoneError::Serialization("Invalid Sign SK".into()))?;
@@ -76,18 +90,22 @@ impl ZeroizeOnDrop for SignSecretKey {}
 pub struct Signature(Vec<u8>);
 
 impl Signature {
+    /// Raw bytes of the signature.
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 }
 
 /// Generate a fresh ML-DSA-87 key pair.
+#[must_use]
 pub fn generate_keypair() -> Result<(SignPublicKey, SignSecretKey)> {
     let (pk, sk) = mldsa87::keypair();
     Ok((SignPublicKey(pk), SignSecretKey::from_secret_key(sk)))
 }
 
 /// Sign arbitrary bytes. Returns a detached signature.
+#[must_use]
 pub fn sign(sk: &SignSecretKey, message: &[u8]) -> Signature {
     let sk_inner = mldsa87::SecretKey::from_bytes(sk.as_bytes())
         .map_err(|_| PolygoneError::SignatureInvalid)
@@ -98,6 +116,9 @@ pub fn sign(sk: &SignSecretKey, message: &[u8]) -> Signature {
 }
 
 /// Verify a detached signature.
+///
+/// # Errors
+/// Returns error if signature verification fails.
 pub fn verify(pk: &SignPublicKey, message: &[u8], sig: &Signature) -> Result<()> {
     let mut combined = sig.0.clone();
     combined.extend_from_slice(message);

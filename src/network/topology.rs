@@ -24,7 +24,11 @@ pub struct TopologyParams {
 
 impl Default for TopologyParams {
     fn default() -> Self {
-        Self { node_count: 7, threshold: 4, max_edges_per_node: 3 }
+        Self {
+            node_count: 7,
+            threshold: 4,
+            max_edges_per_node: 3,
+        }
     }
 }
 
@@ -50,9 +54,9 @@ impl Topology {
         let t = params.threshold;
 
         if t as usize > n {
-            return Err(crate::PolygoneError::TopologyDerivation(
-                format!("threshold ({t}) > node_count ({n})"),
-            ));
+            return Err(crate::PolygoneError::TopologyDerivation(format!(
+                "threshold ({t}) > node_count ({n})"
+            )));
         }
 
         // 1. Derive all NodeIds
@@ -71,7 +75,7 @@ impl Topology {
             let seed_bytes = seed;
             // Pick up to max_edges_per_node neighbours from the seed
             for slot in 0..params.max_edges_per_node as usize {
-                let j = seed_bytes[slot] as usize % n;
+                let j = seed_bytes[slot as usize] as usize % n;
                 if j != i && !edges[i].contains(&j) {
                     edges[i].push(j);
                     if !edges[j].contains(&i) {
@@ -83,14 +87,20 @@ impl Topology {
 
         // 3. Assign Shamir fragments to nodes
         //    First `n` fragments (1..=n) → nodes 0..n  (one-to-one for n <= n)
-        let fragment_assignment: Vec<(u8, usize)> =
-            (0..n).map(|i| (i as u8 + 1, i)).collect();
+        let fragment_assignment: Vec<(u8, usize)> = (0..n).map(|i| (i as u8 + 1, i)).collect();
 
-        Ok(Topology { params, nodes, edges, fragment_assignment })
+        Ok(Topology {
+            params,
+            nodes,
+            edges,
+            fragment_assignment,
+        })
     }
 
     /// Return the NodeId at index `i`.
-    pub fn node(&self, i: usize) -> Option<&NodeId> { self.nodes.get(i) }
+    pub fn node(&self, i: usize) -> Option<&NodeId> {
+        self.nodes.get(i)
+    }
 
     /// Return the neighbours of node `i`.
     pub fn neighbours(&self, i: usize) -> &[usize] {

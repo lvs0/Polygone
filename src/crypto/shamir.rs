@@ -7,9 +7,9 @@
 //! Used to distribute the symmetric session key across N ephemeral
 //! nodes. No single node ever holds a reconstructable secret.
 
-use sharks::{Share, Sharks};
-use serde::{Deserialize, Serialize};
 use crate::{PolygoneError, Result};
+use serde::{Deserialize, Serialize};
+use sharks::{Share, Sharks};
 
 /// Opaque identifier for a fragment (1-indexed).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -44,6 +44,9 @@ pub fn split(secret: &[u8], threshold: u8, n: u8) -> Result<Vec<Fragment>> {
 }
 
 /// Reconstruct a secret from at least `threshold` fragments.
+///
+/// # Errors
+/// Returns error if fragments are insufficient or invalid.
 pub fn reconstruct(fragments: &[Fragment], threshold: u8) -> Result<Vec<u8>> {
     if fragments.len() < threshold as usize {
         return Err(PolygoneError::ShamirError(format!(

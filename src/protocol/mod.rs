@@ -14,18 +14,20 @@ impl SessionId {
         id.copy_from_slice(&hash[..16]);
         Self(id)
     }
-    
+
     pub fn generate() -> Result<Self, crate::PolygoneError> {
         let mut id = [0u8; 16];
         getrandom::getrandom(&mut id).map_err(|e| crate::PolygoneError::RngError(e.to_string()))?;
         Ok(Self(id))
     }
-    pub fn as_bytes(&self) -> &[u8; 16] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 16] {
+        &self.0
+    }
 }
 
 impl std::fmt::Display for SessionId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", hex::encode(&self.0))
+        write!(f, "{}", hex::encode(self.0))
     }
 }
 
@@ -41,11 +43,11 @@ pub enum TransitState {
 impl std::fmt::Display for TransitState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Pending       => write!(f, "PENDING"),
-            Self::Established   => write!(f, "ESTABLISHED"),
-            Self::InTransit{..} => write!(f, "IN_TRANSIT"),
-            Self::Completed     => write!(f, "COMPLETED"),
-            Self::Dissolved     => write!(f, "DISSOLVED"),
+            Self::Pending => write!(f, "PENDING"),
+            Self::Established => write!(f, "ESTABLISHED"),
+            Self::InTransit { .. } => write!(f, "IN_TRANSIT"),
+            Self::Completed => write!(f, "COMPLETED"),
+            Self::Dissolved => write!(f, "DISSOLVED"),
         }
     }
 }

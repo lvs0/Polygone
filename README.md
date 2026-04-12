@@ -29,8 +29,10 @@
 | Session Protocol | ✅ Complete | Full cryptographic flow |
 | libp2p/Kademlia DHT | ✅ Complete | Memory-based, needs bootstrap |
 | CLI Interface | ✅ Complete | All commands functional |
-| Memory Protection | ✅ Complete | mlock(), ZeroizeOnDrop |
+| Memory Protection | ✅ Complete | ZeroizeOnDrop |
 | Path Sanitization | ✅ Complete | Traversal protection |
+| Polygone-Server Module | ✅ Complete | Resource management, rate limiting |
+| Polygone-Drive Module | ✅ Complete | Erasure coding, encrypted storage |
 
 ### What's Planned 🚧
 

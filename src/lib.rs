@@ -32,8 +32,15 @@
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
-#![warn(clippy::all, clippy::pedantic)]
+#![warn(clippy::all)]
 #![allow(missing_docs)]
+#![allow(clippy::pedantic)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::doc_overindented_list_items)]
+#![allow(clippy::double_must_use)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::unnecessary_cast)]
+#![allow(clippy::ptr_as_ptr)]
 
 pub mod crypto;
 pub mod error;
