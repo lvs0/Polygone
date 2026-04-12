@@ -1,0 +1,162 @@
+# Architecture
+
+## High-Level Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         POLYGONE STACK                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │                    APPLICATION LAYER                     │  │
+│  │              (CLI, Libraries, Interfaces)                │  │
+│  └─────────────────────────────────────────────────────────┘  │
+│                              │                                  │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │                      API LAYER                           │  │
+│  │              (Protocol, Session Management)              │  │
+│  └─────────────────────────────────────────────────────────┘  │
+│                              │                                  │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │                   CRYPTOGRAPHIC LAYER                   │  │
+│  │     (ML-KEM, ML-DSA, AES-256-GCM, Shamir, BLAKE3)      │  │
+│  └─────────────────────────────────────────────────────────┘  │
+│                              │                                  │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │                      NETWORK LAYER                       │  │
+│  │                    (libp2p, Kademlia DHT)               │  │
+│  └─────────────────────────────────────────────────────────┘  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Component Diagram
+
+```
+                    ┌──────────────────┐
+                    │      Alice       │
+                    │   (Initiator)    │
+                    └────────┬─────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+     ┌────────────────┐           ┌────────────────┐
+     │ KeyPair (KEM) │           │   Session      │
+     │   Generate    │           │   Establish    │
+     └────────────────┘           └────────────────┘
+              │                             │
+              │                             ▼
+              │                    ┌────────────────┐
+              │                    │   Topology     │
+              │                    │   Derivation   │
+              │                    │   (BLAKE3)    │
+              │                    └────────────────┘
+              │                             │
+              │                             ▼
+              │                    ┌────────────────┐
+              │                    │   Fragment     │
+              │                    │   Generation   │
+              │                    │   (Shamir)    │
+              │                    └────────────────┘
+              │                             │
+              │                             ▼
+              │                    ┌────────────────┐
+              │                    │   Encrypted    │
+              │                    │   Fragments    │
+              │                    └────────────────┘
+              │                             │
+              │                             ▼
+              │     ┌─────────────────────────────────┐
+              │     │         DHT NETWORK             │
+              │     │  ┌───┐  ┌───┐  ┌───┐  ┌───┐  │
+              │     │  │N1 │  │N2 │  │N3 │  │N4 │  │
+              │     │  └───┘  └───┘  └───┘  └───┘  │
+              │     │  ┌───┐  ┌───┐  ┌───┐          │
+              │     │  │N5 │  │N6 │  │N7 │          │
+              │     │  └───┘  └───┘  └───┘          │
+              │     └─────────────────────────────────┘
+              │                             │
+              │                             ▼
+              │     ┌─────────────────────────────────┐
+              │     │            Bob                  │
+              │     │         (Responder)             │
+              │     │  ┌─────────────────────────┐   │
+              │     │  │   Fragment Collection    │   │
+              │     │  │   (Any 4 of 7)         │   │
+              │     │  └─────────────────────────┘   │
+              │     │  ┌─────────────────────────┐   │
+              │     │  │   Secret Reconstruction │   │
+              │     │  └─────────────────────────┘   │
+              │     │  ┌─────────────────────────┐   │
+              │     │  │   Message Decryption   │   │
+              │     │  └─────────────────────────┘   │
+              │     └─────────────────────────────────┘
+              │                             │
+              └─────────────────────────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  Session Dissolve │
+                    │   Keys Zeroized   │
+                    └──────────────────┘
+```
+
+## Module Structure
+
+```
+polygone/
+├── src/
+│   ├── main.rs           # CLI entry point
+│   ├── crypto/           # Cryptographic primitives
+│   │   ├── kem.rs        # ML-KEM-1024 key exchange
+│   │   ├── sign.rs       # ML-DSA-87 signatures
+│   │   ├── shamir.rs     # Secret sharing
+│   │   ├── aes.rs        # AES-256-GCM
+│   │   └── karma.rs      # Reputation system
+│   ├── protocol/         # Session protocol
+│   │   └── session.rs    # Alice/Bob session
+│   ├── network/          # P2P networking
+│   │   └── p2p.rs        # libp2p integration
+│   └── lib.rs            # Library exports
+├── tests/                # Integration tests
+├── benches/              # Performance benchmarks
+└── docs/                 # Documentation
+```
+
+## Data Flow
+
+### Send Flow
+1. `cmd_send()` → Parse arguments, load keys
+2. `Session::new_initiator()` → ML-KEM encapsulation
+3. `session.establish()` → Derive topology + keys
+4. `session.send()` → Encrypt + fragment
+5. `p2p::build_swarm()` → Connect to network
+6. DHT PUT → Store fragments (30s TTL)
+
+### Receive Flow
+1. `cmd_receive()` → Load secret key
+2. `Session::new_responder()` → ML-KEM decapsulation
+3. `session.establish()` → Re-derive keys
+4. DHT GET → Collect 4 fragments
+5. `session.receive()` → Reconstruct + decrypt
+6. `session.dissolve()` → Zeroize all keys
+
+## Key Derivation
+
+```
+Shared Secret (ML-KEM output)
+         │
+         ▼
+┌─────────────────────────┐
+│      BLAKE3 Hash       │
+│  (session_specific)     │
+└─────────────────────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌───────┐ ┌───────┐
+│ AES   │ │ Topo  │
+│ Key   │ │ Seeds │
+└───────┘ └───────┘
+```
