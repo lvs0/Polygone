@@ -575,7 +575,6 @@ fn cmd_uninstall() -> anyhow::Result<()> {
     println!();
     
     let bin_path = std::env::current_exe()?;
-    let bin_name = bin_path.file_name().unwrap_or_default().to_string_lossy();
     
     println!("  This will remove:");
     println!("    • {}", bin_path.display());
