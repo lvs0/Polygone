@@ -63,7 +63,38 @@ that evaporate. No tunnel. No metadata.
 
 ## Quick Start
 
-### Install
+### Install (One-Line)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
+```
+
+### Install Options
+
+```bash
+# Interactive installer (recommended)
+./install.sh
+
+# Specific modules
+./install.sh --core --drive --server
+
+# All modules
+./install.sh --all
+
+# Docker deployment
+./install.sh --all --docker
+
+# System-wide with systemd
+./install.sh --all --systemd --background
+
+# Custom directory
+./install.sh --all --custom-dir /opt/polygone
+
+# Expert mode (no prompts)
+./install.sh --all --expert --no-verify
+```
+
+### Manual Install
 
 ```bash
 git clone https://github.com/lvs0/Polygone

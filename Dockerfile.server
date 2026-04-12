@@ -1,0 +1,195 @@
+# ─────────────────────────────────────────────────────────────
+# Polygone Server Node Dockerfile
+# ─────────────────────────────────────────────────────────────
+# Optimized for production deployment on any hosting provider
+# Handles 504 gateway errors with proper health checks and timeouts
+# ─────────────────────────────────────────────────────────────
+
+# ── Build Stage ──────────────────────────────────────────
+FROM rust:1.77-slim-bookworm AS builder
+
+LABEL maintainer="Lévy <contact@soe-ai.dev>"
+LABEL description="Polygone Server Node - Decentralized P2P Network"
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    clang \
+    pkg-config \
+    libssl-dev \
+    libssl3 \
+    git \
+    cmake \
+    perl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/polygone
+
+# Copy only Cargo files first for caching
+COPY Cargo.toml Cargo.lock* ./
+
+# Create dummy main.rs for caching
+RUN mkdir -p src && echo "fn main() {}" > src/main.rs
+
+# Build dependencies (cached)
+RUN cargo fetch 2>/dev/null || true
+
+# Copy actual source
+COPY . .
+
+# Build the server binary
+RUN cargo build --release --bin polygone-server 2>&1 | tail -5
+
+# ── Runtime Stage ───────────────────────────────────────
+FROM debian:bookworm-slim
+
+LABEL org.opencontainers.image.title="Polygone Server Node"
+LABEL org.opencontainers.image.description="Decentralized P2P privacy network node"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    wget \
+    netcat \
+    tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security
+RUN groupadd -r polygone && useradd -r -g polygone polygone
+
+WORKDIR /app
+
+# Copy binary from build stage
+COPY --from=builder /usr/src/polygone/target/release/polygone-server /usr/local/bin/
+
+# Copy health check script
+COPY <<'HEALTH_SCRIPT' /usr/local/bin/healthcheck.sh
+#!/bin/bash
+# Health check script for Polygone server
+# Returns 0 if healthy, 1 if unhealthy
+
+set -e
+
+# Check if process is running
+if ! pgrep -x polygone-server > /dev/null 2>&1; then
+    echo "Process not running"
+    exit 1
+fi
+
+# Check if ports are listening
+if command -v ss &> /dev/null; then
+    if ! ss -tlnp | grep -E ':(4001|8080)' &> /dev/null; then
+        echo "Ports not listening"
+        exit 1
+    fi
+elif command -v netstat &> /dev/null; then
+    if ! netstat -tlnp | grep -E ':(4001|8080)' &> /dev/null; then
+        echo "Ports not listening"
+        exit 1
+    fi
+fi
+
+# Try to connect to self
+if curl -sf http://localhost:8080/health &> /dev/null; then
+    exit 0
+fi
+
+# If no health endpoint, just check process
+exit 0
+HEALTH_SCRIPT
+
+RUN chmod +x /usr/local/bin/healthcheck.sh
+
+# Create directories with proper permissions
+RUN mkdir -p /data /logs /config && \
+    chown -R polygone:polygone /data /logs /config
+
+# Environment variables for server configuration
+ENV POLY_NODE_ID=""
+ENV POLY_BOOTSTRAP=""
+ENV POLY_PORT_WS=8080
+ENV POLY_PORT_P2P=4001
+ENV POLY_MAX_MEMORY_MB=512
+ENV POLY_MAX_SERVICES=10
+ENV POLY_KARMA_PRICE=0.001
+ENV POLY_ADVERTISED=true
+ENV POLY_LOG_LEVEL=info
+ENV RUST_LOG=info
+ENV HEALTHCHECK_INTERVAL=30s
+ENV SHUTDOWN_TIMEOUT=10s
+
+# Expose ports
+# 8080: WebSocket/API port
+# 4001: P2P network port
+# 4002: P2P WebSocket
+EXPOSE 8080 4001 4002
+
+# Health check
+HEALTHCHECK --interval=${HEALTHCHECK_INTERVAL:-30s} \
+             --timeout=5s \
+             --start-period=30s \
+             --retries=3 \
+             CMD /usr/local/bin/healthcheck.sh
+
+# Copy entrypoint script
+COPY <<'ENTRYPOINT' /entrypoint.sh
+#!/bin/bash
+set -e
+
+echo "⬡ POLYGONE Server Node v${POLY_VERSION:-latest}"
+echo "=========================================="
+
+# Generate node ID if not provided
+if [ -z "$POLY_NODE_ID" ]; then
+    export POLY_NODE_ID=$(head -c 16 /dev/urandom | basenc --base64url | tr -d '=')
+    echo "Generated Node ID: $POLY_NODE_ID"
+fi
+
+# Create identity file
+IDENTITY_FILE="/data/identity.p2p"
+if [ ! -f "$IDENTITY_FILE" ]; then
+    echo "Generating new identity..."
+    # Generate random identity bytes
+    head -c 32 /dev/urandom | base64 > "$IDENTITY_FILE"
+    chmod 600 "$IDENTITY_FILE"
+fi
+
+# Build listen addresses
+LISTEN_WS="/ip4/0.0.0.0/tcp/$POLY_PORT_WS/ws"
+LISTEN_P2P="/ip4/0.0.0.0/tcp/$POLY_PORT_P2P"
+
+echo "Listening on:"
+echo "  - WebSocket: $LISTEN_WS"
+echo "  - P2P: $LISTEN_P2P"
+
+# Build command
+CMD="/usr/local/bin/polygone-server"
+CMD="$CMD --identity $IDENTITY_FILE"
+CMD="$CMD --listen $LISTEN_WS"
+
+if [ -n "$POLY_BOOTSTRAP" ]; then
+    CMD="$CMD --bootstrap $POLY_BOOTSTRAP"
+fi
+
+echo ""
+echo "Starting Polygone server..."
+echo ""
+
+# Run as non-root user
+exec tini -s -- polygone-server \
+    --identity "$IDENTITY_FILE" \
+    --listen "$LISTEN_WS" \
+    ${POLY_BOOTSTRAP:+--bootstrap "$POLY_BOOTSTRAP"}
+ENTRYPOINT
+
+RUN chmod +x /entrypoint.sh
+
+# Set ownership
+RUN chown -R polygone:polygone /app /data /logs /config 2>/dev/null || true
+
+USER polygone
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["--identity", "/data/identity.p2p"]

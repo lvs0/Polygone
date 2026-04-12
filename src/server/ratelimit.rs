@@ -173,7 +173,7 @@ impl RateLimiter {
             configs.get(tenant).cloned()
         };
 
-        let mut state = {
+        let state = {
             let limits = self.limits.read().await;
             limits.get(tenant).cloned()
         };

@@ -145,7 +145,7 @@ impl DriveManager {
         // Split into chunks
         let chunk_size = (self.config.chunk_size_kb * 1024) as usize;
         let chunks = split_into_chunks(&data, chunk_size);
-        let total_chunks = chunks.len() as u8;
+        let _total_chunks = chunks.len() as u8;
 
         // Apply erasure coding
         let config = &self.config.default_erasure;
