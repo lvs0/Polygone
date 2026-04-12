@@ -26,12 +26,11 @@ echo ""
 INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$INSTALL_DIR"
 
-POLYGONE_SH_URL="https://raw.githubusercontent.com/lvs0/Polygone/main/polygone.sh"
-
-# First, download the menu script
+# Download polygone.sh using GitHub API
 echo -e "${BOLD}Téléchargement de Polygone...${NC}"
 echo "  → Menu: polygone.sh"
-curl -fsSL "$POLYGONE_SH_URL" -o "$INSTALL_DIR/polygone.sh"
+curl -fsSL "https://api.github.com/repos/lvs0/Polygone/contents/polygone.sh" \
+    | python3 -c "import sys,json,base64; d=json.load(sys.stdin); open('$INSTALL_DIR/polygone.sh', 'wb').write(base64.b64decode(d['content']))"
 chmod +x "$INSTALL_DIR/polygone.sh"
 
 # Try to download prebuilt binary from GitHub releases
@@ -119,5 +118,6 @@ echo -e "${GREEN}✓ Installation terminée!${NC}"
 echo ""
 echo "  Lance maintenant:"
 echo -e "    ${BOLD}source ~/.bashrc && polygone-cli self-test${NC}"
+echo "    ou      ~/.local/bin/polygone.sh"
 echo ""
 echo -e "${CYAN}L'information n'existe pas. Elle traverse. ⬡${NC}"
