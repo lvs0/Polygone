@@ -41,6 +41,7 @@ pub mod network;
 pub mod protocol;
 pub mod security;
 pub mod server;
+pub mod drive;
 
 // Re-export the most important types at crate root for ergonomics
 pub use crypto::{
