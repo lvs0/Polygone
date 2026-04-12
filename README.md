@@ -93,20 +93,24 @@ Measured on a standard modern CPU. Total cryptographic latency for a message inj
 Polygone is fully operational. One-command install:
 
 ```bash
-# Installation simple (automatique)
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install_simple.sh | bash
-
-# Ou manuel:
-git clone https://github.com/lvs0/Polygone && cd Polygone
-./install_simple.sh
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
 ```
 
-Then launch the menu:
+That's it! Then just run:
 ```bash
-./polygone.sh
+polygone help
 ```
 
-Choose **Option 1 (Self-Test)** to verify everything works.
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `polygone self-test` | Verify everything works |
+| `polygone keygen` | Generate encryption keys |
+| `polygone send` | Send a message |
+| `polygone node` | Start a relay node |
+| `polygone update` | Update to latest version |
+| `polygone uninstall` | Remove Polygone |
 
 ---
 
@@ -153,13 +157,12 @@ Au lieu d'un tunnel chiffré entre A et B, POLYGONE transforme un message en ét
 ### Installation Rapide
 
 ```bash
-# Installation automatique (recommendé)
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install_simple.sh | bash
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
+```
 
-# Ou manuel:
-git clone https://github.com/lvs0/Polygone && cd Polygone
-./install_simple.sh
-./polygone.sh
+Puis lance:
+```bash
+polygone help
 ```
 
 ### Modèle de Sécurité

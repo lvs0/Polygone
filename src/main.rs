@@ -102,6 +102,16 @@ enum Commands {
         #[command(subcommand)]
         action: PowerAction,
     },
+
+    /// Uninstall Polygone completely
+    Uninstall,
+
+    /// Update Polygone to the latest version
+    Update {
+        /// Force update even if already up to date
+        #[arg(short, long)]
+        force: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -160,6 +170,8 @@ async fn main() -> anyhow::Result<()> {
         Commands::Status => cmd_status().await,
         Commands::SelfTest => cmd_selftest().await,
         Commands::Power { action } => cmd_power(action).await,
+        Commands::Uninstall => cmd_uninstall(),
+        Commands::Update { force } => cmd_update(force),
     }
 }
 
@@ -555,5 +567,158 @@ async fn cmd_selftest() -> anyhow::Result<()> {
     println!();
     println!("  All tests passed. POLYGONE is operational.");
 
+    Ok(())
+}
+
+fn cmd_uninstall() -> anyhow::Result<()> {
+    println!("⬡ POLYGONE — Uninstall");
+    println!();
+    
+    let bin_path = std::env::current_exe()?;
+    let bin_name = bin_path.file_name().unwrap_or_default().to_string_lossy();
+    
+    println!("  This will remove:");
+    println!("    • {}", bin_path.display());
+    println!("    • ~/.polygone/ (your keys and data)");
+    println!();
+    
+    print!("  Are you sure? [y/N] ");
+    std::io::Write::flush(&mut std::io::stdout())?;
+    
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
+    
+    if input.trim().to_lowercase() != "y" {
+        println!("  Aborted.");
+        return Ok(());
+    }
+    
+    println!();
+    println!("  Removing binary...");
+    if let Err(e) = std::fs::remove_file(&bin_path) {
+        eprintln!("  Warning: could not remove binary: {e}");
+    } else {
+        println!("  ✓ Binary removed");
+    }
+    
+    println!("  Removing data (~/.polygone/)...");
+    let home = dirs::home_dir().unwrap_or_default();
+    let polygone_dir = home.join(".polygone");
+    if polygone_dir.exists() {
+        if let Err(e) = std::fs::remove_dir_all(&polygone_dir) {
+            eprintln!("  Warning: could not remove data: {e}");
+        } else {
+            println!("  ✓ Data removed");
+        }
+    }
+    
+    println!();
+    println!("  ⬡ Polygone has been uninstalled.");
+    println!("  L'information n'existait pas. Elle a traversé. Goodbye.");
+
+    Ok(())
+}
+
+fn cmd_update(force: bool) -> anyhow::Result<()> {
+    println!("⬡ POLYGONE — Auto-Update");
+    println!();
+    
+    let current_version = env!("CARGO_PKG_VERSION");
+    println!("  Current version : v{}", current_version);
+    
+    println!("  Checking for updates...");
+    
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Polygone-CLI/1.0")
+        .build()?;
+    
+    let response = client
+        .get("https://api.github.com/repos/lvs0/Polygone/releases/latest")
+        .send()?;
+    
+    if !response.status().is_success() {
+        eprintln!("  ✗ Could not check for updates: HTTP {}", response.status());
+        return Ok(());
+    }
+    
+    let json: serde_json::Value = response.json()?;
+    
+    let latest_version = json["tag_name"]
+        .as_str()
+        .unwrap_or("v0.0.0")
+        .trim_start_matches('v');
+    
+    println!("  Latest version  : v{}", latest_version);
+    
+    let needs_update = if force {
+        true
+    } else {
+        latest_version != current_version
+    };
+    
+    if !needs_update {
+        println!();
+        println!("  ✓ You're already up to date!");
+        return Ok(());
+    }
+    
+    println!();
+    println!("  Downloading update...");
+    
+    let os = std::env::consts::OS;
+    let arch = std::env::consts::ARCH;
+    
+    let binary_name = match (os, arch) {
+        ("linux", "x86_64") => "polygone-cli-x86_64-linux",
+        ("linux", "aarch64") => "polygone-cli-aarch64-linux",
+        ("macos", "x86_64") => "polygone-cli-x86_64-macos",
+        ("macos", "aarch64") => "polygone-cli-aarch64-macos",
+        _ => {
+            eprintln!("  ✗ No prebuilt binary for {}-{}", os, arch);
+            eprintln!("  Build from source: git clone https://github.com/lvs0/Polygone");
+            return Ok(());
+        }
+    };
+    
+    let download_url = format!(
+        "https://github.com/lvs0/Polygone/releases/download/v{}/{}",
+        latest_version, binary_name
+    );
+    
+    println!("  → {}", download_url);
+    
+    let response = client.get(&download_url).send()?;
+    
+    if !response.status().is_success() {
+        eprintln!("  ✗ Download failed: HTTP {}", response.status());
+        return Ok(());
+    }
+    
+    let binary_path = std::env::current_exe()?;
+    let backup_path = binary_path.with_extension("old");
+    
+    println!("  Backing up current binary...");
+    let _ = std::fs::remove_file(&backup_path);
+    std::fs::rename(&binary_path, &backup_path)?;
+    
+    println!("  Installing new version...");
+    let mut file = std::fs::File::create(&binary_path)?;
+    let mut reader = response;
+    std::io::copy(&mut reader, &mut file)?;
+    
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&binary_path)?.permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&binary_path, perms)?;
+    }
+    
+    println!();
+    println!("  ✓ Polygone updated to v{}", latest_version);
+    println!();
+    println!("  Restart Polygone to use the new version.");
+    println!("  Remove old binary: rm {}", backup_path.display());
+    
     Ok(())
 }
