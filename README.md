@@ -32,11 +32,12 @@
 | Memory Protection | ✅ Complete | ZeroizeOnDrop |
 | Path Sanitization | ✅ Complete | Traversal protection |
 | Polygone-Server Module | ✅ Complete | Resource management, rate limiting |
-| Polygone-Drive Module | ✅ Complete | Erasure coding, encrypted storage |
+| Polygone-Drive Module | ✅ Complete | Erasure coding, encrypted storage, ephemeral links |
 | Polygone-Hide Module | 🚧 Planned | Anonymous browsing |
 | Polygone-Petals Module | 🚧 Planned | AI/ML inference network |
 | Polygone-Shell Module | 🚧 Planned | Secure CLI |
 | Polygone-Brain Module | 🚧 Planned | AI reasoning engine |
+| Polygone-Compute Module | 🚧 In Progress | Distributed idle power computing |
 
 ### What's Planned 🚧
 

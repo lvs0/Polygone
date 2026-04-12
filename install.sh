@@ -19,8 +19,8 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-opt_core=1 opt_drive=0 opt_hide=0 opt_petals=0 opt_shell=0 opt_brain=0 opt_server=0
-opt_docker=0 opt_systemd=0 opt_background=0 opt_custom_dir="" opt_verify=1 opt_expert=0
+opt_core=1 opt_drive=0 opt_hide=0 opt_petals=0 opt_shell=0 opt_brain=0 opt_server=0 opt_compute=0
+opt_systemd=0 opt_background=0 opt_custom_dir="" opt_verify=1 opt_expert=0
 
 declare -A T_EN
 T_EN[title]="⬡ POLYGONE — Enhanced Installer"
@@ -33,6 +33,7 @@ T_EN[petals]="Petals — AI/ML inference network"
 T_EN[shell]="Shell — Command-line interface"
 T_EN[brain]="Brain — AI reasoning engine"
 T_EN[server]="Server — Full node for hosting"
+T_EN[compute]="Compute — Distributed idle power"
 T_EN[install_type]="Installation Type:"
 T_EN[standard]="Standard — Local user installation"
 T_EN[systemwide]="System-wide — Install for all users"
@@ -121,6 +122,7 @@ ${BOLD}Module Options:${NC}
   --shell         Install Shell module
   --brain         Install Brain module
   --server        Install Server module
+  --compute       Install Compute module (distributed computing)
   --all           Install all modules
 
 ${BOLD}Installation Options:${NC}
@@ -152,8 +154,8 @@ while [[ $# -gt 0 ]]; do
         --shell)     opt_shell=1 ;;
         --brain)     opt_brain=1 ;;
         --server)    opt_server=1 ;;
-        --all)       opt_core=1 opt_drive=1 opt_hide=1 opt_petals=1 opt_shell=1 opt_brain=1 opt_server=1 ;;
-        --docker)    opt_docker=1 ;;
+        --compute)   opt_compute=1 ;;
+        --all)       opt_core=1 opt_drive=1 opt_hide=1 opt_petals=1 opt_shell=1 opt_brain=1 opt_server=1 opt_compute=1 ;;
         --systemd)   opt_systemd=1 ;;
         --background) opt_background=1 ;;
         --custom-dir) shift; opt_custom_dir="$1" ;;
@@ -329,10 +331,6 @@ do_install() {
 
     mkdir -p "$INSTALL_DIR" "$ECOSYSTEM_DIR"
 
-    if [[ $opt_docker -eq 1 ]]; then
-        install_docker
-    fi
-
     if [[ $opt_core -eq 1 ]]; then
         install_core
     fi
@@ -343,6 +341,7 @@ do_install() {
     [[ $opt_shell -eq 1 ]] && install_module "Shell" "Polygone-Shell"
     [[ $opt_brain -eq 1 ]] && install_module "Brain" "Polygone-Brain"
     [[ $opt_server -eq 1 ]] && install_module "Server" "Polygone-Server"
+    [[ $opt_compute -eq 1 ]] && install_module "Compute" "Polygone-Compute"
 
     setup_path
     [[ $opt_systemd -eq 1 ]] && install_systemd
@@ -418,19 +417,8 @@ install_module() {
     fi
 }
 
-install_docker() {
-    echo -ne "  Docker... "
-    if command -v docker &> /dev/null; then
-        docker build -t polygone -f Dockerfile.server . 2>/dev/null && \
-        echo -e "${GREEN}$(t success)${NC}" || \
-        echo -e "${RED}$(t error)${NC}"
-    else
-        echo -e "${YELLOW}Docker not installed${NC}"
-    fi
-}
-
 install_systemd() {
-    echo -ne "  Systemd... "
+    echo -ne "  Polygone service... "
     local svc="/etc/systemd/system/polygone.service"
     sudo tee "$svc" > /dev/null << 'EOF'
 [Unit]
@@ -451,8 +439,34 @@ Environment=RUST_LOG=info
 WantedBy=multi-user.target
 EOF
     sudo systemctl daemon-reload 2>/dev/null && \
-    echo -e "${GREEN}$(t success)${NC}" || \
-    echo -e "${RED}$(t error)${NC}"
+    echo -e "${GREEN}OK${NC}" || echo -e "${RED}Error${NC}"
+    
+    if [[ $opt_compute -eq 1 ]]; then
+        echo -ne "  Compute worker... "
+        local csvc="/etc/systemd/system/polygone-compute.service"
+        sudo tee "$csvc" > /dev/null << 'EOF'
+[Unit]
+Description=Polygone Compute - Distributed Idle Power
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=polygone
+Group=polygone
+ExecStart=/usr/local/bin/polygone-compute worker --max-cpu 50 --idle-threshold-secs 300
+Restart=on-failure
+RestartSec=5
+CPUQuota=50%
+MemoryMax=4G
+Environment=RUST_LOG=info
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        sudo systemctl daemon-reload 2>/dev/null && \
+        echo -e "${GREEN}OK${NC}" || echo -e "${RED}Error${NC}"
+    fi
 }
 
 start_daemon() {
