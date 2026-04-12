@@ -364,10 +364,22 @@ install_core() {
                         return
                     fi
                     wget -q "${REPO_URL}/releases/download/${LATEST_VERSION}/polygone-x86_64-linux" \
-                        -O "$INSTALL_DIR/polygone" 2>/dev/null && \
-                    chmod +x "$INSTALL_DIR/polygone" && \
-                    echo -e "${GREEN}$(t success)${NC}" || \
-                    echo -e "${RED}$(t error)${NC}"
+                        -O "$INSTALL_DIR/polygone" 2>/dev/null
+                    if [[ $? -eq 0 ]]; then
+                        chmod +x "$INSTALL_DIR/polygone"
+                        if [[ $opt_verify -eq 1 ]]; then
+                            EXPECTED="99d9dcce3d3e44388c78949fb6f25a0e8a5e4d6b17b2d25b42446e219a114adc"
+                            ACTUAL=$(sha256sum "$INSTALL_DIR/polygone" 2>/dev/null | cut -d' ' -f1)
+                            if [[ "$ACTUAL" != "$EXPECTED" ]]; then
+                                rm -f "$INSTALL_DIR/polygone"
+                                echo -e "${RED}SHA256 mismatch!${NC}"
+                                return
+                            fi
+                        fi
+                        echo -e "${GREEN}$(t success)${NC}"
+                    else
+                        echo -e "${RED}$(t error)${NC}"
+                    fi
                     ;;
                 aarch64)
                     wget -q "${REPO_URL}/releases/download/${LATEST_VERSION}/polygone-aarch64-linux" \
