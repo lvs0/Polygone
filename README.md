@@ -1,123 +1,111 @@
-# ⬡ POLYGONE
+# ⬡ POLYGONE — by Hope
 
-> *"Information does not exist. It drifts."*
+> *"L'information n'existe pas. Elle traverse."*
 
-**POLYGONE** is a post-quantum ephemeral privacy network designed to solve the **Metadata Problem**. Built in pure Rust.
+**POLYGONE** is a French-built, post-quantum ephemeral privacy network. Built in pure Rust by the **Hope** collective.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)]()
-[![Status: v0.2 Operational](https://img.shields.io/badge/status-v0.2_Operational-green.svg)]()
+[![Status: v0.2-alpha](https://img.shields.io/badge/status-v0.2_alpha-yellow.svg)]()
 [![unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-red.svg)]()
 
 ---
 
-## The Problem: The Metadata Leak
+## The Problem
 
-Traditional encryption protects **content**, but it cannot hide that a **communication occurred**. Source IPs, target IPs, timing, and packet sizes remain visible to observers. For a global adversary, metadata is often more valuable than content.
+Classical encryption hides **content**. It cannot hide that a **communication occurred**.
+Source IPs, timing, and packet sizes remain visible. For a global adversary, metadata is more dangerous than content.
 
-**POLYGONE changes the paradigm.** 
-
-Instead of an encrypted tunnel between A and B, POLYGONE turns a message into a distributed, transient mathematical state—a wave that crosses a global DHT and then vaporizes. To an outside observer, there is no message; there is only ambient asynchronous noise across 7 random nodes.
+**POLYGONE turns a message into a transient mathematical state — a wave that crosses a global DHT and vaporizes.**
+To an outside observer: no message. Only ambient noise across 7 ephemeral nodes.
 
 ---
 
-## How it Works: The 4-Step Vaporization
-
-```mermaid
-sequenceDiagram
-    participant A as Alice
-    participant DHT as Global Kademlia DHT
-    participant B as Bob
-
-    Note over A, B: Out-of-band ML-KEM Key Exchange
-    A->>A: Derive deterministic Topology (7 Nodes)
-    A->>A: Encrypt (AES-GCM) & Split (Shamir 4-of-7)
-    
-    par Node 1 to 7
-        A->>DHT: put_record(Fragment_i)
-    end
-    
-    Note over DHT: Fragments live for 30s (TTL)
-    
-    par Node 1 to 7
-        B->>DHT: get_record(Fragment_i)
-    end
-
-    B->>B: Reconstruct & Decrypt
-    Note over A, B: Zeroize memory. Network dissolves.
-```
+## How it Works
 
 ### 1. Post-Quantum Handshake
-Alice and Bob exchange a single **ML-KEM-1024** (FIPS 203) public key. This key does not encrypt the payload; it defines the network architecture for the transit.
+**ML-KEM-1024** (FIPS 203) key exchange. The key doesn't encrypt the payload — it defines the **network topology** for the transit.
 
 ### 2. Deterministic Topology
-Alice and Bob use **BLAKE3** to derive a deterministic graph of 7 virtual nodes from their shared secret. Nobody else can predict which Kademlia keys will be targeted.
+Both peers use **BLAKE3** to derive the same graph of 7 virtual nodes. No third party can predict which DHT keys will be targeted.
 
 ### 3. Shamir Dispersion
-The payload is encrypted with **AES-256-GCM**, then fragmented via **Shamir's Secret Sharing (t=4, n=7)**. Fragments are dropped into the global DHT via `libp2p`. No single relay ever holds more than one fragment—mathematically impossible to reconstruct without a quorum.
+Payload encrypted with **AES-256-GCM**, split via **Shamir's Secret Sharing (t=4, n=7)**. Fragments go into the Kademlia DHT via `libp2p`. No relay holds more than one fragment.
 
 ### 4. Atmospheric Vaporization
-Data has an aggressive **30s TTL**. It evaporates from the RAM of the relays automatically. Locally, `ZeroizeOnDrop` ensures that no trace remains in Alice or Bob's memory.
+**30s TTL.** Fragments evaporate from relay RAM automatically. `ZeroizeOnDrop` leaves no trace in Alice or Bob's memory.
 
 ---
 
-## Benchmarks: Cryptography at the Speed of Light
+## ⚡ Quickstart
 
-Measured on a standard modern CPU. Total cryptographic latency for a message injection is **< 0.2ms**.
+```bash
+# 1. Clone
+git clone https://github.com/lvs0/Polygone && cd Polygone
+
+# 2. Install
+chmod +x install.sh && ./install.sh
+
+# 3. Start
+polygone start
+```
+
+After install, run **`polygone help`** at any time for the full command reference.
+
+### `polygone start`
+Launches the **Polygone-Shell** — an interactive TUI dashboard showing your PeerId, active sessions, relay logs, and DHT status in real time.
+
+### Command Reference
+
+| Command | Description |
+|---|---|
+| `polygone help` | Full usage reference |
+| `polygone start` | Launch the interactive shell (TUI) |
+| `polygone keygen` | Generate your ML-KEM + ML-DSA keypair |
+| `polygone send --peer-pk demo` | Local Alice→Bob demo (no network required) |
+| `polygone send --peer-pk <key.pk> -m "..."` | Send an ephemeral message through the network |
+| `polygone node start` | Start a relay node and contribute bandwidth |
+| `polygone self-test` | Run the full cryptographic self-test suite |
+| `polygone status` | Show node health and active sessions |
+
+---
+
+## Benchmarks
 
 | Primitive | Operation | Latency |
-|---|-|---|
+|---|---|---|
 | **ML-KEM-1024** | Encapsulation | ~34.1 µs |
 | **ML-KEM-1024** | Decapsulation | ~35.3 µs |
 | **BLAKE3** | Topology Derivation | ~0.23 µs |
 | **AES-256-GCM** | Encryption (1KB) | ~3.80 µs |
-| **Shamir (4/7)** | Split (32B) | ~4.21 µs |
-| **Full Lifecycle** | **Alice Send (E2E Crypto)** | **~207.6 µs** |
+| **Shamir (4/7)** | Split | ~4.21 µs |
+| **Full Lifecycle** | Alice Send (E2E) | **~207.6 µs** |
 
 ---
 
-## Quickstart: Join the Testnet
+## Security Model
 
-Polygone is fully operational. You can simulate the entire global network on your machine in 30 seconds.
-
-```bash
-# 1. Install Rust Nightly
-rustup toolchain install nightly && rustup default nightly
-
-# 2. Clone and Launch the Interactive Script
-git clone https://github.com/lvs0/Polygone && cd Polygone
-./polygone.sh
-```
-
-Choose **Option 3 (Self-Test)** to see Alice and Bob perform a full P2P exchange through 7 local Kademlia nodes.
-
----
-
-## Security Model & Philosophy
-
-Polygone is built on the principle of **Inobservable Communication**. 
-
-- **Post-Quantum Resistance**: All key exchanges use **ML-KEM-1024**. Signatures use **ML-DSA-87**. We assume the existence of a cryptographically relevant quantum computer (CRQC).
-- **Forward Secrecy**: Every session derives a unique set of keys and a unique network topology. Even a total compromise of a peer's long-term identity does not reveal past communications.
-- **Information-Theoretic Privacy**: Using Shamir Secret Sharing, we ensure that an adversary observing the DHT or controlling up to `threshold - 1` nodes gains **zero bits of information** about the payload or the target.
-- **Memory Safety**: 
-    - `#![forbid(unsafe_code)]` at crate root.
-    - `ZeroizeOnDrop` integration for all sensitive key material.
-    - Unix-level hardening (`0600` permissions for identity files).
+- **Post-Quantum**: ML-KEM-1024 + ML-DSA-87. Resistant to Shor's algorithm.
+- **Forward Secrecy**: Each session uses a unique key and network topology.
+- **Information-Theoretic**: Shamir guarantees zero information leakage below threshold.
+- **Memory Safe**: `#![forbid(unsafe_code)]` + `ZeroizeOnDrop` everywhere.
 
 ## Known Limitations (v0.2-alpha)
 
-Polygone is currently in an early alpha stage. The following limitations apply:
-
-- **Local Discovery**: The current version is optimized for local or reliable VPS-to-VPS communication. NAT traversal and complex peer discovery in mobile/home networks are in active development.
-- **DHT Spam**: The network does not yet implement staking or proof-of-work for `put_record` operations, making it susceptible to flood attacks in a public production environment.
-- **Static Quorum**: Threshold (t=4, n=7) is currently hardcoded for stability. Dynamic adjustment of resilience vs. latency is planned for v0.3.
-- **Formal Verification**: While the primitives used are standard, the full protocol state machine has not yet undergone formal verification.
+- **NAT Traversal**: Optimized for stable connections. Mobile/home NAT in development.
+- **DHT Spam**: No rate-limiting on `put_record` yet.
+- **Static Quorum**: t=4, n=7 hardcoded. Dynamic tuning planned for v0.3.
+- **No Formal Verification**: Protocol state machine not yet formally verified.
 
 ---
 
 ## Contributing
-Issues and PRs are welcome. We value honest technical critiques (cryptanalysis, network attacks) over polite praise.
+
+Issues and PRs welcome. We value **honest technical critique** over polite praise.
+→ [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md)
+
+---
+
+*A **Hope** project — 🇫🇷 France · [github.com/lvs0](https://github.com/lvs0)*
 
 ***"Privacy is not a setting. It is an architectural property."*** ⬡
-by Hope

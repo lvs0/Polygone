@@ -37,20 +37,27 @@ impl SignPublicKey {
     }
 }
 
-/// ML-DSA-87 secret key (sensitive).
-pub struct SignSecretKey(mldsa87::SecretKey);
+/// ML-DSA-87 secret key (sensitive), guaranteed zeroized on drop.
+pub struct SignSecretKey(zeroize::Zeroizing<Vec<u8>>);
 
 impl SignSecretKey {
-    /// Raw bytes.
+    /// Raw bytes of this secret key.
     pub fn as_bytes(&self) -> &[u8] {
-        use pqcrypto_traits::sign::SecretKey;
-        self.0.as_bytes()
+        &self.0
     }
 
     /// Parse from bytes.
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
+        if b.len() != mldsa87::secret_key_bytes() {
+            return Err(PolygoneError::Serialization("Invalid Sign SK length".into()));
+        }
+        Ok(Self(zeroize::Zeroizing::new(b.to_vec())))
+    }
+
+    /// Internal helper to get the temporary pqcrypto key object.
+    fn get_key(&self) -> mldsa87::SecretKey {
         use pqcrypto_traits::sign::SecretKey;
-        Ok(Self(mldsa87::SecretKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid Sign SK".into()))?))
+        mldsa87::SecretKey::from_bytes(&self.0).expect("Internal sign key integrity failure")
     }
 }
 
@@ -65,13 +72,15 @@ impl Signature {
 /// Generate a fresh ML-DSA-87 key pair.
 pub fn generate_keypair() -> Result<(SignPublicKey, SignSecretKey)> {
     let (pk, sk) = mldsa87::keypair();
-    Ok((SignPublicKey(pk), SignSecretKey(sk)))
+    use pqcrypto_traits::sign::SecretKey;
+    Ok((SignPublicKey(pk), SignSecretKey::from_bytes(sk.as_bytes())?))
 }
 
 /// Sign arbitrary bytes. Returns a detached signature.
 pub fn sign(sk: &SignSecretKey, message: &[u8]) -> Signature {
+    let internal_sk = sk.get_key();
     // pqcrypto returns a signed message; we detach the signature portion.
-    let signed = mldsa87::sign(message, &sk.0);
+    let signed = mldsa87::sign(message, &internal_sk);
     let sig_bytes = signed.as_bytes()[..signed.as_bytes().len() - message.len()].to_vec();
     Signature(sig_bytes)
 }

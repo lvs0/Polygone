@@ -28,19 +28,28 @@ impl KemPublicKey {
     }
 }
 
-/// ML-KEM-1024 secret key (3168 bytes), zeroised on drop.
-#[derive(ZeroizeOnDrop)]
-pub struct KemSecretKey(#[zeroize(skip)] pub mlkem1024::SecretKey);
+/// ML-KEM-1024 secret key (3168 bytes), guaranteed zeroized on drop.
+pub struct KemSecretKey(zeroize::Zeroizing<Vec<u8>>);
 
 impl KemSecretKey {
+    /// Raw bytes of this secret key.
     pub fn as_bytes(&self) -> &[u8] {
-        use pqcrypto_traits::kem::SecretKey;
-        self.0.as_bytes()
+        &self.0
     }
     
+    /// Parse from bytes.
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
+        if b.len() != mlkem1024::secret_key_bytes() {
+            return Err(PolygoneError::Serialization("Invalid SK length".into()));
+        }
+        Ok(Self(zeroize::Zeroizing::new(b.to_vec())))
+    }
+
+    /// Internal helper to get the temporary pqcrypto key object.
+    fn get_key(&self) -> mlkem1024::SecretKey {
         use pqcrypto_traits::kem::SecretKey;
-        Ok(Self(mlkem1024::SecretKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid SK".into()))?))
+        // Optimization: from_bytes is just a wrapper around array copy in pqcrypto
+        mlkem1024::SecretKey::from_bytes(&self.0).expect("Internal key integrity failure")
     }
 }
 
@@ -66,7 +75,8 @@ impl KemCiphertext {
 /// Generate a fresh ML-KEM-1024 key pair.
 pub fn generate_keypair() -> Result<(KemPublicKey, KemSecretKey)> {
     let (pk, sk) = mlkem1024::keypair();
-    Ok((KemPublicKey(pk), KemSecretKey(sk)))
+    use pqcrypto_traits::kem::SecretKey;
+    Ok((KemPublicKey(pk), KemSecretKey::from_bytes(sk.as_bytes())?))
 }
 
 // ── Encapsulation / Decapsulation ─────────────────────────────────────────────
@@ -91,7 +101,8 @@ pub fn decapsulate(
     sk: &KemSecretKey,
     ct: &KemCiphertext,
 ) -> Result<crate::crypto::SharedSecret> {
-    let ss = mlkem1024::decapsulate(&ct.0, &sk.0);
+    let internal_sk = sk.get_key();
+    let ss = mlkem1024::decapsulate(&ct.0, &internal_sk);
     let mut bytes = [0u8; 32];
     let raw = ss.as_bytes();
     // ML-KEM ss is 32 bytes for mlkem1024

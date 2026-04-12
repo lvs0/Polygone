@@ -2,6 +2,8 @@
 
 First off, thank you for considering contributing to Polygone! We are building a post-quantum ephemeral privacy network, and community feedback is crucial for our security and stability.
 
+Polygone is a **French**-led effort by **[l-vs](https://github.com/lvs0)** under the **Hope** collective (*by Hope*). Public-facing messaging emphasizes **post-quantum** cryptography and protocol design—not hosting economics.
+
 ## How Can I Contribute?
 
 ### Cryptanalysis & Security Review

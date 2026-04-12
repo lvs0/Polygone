@@ -2,7 +2,7 @@
 name    = "polygone"
 version = "0.1.0"
 edition = "2021"
-authors = ["Lévy <contact@soe-ai.dev>"]
+authors = ["l-vs (Hope)"]
 description = "Post-quantum ephemeral network - Unified Ecosystem"
 
 [dependencies]

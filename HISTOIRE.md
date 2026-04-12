@@ -1,6 +1,6 @@
 # POLYGONE — L'histoire d'une idée et comment elle fonctionne
 
-*Rédigé à partir d'une conversation entre Lévy (14 ans, France) et Claude*
+*Rédigé à partir d'une conversation entre **l-vs** (France), collectif **Hope** (*by Hope*), et Claude*
 
 ---
 
@@ -12,7 +12,7 @@ Ce qui a changé la direction, ce n'est pas une réponse de Claude. C'est une no
 
 Cette note contenait quelque chose de vrai. Pas un plan, pas une architecture — une intuition fondamentale sur la nature du problème. Et c'est à ce moment que la conversation a changé de registre. On n'était plus en train de planifier un projet. On était en train de réfléchir à un problème.
 
-La question posée était : est-ce que tu penses à une topologie dynamique pure, à de la fragmentation en temps réel, ou à un réseau qui change d'architecture en continu ? La réponse de Lévy n'était pas de choisir une option. C'était d'expliquer pourquoi aucune des trois n'était suffisante seule, et ce que ça donnerait si on les combinait d'une façon où elles ne seraient plus séparables.
+La question posée était : est-ce que tu penses à une topologie dynamique pure, à de la fragmentation en temps réel, ou à un réseau qui change d'architecture en continu ? La réponse de l-vs n'était pas de choisir une option. C'était d'expliquer pourquoi aucune des trois n'était suffisante seule, et ce que ça donnerait si on les combinait d'une façon où elles ne seraient plus séparables.
 
 C'est là qu'est apparue la métaphore de la vague.
 
@@ -76,5 +76,5 @@ La prochaine étape concrète est de pousser le code sur GitHub et de le soumett
 
 ---
 
-*Lévy, France, 2025.*
-*Pour mon papy.*
+*l-vs, collectif Hope, France, 2025.*  
+*by Hope · Pour mon papy.*
