@@ -407,35 +407,31 @@ screen_lang_selection() {
         move_to $((y+height-2)) $((x+2))
         printf "${DIM}↑↓ Navigate  |  ENTER Select${NC}"
         
-        # Read key
         read -rsn1 key
-        
-        case "$key" in
-            $'\x1b')
-                read -rsn2 key
-                case "$key" in
-                    '[A') # Up
-                        for ((i=0; i<${#keys[@]}; i++)); do
-                            [ "$LANG" = "${keys[$i]}" ] && prev=$i
-                        done
-                        UI_LANG="${keys[$prev]}"
-                        ;;
-                    '[B') # Down
-                        for ((i=0; i<${#keys[@]}; i++)); do
-                            [ "$LANG" = "${keys[$i]}" ] && next=$(( (i+1) % ${#keys[@]} ))
-                        done
-                        UI_LANG="${keys[$next]}"
-                        ;;
-                esac
-                ;;
-            "") # Enter
-                return 0
-                ;;
-            'q'|'Q')
-                screen_quit
-                exit 0
-                ;;
-        esac
+        if [ "$key" = "" ]; then
+            return 0
+        elif [ "$key" = "q" ] || [ "$key" = "Q" ]; then
+            screen_quit
+            exit 0
+        fi
+        IFS= read -rsn1 -t 0.1 extra
+        if [ "$key" = $'\x1b' ] && [ "$extra" = "[" ]; then
+            read -rsn1 extra
+            case "$extra" in
+                A)
+                    for ((i=0; i<${#keys[@]}; i++)); do
+                        [ "$UI_LANG" = "${keys[$i]}" ] && prev=$i
+                    done
+                    UI_LANG="${keys[$prev]}"
+                    ;;
+                B)
+                    for ((i=0; i<${#keys[@]}; i++)); do
+                        [ "$UI_LANG" = "${keys[$i]}" ] && next=$(( (i+1) % ${#keys[@]} ))
+                    done
+                    UI_LANG="${keys[$next]}"
+                    ;;
+            esac
+        fi
     done
 }
 
@@ -536,41 +532,31 @@ screen_module_selection() {
         
         read -rsn1 key
         
-        case "$key" in
-            $'\x1b')
-                read -rsn2 key
-                case "$key" in
-                    '[A') # Up
-                        cursor=$(( (cursor - 1 + num_options) % num_options ))
-                        ;;
-                    '[B') # Down
-                        cursor=$(( (cursor + 1) % num_options ))
-                        ;;
-                esac
-                ;;
-            " ")
-                if [ "$cursor" -lt 7 ]; then
-                    if [ "${modules[$cursor]}" != "core" ]; then
-                        selected[${modules[$cursor]}]=$(( 1 - selected[${modules[$cursor]}] ))
-                    fi
-                fi
-                ;;
-            "")
-                if [ "$cursor" = "7" ]; then
-                    # All
-                    for mod in "${modules[@]}"; do
-                        selected[$mod]=1
-                    done
-                elif [ "$cursor" = "8" ]; then
-                    # Install
-                    return 0
-                fi
-                ;;
-            'q'|'Q')
-                screen_quit
-                exit 0
-                ;;
-        esac
+        if [ "$key" = "" ]; then
+            if [ "$cursor" = "7" ]; then
+                for mod in "${modules[@]}"; do
+                    selected[$mod]=1
+                done
+            elif [ "$cursor" = "8" ]; then
+                return 0
+            fi
+        elif [ "$key" = " " ]; then
+            if [ "$cursor" -lt 7 ] && [ "${modules[$cursor]}" != "core" ]; then
+                selected[${modules[$cursor]}]=$(( 1 - selected[${modules[$cursor]}] ))
+            fi
+        elif [ "$key" = "q" ] || [ "$key" = "Q" ]; then
+            screen_quit
+            exit 0
+        fi
+        
+        IFS= read -rsn1 -t 0.1 extra
+        if [ "$key" = $'\x1b' ] && [ "$extra" = "[" ]; then
+            read -rsn1 extra
+            case "$extra" in
+                A) cursor=$(( (cursor - 1 + num_options) % num_options )) ;;
+                B) cursor=$(( (cursor + 1) % num_options )) ;;
+            esac
+        fi
     done
 }
 
