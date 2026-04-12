@@ -1,113 +1,103 @@
 #!/bin/bash
-# ⬡ POLYGONE — Interactive Testnet Script
-# "L'information n'existe pas. Elle traverse."
+# ⬡ POLYGONE — Menu Principal Simple
+# Usage: ./polygone.sh
 
-set -e
-
-# --- Configuration ---
-BINARY="./target/release/polygone"
-DEFAULT_PORT=4001
-BOOTSTRAP_PEER_ID="12D3KooW..." # Mock for local
-
-# --- UI Helpers ---
-BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+NC='\033[0m'
 
-banner() {
-    echo -e "${CYAN}"
-    echo "  ⬡ POLYGONE — Ephemeral P2P Network"
-    echo "  ------------------------------------"
+POLYGONE_DIR="$(cd "$(dirname "$0")" && pwd)"
+BINARY="$POLYGONE_DIR/target/release/polygone-cli"
+
+show_menu() {
+    clear
+    echo -e "${CYAN}${BOLD}"
+    echo "  ⬡ POLYGONE — Menu Principal"
+    echo "  Réseau de Confidentialité Post-Quantique"
     echo -e "${NC}"
-}
-
-check_env() {
-    echo -n "Checking Rust environment... "
-    if ! command -v cargo &> /dev/null; then
-        echo -e "${RED}FAILED${NC} (Cargo not found)"
+    echo ""
+    
+    # Check if binary exists
+    if [ ! -f "$BINARY" ]; then
+        echo -e "${YELLOW}⚠ Polygone n'est pas compilé!${NC}"
+        echo ""
+        echo "  Lance d'abord: ./install_simple.sh"
+        echo ""
         exit 1
     fi
-    echo -e "${GREEN}OK${NC}"
-}
-
-build_project() {
-    echo -e "${BLUE}Building project in release mode...${NC}"
-    cargo build --release
-}
-
-start_node() {
-    echo -e "${BLUE}Starting node...${NC}"
-    if [ -z "$1" ]; then
-        $BINARY node start
-    else
-        $BINARY node start --listen "$1"
-    fi
-}
-
-simulate_network() {
-    echo -e "${BLUE}Simulating a 7-node global network on localhost...${NC}"
-    # Start bootstrap
-    $BINARY node start --listen /ip4/127.0.0.1/tcp/4001 &
-    BOOTSTRAP_PID=$!
-    sleep 2
     
-    # Start 6 more nodes
-    for i in {2..7}; do
-        PORT=$((4000 + i))
-        $BINARY node start --listen /ip4/127.0.0.1/tcp/$PORT -b /ip4/127.0.0.1/tcp/4001/p2p/mock &
-    done
+    echo "  1)  Self-Test       — Vérifier que tout fonctionne"
+    echo "  2)  Générer Clés    — Créer une paire de clés"
+    echo "  3)  Envoyer Message — Mode demo Alice → Bob"
+    echo "  4)  Statut          — État du réseau"
+    echo "  5)  Portefeuille    — Karma et rewards"
+    echo "  6)  Node            — Lancer un node relay"
+    echo ""
+    echo "  0)  Quitter"
+    echo ""
+    echo -n "  Choix: "
+}
+
+while true; do
+    show_menu
+    read choice
     
-    echo -e "${GREEN}Network is LIVE. All 7 nodes are talking.${NC}"
-    echo "Press Ctrl+C to stop the simulation."
-    wait
-}
-
-self_test() {
-    echo -e "${BLUE}Running End-to-End Self Test...${NC}"
-    $BINARY self-test
-}
-
-run_bench() {
-    echo -e "${BLUE}Running Cryptographic Benchmarks...${NC}"
-    cargo bench --bench crypto_bench
-}
-
-# --- Main Logic ---
-banner
-check_env
-
-if [[ ! -f "$BINARY" ]]; then
-    build_project
-fi
-
-echo "What would you like to do?"
-echo "1) Start a new bootstrap node (local)"
-echo "2) Simulate a 7-node global network (local)"
-echo "3) Run End-to-End Self Test"
-echo "4) Run Cryptographic Benchmarks"
-echo "5) Exit"
-echo -n "Choice: "
-read -r choice
-
-case $choice in
-    1)
-        start_node "/ip4/127.0.0.1/tcp/$DEFAULT_PORT"
-        ;;
-    2)
-        simulate_network
-        ;;
-    3)
-        self_test
-        ;;
-    4)
-        run_bench
-        ;;
-    5)
-        exit 0
-        ;;
-    *)
-        echo -e "${RED}Invalid choice.${NC}"
-        ;;
-esac
+    case $choice in
+        1)
+            echo ""
+            $BINARY self-test
+            echo ""
+            echo -n "Appuie sur Entrée pour continuer..."
+            read
+            ;;
+        2)
+            echo ""
+            $BINARY keygen
+            echo ""
+            echo -n "Appuie sur Entrée pour continuer..."
+            read
+            ;;
+        3)
+            echo ""
+            echo -n "Message à envoyer: "
+            read msg
+            if [ -n "$msg" ]; then
+                $BINARY send --peer-pk demo --message "$msg"
+            fi
+            echo ""
+            echo -n "Appuie sur Entrée pour continuer..."
+            read
+            ;;
+        4)
+            echo ""
+            $BINARY status
+            echo ""
+            echo -n "Appuie sur Entrée pour continuer..."
+            read
+            ;;
+        5)
+            echo ""
+            $BINARY power wallet
+            echo ""
+            echo -n "Appuie sur Entrée pour continuer..."
+            read
+            ;;
+        6)
+            echo ""
+            echo "Lancement du node..."
+            $BINARY node
+            ;;
+        0)
+            echo ""
+            echo -e "${CYAN}L'information n'existe pas. Elle traverse. ⬡${NC}"
+            break
+            ;;
+        *)
+            echo ""
+            echo -e "${YELLOW}Choix invalide${NC}"
+            sleep 1
+            ;;
+    esac
+done

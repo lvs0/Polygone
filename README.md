@@ -90,18 +90,23 @@ Measured on a standard modern CPU. Total cryptographic latency for a message inj
 
 ## Quickstart: Join the Testnet
 
-Polygone is fully operational. You can simulate the entire global network on your machine in 30 seconds.
+Polygone is fully operational. One-command install:
 
 ```bash
-# 1. Install Rust Nightly
-rustup toolchain install nightly && rustup default nightly
+# Installation simple (automatique)
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install_simple.sh | bash
 
-# 2. Clone and Launch the Interactive Script
+# Ou manuel:
 git clone https://github.com/lvs0/Polygone && cd Polygone
+./install_simple.sh
+```
+
+Then launch the menu:
+```bash
 ./polygone.sh
 ```
 
-Choose **Option 3 (Self-Test)** to see Alice and Bob perform a full P2P exchange through 7 local Kademlia nodes.
+Choose **Option 1 (Self-Test)** to verify everything works.
 
 ---
 
@@ -148,11 +153,12 @@ Au lieu d'un tunnel chiffré entre A et B, POLYGONE transforme un message en ét
 ### Installation Rapide
 
 ```bash
-# 1. Installer Rust Nightly
-rustup toolchain install nightly && rustup default nightly
+# Installation automatique (recommendé)
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install_simple.sh | bash
 
-# 2. Cloner et lancer
+# Ou manuel:
 git clone https://github.com/lvs0/Polygone && cd Polygone
+./install_simple.sh
 ./polygone.sh
 ```
 
