@@ -107,7 +107,14 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ -t 0 ]; then
+# Check if we should use interactive mode
+# Default to interactive, unless stdin is clearly piped (not a terminal)
+INTERACTIVE=1
+if [ ! -t 0 ] && [ -z "$*" ]; then
+    INTERACTIVE=0
+fi
+
+if [ "$INTERACTIVE" = "1" ]; then
     clear
     echo ""
     echo "  $(t title)"
@@ -117,7 +124,9 @@ if [ -t 0 ]; then
     echo "  [2] Français"
     echo "  [3] Deutsch"
     echo ""
-    read -p "  > " choice
+    echo ""
+    echo -n "  Choice [1-3]: "
+    read choice
     case "$choice" in
         2) UI_LANG="fr" ;;
         3) UI_LANG="de" ;;
@@ -140,7 +149,8 @@ if [ -t 0 ]; then
     echo "  [A] $(t all)"
     echo "  [ENTER] Install"
     echo ""
-    read -p "  > " choice
+    echo -n "  Choice: "
+    read choice
     case "$choice" in
         2) sel_drive=1 ;;
         3) sel_hide=1 ;;
