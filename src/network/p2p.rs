@@ -1,5 +1,5 @@
 use libp2p::{
-    identify::{self, Behaviour as Identify, Config as IdentifyConfig},
+    identify::{Behaviour as Identify, Config as IdentifyConfig},
     identity::Keypair,
     kad::{
         store::MemoryStore, Behaviour as Kademlia, Config as KademliaConfig, Mode,

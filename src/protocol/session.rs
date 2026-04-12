@@ -1,12 +1,12 @@
 //! Full session lifecycle implementation.
 
-use std::time::{Duration, Instant};
 use crate::{
-    crypto::{KeyPair, SharedSecret, kem, shamir, symmetric::SessionKey},
-    network::{Topology, TopologyParams, EphemeralNode, NodeId},
+    crypto::{kem, shamir, symmetric::SessionKey, KeyPair, SharedSecret},
+    network::{EphemeralNode, NodeId, Topology, TopologyParams},
     protocol::{SessionId, TransitState},
     PolygoneError, Result,
 };
+use std::time::{Duration, Instant};
 
 /// Default time a session is allowed to live before forced dissolution.
 const DEFAULT_SESSION_TTL: Duration = Duration::from_secs(30);
@@ -25,6 +25,7 @@ const DEFAULT_NODE_TTL: Duration = Duration::from_millis(500);
 /// session.send(plaintext)   ← Encrypt, fragment, dispatch
 /// session.dissolve()        ← Destroy all keying material
 /// ```
+#[allow(dead_code)]
 pub struct Session {
     pub id: SessionId,
     pub state: TransitState,
@@ -80,10 +81,7 @@ impl Session {
     ///
     /// `ciphertext` is what Alice sent. Bob decapsulates it to recover
     /// the same shared secret.
-    pub fn new_responder(
-        keypair: KeyPair,
-        ciphertext: &kem::KemCiphertext,
-    ) -> Result<Self> {
+    pub fn new_responder(keypair: KeyPair, ciphertext: &kem::KemCiphertext) -> Result<Self> {
         let shared_secret = kem::decapsulate(&keypair.kem_sk, ciphertext)?;
         Ok(Self {
             id: SessionId::generate()?,
@@ -107,7 +105,9 @@ impl Session {
     pub fn establish(&mut self, params: Option<TopologyParams>) -> Result<()> {
         self.assert_state_is(TransitState::Pending, "Established")?;
 
-        let ss = self.shared_secret.take()
+        let ss = self
+            .shared_secret
+            .take()
             .ok_or_else(|| PolygoneError::InvalidTransition {
                 from: "no shared secret".into(),
                 to: "Established".into(),
@@ -124,14 +124,16 @@ impl Session {
         let topology = Topology::derive(&topo_seed, params.unwrap_or_default())?;
 
         // Build ephemeral nodes
-        let nodes = topology.nodes.iter()
+        let nodes = topology
+            .nodes
+            .iter()
             .map(|&id| EphemeralNode::new(id, DEFAULT_NODE_TTL))
             .collect();
 
-        self.topology    = Some(topology);
-        self.nodes       = nodes;
+        self.topology = Some(topology);
+        self.nodes = nodes;
         self.session_key = Some(SessionKey::from_bytes(key_bytes));
-        self.state       = TransitState::Established;
+        self.state = TransitState::Established;
 
         Ok(())
     }
@@ -146,7 +148,9 @@ impl Session {
     pub fn send(&mut self, plaintext: &[u8]) -> Result<Vec<(NodeId, Vec<u8>)>> {
         self.assert_established("send")?;
 
-        let key = self.session_key.as_ref()
+        let key = self
+            .session_key
+            .as_ref()
             .ok_or_else(|| PolygoneError::AeadError("no session key".into()))?;
 
         // 1. Encrypt the plaintext
@@ -155,7 +159,9 @@ impl Session {
             .map_err(|e| PolygoneError::Serialization(e.to_string()))?;
 
         // 2. Fragment the encrypted payload via Shamir
-        let topo = self.topology.as_ref()
+        let topo = self
+            .topology
+            .as_ref()
             .ok_or_else(|| PolygoneError::TopologyDerivation("no topology".into()))?;
 
         let n = topo.params.node_count;
@@ -173,7 +179,9 @@ impl Session {
             }
         }
 
-        self.state = TransitState::InTransit { dispatched_at: Instant::now() };
+        self.state = TransitState::InTransit {
+            dispatched_at: Instant::now(),
+        };
         Ok(assignments)
     }
 
@@ -186,10 +194,14 @@ impl Session {
     pub fn receive(&mut self, fragment_payloads: Vec<Vec<u8>>) -> Result<Vec<u8>> {
         self.assert_established("receive")?;
 
-        let key = self.session_key.as_ref()
+        let key = self
+            .session_key
+            .as_ref()
             .ok_or_else(|| PolygoneError::AeadError("no session key".into()))?;
 
-        let topo = self.topology.as_ref()
+        let topo = self
+            .topology
+            .as_ref()
             .ok_or_else(|| PolygoneError::TopologyDerivation("no topology".into()))?;
 
         let threshold = topo.params.threshold;
@@ -197,15 +209,17 @@ impl Session {
         // 1. Deserialize fragments
         let fragments: Vec<crate::crypto::shamir::Fragment> = fragment_payloads
             .iter()
-            .map(|b| bincode::deserialize(b)
-                .map_err(|e| PolygoneError::Serialization(e.to_string())))
+            .map(|b| {
+                bincode::deserialize(b).map_err(|e| PolygoneError::Serialization(e.to_string()))
+            })
             .collect::<Result<Vec<_>>>()?;
 
         // 2. Reconstruct encrypted payload
-        let payload_bytes = shamir::reconstruct(&fragments, threshold)
-            .map_err(|_| PolygoneError::ReassemblyFailed {
+        let payload_bytes = shamir::reconstruct(&fragments, threshold).map_err(|_| {
+            PolygoneError::ReassemblyFailed {
                 missing: threshold as usize - fragments.len().min(threshold as usize),
-            })?;
+            }
+        })?;
 
         // 3. Deserialize and decrypt
         let encrypted: crate::crypto::symmetric::EncryptedPayload =
@@ -225,15 +239,17 @@ impl Session {
     /// This MUST be called after `Completed` (or on error paths).
     pub fn dissolve(&mut self) {
         // Dissolve all ephemeral nodes (fragment data zeroed in Drop impl)
-        for node in &mut self.nodes { node.dissolve(); }
+        for node in &mut self.nodes {
+            node.dissolve();
+        }
         self.nodes.clear();
 
         // session_key and shared_secret are ZeroizeOnDrop —
         // dropping them zeroes the memory automatically.
-        self.session_key   = None;
+        self.session_key = None;
         self.shared_secret = None;
-        self.topology      = None;
-        self.state         = TransitState::Dissolved;
+        self.topology = None;
+        self.state = TransitState::Dissolved;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -249,7 +265,10 @@ impl Session {
     }
 
     fn assert_established(&self, op: &str) -> Result<()> {
-        if !matches!(self.state, TransitState::Established | TransitState::InTransit{..}) {
+        if !matches!(
+            self.state,
+            TransitState::Established | TransitState::InTransit { .. }
+        ) {
             return Err(PolygoneError::InvalidTransition {
                 from: self.state.to_string(),
                 to: format!("allow '{op}'"),
@@ -318,7 +337,7 @@ mod tests {
         bob.dissolve();
 
         assert_eq!(alice.state, TransitState::Dissolved);
-        assert_eq!(bob.state,   TransitState::Dissolved);
+        assert_eq!(bob.state, TransitState::Dissolved);
     }
 
     #[test]

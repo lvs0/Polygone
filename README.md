@@ -1,8 +1,20 @@
 # ⬡ POLYGONE
 
-> *"Information does not exist. It drifts."*
+> *"Information does not exist. It drifts."* / *"L'information n'existe pas. Elle traverse."*
 
 **POLYGONE** is a post-quantum ephemeral privacy network designed to solve the **Metadata Problem**. Built in pure Rust.
+
+🇫🇷 **POLYGONE** est un réseau de confidentialité post-quantique éphémère conçu pour résoudre le **Problème des Métadonnées**. Construit en Rust pur.
+
+---
+
+**English** | [Français](#français)
+
+---
+
+## English
+
+### The Problem: The Metadata Leak
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)]()
@@ -120,4 +132,51 @@ Polygone is currently in an early alpha stage. The following limitations apply:
 Issues and PRs are welcome. We value honest technical critiques (cryptanalysis, network attacks) over polite praise.
 
 ***"Privacy is not a setting. It is an architectural property."*** ⬡
-by Hope
+
+---
+
+## 🇫🇷 Français
+
+### Le Problème : La Fuite de Métadonnées
+
+Le chiffrement traditionnel protège le **contenu**, mais il ne peut pas cacher qu'une **communication a eu lieu**. Les IP source, IP cible, timing et tailles de paquets restent visibles pour les observateurs.
+
+**POLYGONE change le paradigme.**
+
+Au lieu d'un tunnel chiffré entre A et B, POLYGONE transforme un message en état mathématique distribué transient — une vague qui traverse un DHT global puis s'évapore.
+
+### Installation Rapide
+
+```bash
+# 1. Installer Rust Nightly
+rustup toolchain install nightly && rustup default nightly
+
+# 2. Cloner et lancer
+git clone https://github.com/lvs0/Polygone && cd Polygone
+./polygone.sh
+```
+
+### Modèle de Sécurité
+
+- **Résistance Post-Quantique** : ML-KEM-1024 + ML-DSA-87
+- **Sécurité Information-Théorique** : Shamir Secret Sharing (k-1 fragments = 0 info)
+- **Sécurité Mémoire** : `#![forbid(unsafe_code)]` + ZeroizeOnDrop
+
+### Limites Connues (v0.2-alpha)
+
+- Découverte locale uniquement (v0.3 NAT traversal)
+- Pas de protection anti-spam DHT
+- Quorum statique (4-of-7)
+
+---
+
+## ⬡ Liens
+
+- [GitHub](https://github.com/lvs0/Polygone)
+- [CLI Installer](https://github.com/lvs0/Polygone-CLI)
+- [Drive](https://github.com/lvs0/Polygone-Drive)
+- [Hide](https://github.com/lvs0/Polygone-Hide)
+- [Petals](https://github.com/lvs0/Polygone-Petals)
+
+*"Privacy is not a setting. It is an architectural property."* ⬡
+by Lévy, 14 ans, France

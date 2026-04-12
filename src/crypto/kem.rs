@@ -4,7 +4,7 @@
 
 use pqcrypto_mlkem::mlkem1024;
 use pqcrypto_traits::kem::{PublicKey, SecretKey, SharedSecret as PqSharedSecret};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::ZeroizeOnDrop;
 
 use crate::{PolygoneError, Result};
 
@@ -17,14 +17,14 @@ pub struct KemPublicKey(mlkem1024::PublicKey);
 impl KemPublicKey {
     /// Raw bytes of this public key.
     pub fn as_bytes(&self) -> &[u8] {
-        use pqcrypto_traits::kem::PublicKey;
-        self.0.as_bytes()
+        PublicKey::as_bytes(&self.0)
     }
-    
+
     /// Parse from bytes
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
-        use pqcrypto_traits::kem::PublicKey;
-        Ok(Self(mlkem1024::PublicKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid PK".into()))?))
+        Ok(Self(PublicKey::from_bytes(b).map_err(|_| {
+            PolygoneError::Serialization("Invalid PK".into())
+        })?))
     }
 }
 
@@ -34,13 +34,13 @@ pub struct KemSecretKey(#[zeroize(skip)] pub mlkem1024::SecretKey);
 
 impl KemSecretKey {
     pub fn as_bytes(&self) -> &[u8] {
-        use pqcrypto_traits::kem::SecretKey;
-        self.0.as_bytes()
+        SecretKey::as_bytes(&self.0)
     }
-    
+
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
-        use pqcrypto_traits::kem::SecretKey;
-        Ok(Self(mlkem1024::SecretKey::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid SK".into()))?))
+        Ok(Self(SecretKey::from_bytes(b).map_err(|_| {
+            PolygoneError::Serialization("Invalid SK".into())
+        })?))
     }
 }
 
@@ -54,10 +54,12 @@ impl KemCiphertext {
         use pqcrypto_traits::kem::Ciphertext;
         self.0.as_bytes()
     }
-    
+
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
         use pqcrypto_traits::kem::Ciphertext;
-        Ok(Self(mlkem1024::Ciphertext::from_bytes(b).map_err(|_| PolygoneError::Serialization("Invalid CT".into()))?))
+        Ok(Self(mlkem1024::Ciphertext::from_bytes(b).map_err(
+            |_| PolygoneError::Serialization("Invalid CT".into()),
+        )?))
     }
 }
 
@@ -87,10 +89,7 @@ pub fn encapsulate(pk: &KemPublicKey) -> Result<(KemCiphertext, crate::crypto::S
 ///
 /// If the ciphertext was tampered with, this returns
 /// `Err(PolygoneError::KemDecapsulate)`.
-pub fn decapsulate(
-    sk: &KemSecretKey,
-    ct: &KemCiphertext,
-) -> Result<crate::crypto::SharedSecret> {
+pub fn decapsulate(sk: &KemSecretKey, ct: &KemCiphertext) -> Result<crate::crypto::SharedSecret> {
     let ss = mlkem1024::decapsulate(&ct.0, &sk.0);
     let mut bytes = [0u8; 32];
     let raw = ss.as_bytes();

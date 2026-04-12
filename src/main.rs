@@ -287,7 +287,7 @@ async fn cmd_send(peer_pk: String, message: String, bootstrap: Option<String>) -
     alice.establish(None)?;
     let assignments = alice.send(message.as_bytes())?;
     
-    use libp2p::{identity, Swarm, futures::StreamExt, swarm::SwarmEvent};
+    use libp2p::{identity, futures::StreamExt, swarm::SwarmEvent};
     let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519()).await?;
     
     if let Some(boot) = bootstrap {
@@ -404,7 +404,7 @@ async fn cmd_node(action: NodeAction, bootstrap: Option<String>) -> anyhow::Resu
             println!("  RAM cap : {ram_mb} MB");
             println!();
             
-            use libp2p::{identity as lp2p_id, Swarm, futures::StreamExt, swarm::SwarmEvent};
+            use libp2p::{identity as lp2p_id, futures::StreamExt, swarm::SwarmEvent};
             use std::path::Path;
 
             let keypair = if let Some(path) = identity {

@@ -33,6 +33,7 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(clippy::all, clippy::pedantic)]
+#![allow(missing_docs)]
 
 pub mod crypto;
 pub mod error;
