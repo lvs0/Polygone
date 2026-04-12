@@ -9,7 +9,17 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 POLYGONE_DIR="$(cd "$(dirname "$0")" && pwd)"
-BINARY="$POLYGONE_DIR/target/release/polygone-cli"
+
+# Find binary: ~/.local/bin first, then local build
+if [ -x "$HOME/.local/bin/polygone-cli" ]; then
+    BINARY="$HOME/.local/bin/polygone-cli"
+elif [ -x "$POLYGONE_DIR/target/release/polygone-cli" ]; then
+    BINARY="$POLYGONE_DIR/target/release/polygone-cli"
+elif command -v polygone-cli &> /dev/null; then
+    BINARY="$(which polygone-cli)"
+else
+    BINARY=""
+fi
 
 show_menu() {
     clear
@@ -20,8 +30,8 @@ show_menu() {
     echo ""
     
     # Check if binary exists
-    if [ ! -f "$BINARY" ]; then
-        echo -e "${YELLOW}⚠ Polygone n'est pas compilé!${NC}"
+    if [ -z "$BINARY" ] || [ ! -f "$BINARY" ]; then
+        echo -e "${YELLOW}⚠ Polygone n'est pas installé!${NC}"
         echo ""
         echo "  Lance d'abord: ./install_simple.sh"
         echo ""
