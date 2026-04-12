@@ -3,6 +3,7 @@
 use crate::{PolygoneError, Result};
 use pqcrypto_mldsa::mldsa87;
 use pqcrypto_traits::sign::{PublicKey, SecretKey, SignedMessage};
+use zeroize::ZeroizeOnDrop;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -31,12 +32,10 @@ impl<'de> Deserialize<'de> for SignPublicKey {
 }
 
 impl SignPublicKey {
-    /// Raw bytes.
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_bytes()
     }
 
-    /// Parse from bytes.
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
         Ok(Self(mldsa87::PublicKey::from_bytes(b).map_err(|_| {
             PolygoneError::Serialization("Invalid Sign PK".into())
@@ -45,27 +44,38 @@ impl SignPublicKey {
 }
 
 /// ML-DSA-87 secret key (sensitive).
-pub struct SignSecretKey(mldsa87::SecretKey);
+/// Zeroized on drop for memory safety.
+pub struct SignSecretKey {
+    bytes: zeroize::Zeroizing<Vec<u8>>,
+}
 
 impl SignSecretKey {
-    /// Raw bytes.
-    pub fn as_bytes(&self) -> &[u8] {
-        SecretKey::as_bytes(&self.0)
+    pub fn from_secret_key(sk: mldsa87::SecretKey) -> Self {
+        Self {
+            bytes: zeroize::Zeroizing::new(sk.as_bytes().to_vec()),
+        }
     }
 
-    /// Parse from bytes.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
-        Ok(Self(SecretKey::from_bytes(b).map_err(|_| {
-            PolygoneError::Serialization("Invalid Sign SK".into())
-        })?))
+        mldsa87::SecretKey::from_bytes(b)
+            .map_err(|_| PolygoneError::Serialization("Invalid Sign SK".into()))?;
+        Ok(Self {
+            bytes: zeroize::Zeroizing::new(b.to_vec()),
+        })
     }
 }
+
+impl ZeroizeOnDrop for SignSecretKey {}
 
 /// A detached signature (4627 bytes for ML-DSA-87).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Signature(Vec<u8>);
+
 impl Signature {
-    /// Raw bytes.
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
@@ -74,20 +84,21 @@ impl Signature {
 /// Generate a fresh ML-DSA-87 key pair.
 pub fn generate_keypair() -> Result<(SignPublicKey, SignSecretKey)> {
     let (pk, sk) = mldsa87::keypair();
-    Ok((SignPublicKey(pk), SignSecretKey(sk)))
+    Ok((SignPublicKey(pk), SignSecretKey::from_secret_key(sk)))
 }
 
 /// Sign arbitrary bytes. Returns a detached signature.
 pub fn sign(sk: &SignSecretKey, message: &[u8]) -> Signature {
-    // pqcrypto returns a signed message; we detach the signature portion.
-    let signed = mldsa87::sign(message, &sk.0);
+    let sk_inner = mldsa87::SecretKey::from_bytes(sk.as_bytes())
+        .map_err(|_| PolygoneError::SignatureInvalid)
+        .unwrap();
+    let signed = mldsa87::sign(message, &sk_inner);
     let sig_bytes = signed.as_bytes()[..signed.as_bytes().len() - message.len()].to_vec();
     Signature(sig_bytes)
 }
 
 /// Verify a detached signature.
 pub fn verify(pk: &SignPublicKey, message: &[u8], sig: &Signature) -> Result<()> {
-    // Reconstruct signed message for pqcrypto API
     let mut combined = sig.0.clone();
     combined.extend_from_slice(message);
     mldsa87::open(

@@ -26,7 +26,14 @@ pub fn load_or_generate_identity(path: &Path) -> anyhow::Result<Keypair> {
             fs::create_dir_all(parent)?;
         }
         fs::write(path, bytes)?;
-        println!("  ✓ Generated and saved new identity to {}", path.display());
+        
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(path, fs::Permissions::from_mode(0o600))?;
+        }
+        
+        println!("  ✓ Generated and saved new identity to {} (permissions 0o600)", path.display());
         Ok(keypair)
     }
 }

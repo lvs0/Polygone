@@ -178,37 +178,63 @@ async fn main() -> anyhow::Result<()> {
 // ── Command Implementations ───────────────────────────────────────────────────
 
 async fn cmd_keygen(output: String) -> anyhow::Result<()> {
+    // Expand tilde and resolve path
+    let output_path = if output.starts_with("~/") {
+        if let Some(home) = dirs::home_dir() {
+            home.join(output.trim_start_matches("~/"))
+        } else {
+            anyhow::bail!("Could not find home directory");
+        }
+    } else {
+        std::path::PathBuf::from(&output)
+    };
+
+    // Create directory if it doesn't exist
+    std::fs::create_dir_all(&output_path)?;
+
+    // Verify the output directory is safe (no path traversal)
+    let canonical = output_path.canonicalize()?;
+    if !canonical.starts_with(dirs::home_dir().unwrap_or_default()) {
+        anyhow::bail!("Output path is outside of allowed directories");
+    }
+
     println!("⬡ POLYGONE — Generating post-quantum keypair...");
     println!("  Algorithm : ML-KEM-1024 + ML-DSA-87");
-    println!("  Output    : {output}");
+    println!("  Output    : {}", output_path.display());
     println!();
 
     let kp = KeyPair::generate()?;
 
     println!("  ✓ KEM public key   : {} bytes", kp.kem_pk.as_bytes().len());
     println!("  ✓ Sign public key  : {} bytes", kp.sign_pk.as_bytes().len());
-    println!("  ✓ Keys written to  : {output}");
+    println!("  ✓ Keys written to  : {}", output_path.display());
     println!();
     println!("  Share your KEM public key with anyone who wants to send you a message.");
     println!("  Keep your secret key offline. It cannot be recovered if lost.");
 
-    let mut opts = std::fs::OpenOptions::new();
-    opts.write(true).create(true).truncate(true);
+    use std::io::Write;
+    
+    let pk_path = output_path.join("kem.pk");
+    let sk_path = output_path.join("kem.sk");
+    
+    let mut pk_file = std::fs::File::create(&pk_path)?;
+    pk_file.write_all(kp.kem_pk.as_bytes())?;
+    
+    let mut sk_file = std::fs::File::create(&sk_path)?;
+    sk_file.write_all(kp.kem_sk.as_bytes())?;
     
     #[cfg(unix)]
     {
-        use std::os::unix::fs::OpenOptionsExt;
-        opts.mode(0o600);
+        use std::os::unix::fs::PermissionsExt;
+        // Set restrictive permissions (owner read/write only)
+        std::fs::set_permissions(&sk_path, std::fs::Permissions::from_mode(0o600))?;
+        std::fs::set_permissions(&pk_path, std::fs::Permissions::from_mode(0o644))?;
+        println!("  ✓ Saved with Unix permissions 0600 (sk) / 0644 (pk)");
     }
     
-    use std::io::Write;
-    opts.open(format!("{output}/kem.pk"))?.write_all(kp.kem_pk.as_bytes())?;
-    opts.open(format!("{output}/kem.sk"))?.write_all(kp.kem_sk.as_bytes())?;
-    
-    #[cfg(unix)]
-    println!("  ✓ Saved to disk properly (Unix permissions 0600 enforced).");
     #[cfg(not(unix))]
     println!("  ✓ Saved to disk properly.");
+    
     Ok(())
 }
 
@@ -288,7 +314,17 @@ async fn cmd_send(peer_pk: String, message: String, bootstrap: Option<String>) -
     }
 
     // Production path: load peer public key from file/hex.
-    let pk_bytes = std::fs::read(&peer_pk)?;
+    // Sanitize path to prevent path traversal attacks
+    let sanitized_pk_path = if peer_pk.starts_with("~/") {
+        if let Some(home) = dirs::home_dir() {
+            home.join(peer_pk.trim_start_matches("~/"))
+        } else {
+            anyhow::bail!("Could not find home directory");
+        }
+    } else {
+        std::path::PathBuf::from(&peer_pk)
+    };
+    let pk_bytes = std::fs::read(&sanitized_pk_path)?;
     let kem_pk = polygone::crypto::kem::KemPublicKey::from_bytes(&pk_bytes)?;
     let (mut alice, ciphertext) = Session::new_initiator(&kem_pk)?;
     
@@ -339,10 +375,30 @@ async fn cmd_receive(sk: String, ciphertext: String, bootstrap: Option<String>) 
     
     println!("⬡ POLYGONE — Receiving message...");
 
-    let sk_bytes = std::fs::read(&sk)?;
+    // Sanitize path to prevent path traversal attacks
+    let sanitized_sk_path = if sk.starts_with("~/") {
+        if let Some(home) = dirs::home_dir() {
+            home.join(sk.trim_start_matches("~/"))
+        } else {
+            anyhow::bail!("Could not find home directory");
+        }
+    } else {
+        std::path::PathBuf::from(&sk)
+    };
+    let sk_bytes = std::fs::read(&sanitized_sk_path)?;
     let kem_sk = KemSecretKey::from_bytes(&sk_bytes)?;
 
-    let ct_bytes = std::fs::read(&ciphertext)?;
+    // Sanitize ciphertext path too
+    let sanitized_ct_path = if ciphertext.starts_with("~/") {
+        if let Some(home) = dirs::home_dir() {
+            home.join(ciphertext.trim_start_matches("~/"))
+        } else {
+            anyhow::bail!("Could not find home directory");
+        }
+    } else {
+        std::path::PathBuf::from(&ciphertext)
+    };
+    let ct_bytes = std::fs::read(&sanitized_ct_path)?;
     let kem_ct = KemCiphertext::from_bytes(&ct_bytes)?;
 
     let mut kp = KeyPair::generate()?;

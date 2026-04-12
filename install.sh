@@ -9,6 +9,10 @@ INSTALL_DIR="$HOME/.local/bin"
 ECOSYSTEM_DIR="$HOME/.Polygone-Ecosystem"
 LATEST_VERSION="v0.1.0"
 
+# SHA256 checksums for released binaries (updated per release)
+declare -A SHA256_SUMS
+SHA256_SUMS["polygone-x86_64-linux"]="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
 CYAN=$'\033[0;36m'
@@ -185,7 +189,17 @@ case "$OS" in
     Linux)
         case "$ARCH" in
             x86_64)
-                wget -q "https://github.com/lvs0/Polygone/releases/download/$LATEST_VERSION/polygone-x86_64-linux" -O "$INSTALL_DIR/polygone" && chmod +x "$INSTALL_DIR/polygone" && printf "%bDone ✓%b\n" "$GREEN" "$NC" || printf "%bError ✗%b\n" "$RED" "$NC"
+                wget -q "https://github.com/lvs0/Polygone/releases/download/$LATEST_VERSION/polygone-x86_64-linux" -O "$INSTALL_DIR/polygone" && \
+                chmod +x "$INSTALL_DIR/polygone" && \
+                ACTUAL_SHA256=$(sha256sum "$INSTALL_DIR/polygone" 2>/dev/null | cut -d' ' -f1) && \
+                EXPECTED_SHA256="${SHA256_SUMS[polygone-x86_64-linux]}" && \
+                if [ -n "$EXPECTED_SHA256" ] && [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then \
+                    printf "%bSHA256 Mismatch! Removing corrupted binary.%b\n" "$RED" "$NC" && \
+                    rm -f "$INSTALL_DIR/polygone" && \
+                    printf "%bError ✗%b\n" "$RED" "$NC"; \
+                else \
+                    printf "%bDone ✓%b\n" "$GREEN" "$NC"; \
+                fi || printf "%bError ✗%b\n" "$RED" "$NC"
                 ;;
             *) echo "Unsupported" ;;
         esac
