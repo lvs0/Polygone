@@ -33,6 +33,10 @@
 | Path Sanitization | ✅ Complete | Traversal protection |
 | Polygone-Server Module | ✅ Complete | Resource management, rate limiting |
 | Polygone-Drive Module | ✅ Complete | Erasure coding, encrypted storage |
+| Polygone-Hide Module | 🚧 Planned | Anonymous browsing |
+| Polygone-Petals Module | 🚧 Planned | AI/ML inference network |
+| Polygone-Shell Module | 🚧 Planned | Secure CLI |
+| Polygone-Brain Module | 🚧 Planned | AI reasoning engine |
 
 ### What's Planned 🚧
 
@@ -77,23 +81,20 @@ curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bas
 # Interactive installer (recommended)
 ./install.sh
 
-# Specific modules
-./install.sh --core --drive --server
+# Core only
+./install.sh --core
 
-# All modules
-./install.sh --all
-
-# Docker deployment
-./install.sh --all --docker
+# Core + Drive
+./install.sh --core --drive
 
 # System-wide with systemd
-./install.sh --all --systemd --background
+./install.sh --core --systemd --background
 
 # Custom directory
-./install.sh --all --custom-dir /opt/polygone
+./install.sh --core --custom-dir /opt/polygone
 
 # Expert mode (no prompts)
-./install.sh --all --expert --no-verify
+./install.sh --core --expert --no-verify
 ```
 
 ### Manual Install
