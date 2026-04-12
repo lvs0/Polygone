@@ -368,7 +368,7 @@ install_core() {
                     if [[ $? -eq 0 ]]; then
                         chmod +x "$INSTALL_DIR/polygone"
                         if [[ $opt_verify -eq 1 ]]; then
-                            EXPECTED="99d9dcce3d3e44388c78949fb6f25a0e8a5e4d6b17b2d25b42446e219a114adc"
+                            EXPECTED="f112eb3687ce59a7e17d840192a7770c694fbccca2564b9609f28bad74afb696"
                             ACTUAL=$(sha256sum "$INSTALL_DIR/polygone" 2>/dev/null | cut -d' ' -f1)
                             if [[ "$ACTUAL" != "$EXPECTED" ]]; then
                                 rm -f "$INSTALL_DIR/polygone"
