@@ -1,139 +1,129 @@
-//! Ephemeral node — born for one computation, dissolved after.
+//! Ephemeral node lifecycle management.
+//!
+//! Each node lives for at most `ttl` milliseconds, then dissolves.
+//! Fragment data is zeroed on dissolution.
 
 use std::time::{Duration, Instant};
-use crate::{crypto::shamir::Fragment, network::NodeId, Result};
+use zeroize::Zeroize;
 
-/// State of a single ephemeral node.
-#[derive(Debug, Clone, PartialEq, Eq)]
+use super::NodeId;
+
+/// The lifecycle state of an ephemeral node.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NodeState {
-    /// Node has been assigned but has not yet received its fragment.
-    Initialised,
-    /// Node holds its fragment and is ready to participate.
-    Ready,
-    /// Node has completed its part of the computation.
-    Computed,
-    /// Node has dissolved — its fragment is gone, its state is cleared.
+    /// Node is alive and can receive/hold a fragment.
+    Active,
+    /// Node has dissolved — all data zeroed.
     Dissolved,
 }
 
-/// A single ephemeral node in a transit network.
+/// An ephemeral relay node.
 ///
-/// - Exists for the duration of exactly one session transit.
-/// - Holds at most one Shamir fragment.
-/// - Transitions: Initialised → Ready → Computed → Dissolved.
-/// - On dissolution: fragment is zeroised, state cleared.
+/// Holds at most one fragment for at most `ttl` duration.
+/// After dissolution, all fragment bytes are zeroed in memory.
 pub struct EphemeralNode {
     pub id: NodeId,
-    state: NodeState,
-    fragment: Option<Fragment>,
+    pub state: NodeState,
+    /// The fragment this node is holding, if any.
+    fragment: Option<Vec<u8>>,
+    /// When this node was created.
     born_at: Instant,
-    /// Maximum time this node is allowed to live.
-    pub ttl: Duration,
+    /// Maximum lifetime before forced dissolution.
+    ttl: Duration,
 }
 
 impl EphemeralNode {
-    /// Create a new ephemeral node with the given ID and TTL.
+    /// Create a new active node with the given TTL.
     pub fn new(id: NodeId, ttl: Duration) -> Self {
         Self {
             id,
-            state: NodeState::Initialised,
+            state: NodeState::Active,
             fragment: None,
             born_at: Instant::now(),
             ttl,
         }
     }
 
-    /// Assign a Shamir fragment to this node.
-    ///
-    /// # Errors
-    /// Returns an error if the node is not in `Initialised` state.
-    pub fn assign_fragment(&mut self, fragment: Fragment) -> Result<()> {
-        if self.state != NodeState::Initialised {
-            return Err(crate::PolygoneError::InvalidTransition {
-                from: format!("{:?}", self.state),
-                to: "Ready".into(),
-            });
+    /// Deposit a fragment into this node.
+    /// Returns Err if the node is already dissolved or already holds a fragment.
+    pub fn deposit(&mut self, data: Vec<u8>) -> Result<(), &'static str> {
+        if self.state == NodeState::Dissolved {
+            return Err("node already dissolved");
         }
-        self.fragment = Some(fragment);
-        self.state = NodeState::Ready;
+        if self.fragment.is_some() {
+            return Err("node already holds a fragment");
+        }
+        self.fragment = Some(data);
         Ok(())
     }
 
-    /// Extract the fragment (consuming it from this node) and mark as Computed.
-    ///
-    /// # Errors
-    /// Returns an error if the node is not `Ready`.
-    pub fn extract_fragment(&mut self) -> Result<Fragment> {
-        if self.state != NodeState::Ready {
-            return Err(crate::PolygoneError::InvalidTransition {
-                from: format!("{:?}", self.state),
-                to: "Computed".into(),
-            });
-        }
-        let fragment = self.fragment.take().expect("fragment present when Ready");
-        self.state = NodeState::Computed;
-        Ok(fragment)
+    /// Collect the fragment from this node, consuming it.
+    pub fn collect(&mut self) -> Option<Vec<u8>> {
+        self.check_ttl();
+        self.fragment.take()
     }
 
-    /// Dissolve this node, clearing all state.
-    pub fn dissolve(&mut self) {
-        // Zeroize fragment data in-place if present
-        if let Some(ref mut f) = self.fragment {
-            for byte in &mut f.data { *byte = 0; }
+    /// Check if the TTL has expired and auto-dissolve if so.
+    pub fn check_ttl(&mut self) {
+        if self.born_at.elapsed() >= self.ttl {
+            self.dissolve();
         }
-        self.fragment = None;
+    }
+
+    /// Has this node's TTL expired?
+    pub fn is_expired(&self) -> bool {
+        self.born_at.elapsed() >= self.ttl
+    }
+
+    /// Dissolve this node: zero all held fragment data.
+    pub fn dissolve(&mut self) {
+        if let Some(mut data) = self.fragment.take() {
+            data.zeroize();
+        }
         self.state = NodeState::Dissolved;
     }
 
-    /// Whether this node's TTL has expired.
-    pub fn is_expired(&self) -> bool {
-        self.born_at.elapsed() > self.ttl
+    /// Time remaining before TTL expiry.
+    pub fn time_remaining(&self) -> Duration {
+        self.ttl.saturating_sub(self.born_at.elapsed())
     }
 
-    /// Current state.
-    pub fn state(&self) -> &NodeState { &self.state }
+    /// Short display string for TUI.
+    pub fn status_char(&self) -> &'static str {
+        match self.state {
+            NodeState::Active => "●",
+            NodeState::Dissolved => "○",
+        }
+    }
 }
 
 impl Drop for EphemeralNode {
     fn drop(&mut self) {
-        // Ensure dissolution on drop regardless of state
-        self.dissolve();
+        // Ensure fragment bytes are zeroed on any drop path
+        if let Some(mut data) = self.fragment.take() {
+            data.zeroize();
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::shamir::Fragment;
-    use crate::network::NodeId;
 
-    fn test_node() -> EphemeralNode {
-        let id = NodeId::derive(&[0u8; 32], 0);
-        EphemeralNode::new(id, Duration::from_secs(10))
+    #[test]
+    fn node_deposit_and_collect() {
+        let id = NodeId([1u8; 8]);
+        let mut node = EphemeralNode::new(id, Duration::from_secs(30));
+        node.deposit(vec![1, 2, 3]).unwrap();
+        let data = node.collect().unwrap();
+        assert_eq!(data, vec![1, 2, 3]);
     }
 
     #[test]
-    fn node_lifecycle() {
-        let mut node = test_node();
-        assert_eq!(node.state(), &NodeState::Initialised);
-
-        let frag = Fragment { id: crate::crypto::shamir::FragmentId(1), data: vec![1, 2, 3] };
-        node.assign_fragment(frag).unwrap();
-        assert_eq!(node.state(), &NodeState::Ready);
-
-        let _extracted = node.extract_fragment().unwrap();
-        assert_eq!(node.state(), &NodeState::Computed);
-
+    fn dissolved_node_rejects_deposit() {
+        let id = NodeId([2u8; 8]);
+        let mut node = EphemeralNode::new(id, Duration::from_secs(30));
         node.dissolve();
-        assert_eq!(node.state(), &NodeState::Dissolved);
-    }
-
-    #[test]
-    fn double_extraction_fails() {
-        let mut node = test_node();
-        let frag = Fragment { id: crate::crypto::shamir::FragmentId(1), data: vec![0] };
-        node.assign_fragment(frag).unwrap();
-        node.extract_fragment().unwrap();
-        assert!(node.extract_fragment().is_err());
+        assert!(node.deposit(vec![1, 2, 3]).is_err());
     }
 }

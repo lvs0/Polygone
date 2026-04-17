@@ -1,6 +1,6 @@
-use crate::crypto::sign::{SignPublicKey, SignSecretKey, Signature};
-use crate::Result;
 use serde::{Deserialize, Serialize};
+use crate::crypto::sign::{SignPublicKey, Signature, SignSecretKey};
+use crate::Result;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A signed proof of work/contribution in the Polygone network.
@@ -32,19 +32,10 @@ impl WorkVoucher {
             .unwrap()
             .as_secs();
 
-        // Data to sign: LENGTH_PREFIXED(worker + requester + units + timestamp)
-        // Using length prefixes prevents collision attacks
+        // Data to sign: worker + requester + units + timestamp
         let mut data = Vec::new();
-
-        // Worker ID (length-prefixed)
-        data.extend_from_slice(&(worker_id.len() as u16).to_le_bytes());
         data.extend_from_slice(worker_id.as_bytes());
-
-        // Requester ID (length-prefixed)
-        data.extend_from_slice(&(requester_id.len() as u16).to_le_bytes());
         data.extend_from_slice(requester_id.as_bytes());
-
-        // Units and timestamp
         data.extend_from_slice(&units.to_le_bytes());
         data.extend_from_slice(&issued_at.to_le_bytes());
 
@@ -62,16 +53,8 @@ impl WorkVoucher {
     /// Verify the voucher's authenticity using the Requester's public key.
     pub fn verify(&self, public_key: &SignPublicKey) -> Result<bool> {
         let mut data = Vec::new();
-
-        // Worker ID (length-prefixed)
-        data.extend_from_slice(&(self.worker_id.len() as u16).to_le_bytes());
         data.extend_from_slice(self.worker_id.as_bytes());
-
-        // Requester ID (length-prefixed)
-        data.extend_from_slice(&(self.requester_id.len() as u16).to_le_bytes());
         data.extend_from_slice(self.requester_id.as_bytes());
-
-        // Units and timestamp
         data.extend_from_slice(&self.units.to_le_bytes());
         data.extend_from_slice(&self.issued_at.to_le_bytes());
 
@@ -92,8 +75,7 @@ impl KarmaStore {
             return Ok(Self::default());
         }
         let data = std::fs::read(path)?;
-        let store = bincode::deserialize(&data)
-            .map_err(|e| crate::error::PolygoneError::Serialization(e.to_string()))?;
+        let store = bincode::deserialize(&data).map_err(|e| crate::error::PolygoneError::Serialization(e.to_string()))?;
         Ok(store)
     }
 
@@ -101,8 +83,7 @@ impl KarmaStore {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let data = bincode::serialize(self)
-            .map_err(|e| crate::error::PolygoneError::Serialization(e.to_string()))?;
+        let data = bincode::serialize(self).map_err(|e| crate::error::PolygoneError::Serialization(e.to_string()))?;
         std::fs::write(path, data)?;
         Ok(())
     }

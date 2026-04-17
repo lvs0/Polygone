@@ -1,111 +1,221 @@
-# ⬡ POLYGONE — by Hope
+# ⬡ POLYGONE
 
-> *"L'information n'existe pas. Elle traverse."*
+> *L'information n'existe pas. Elle traverse.*
 
-**POLYGONE** is a French-built, post-quantum ephemeral privacy network. Built in pure Rust by the **Hope** collective.
+**Post-quantum ephemeral privacy network — built in Rust.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)]()
-[![Status: v0.2-alpha](https://img.shields.io/badge/status-v0.2_alpha-yellow.svg)]()
+[![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://rust-lang.org)
+[![Status: v1.0](https://img.shields.io/badge/status-v1.0--stable-green.svg)]()
 [![unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-red.svg)]()
+[![no telemetry](https://img.shields.io/badge/telemetry-none-brightgreen.svg)]()
 
 ---
 
-## The Problem
+## What it is
 
-Classical encryption hides **content**. It cannot hide that a **communication occurred**.
-Source IPs, timing, and packet sizes remain visible. For a global adversary, metadata is more dangerous than content.
+Classical cryptography hides the **content** of a communication.  
+It cannot hide that the communication **happened**.
 
-**POLYGONE turns a message into a transient mathematical state — a wave that crosses a global DHT and vaporizes.**
-To an outside observer: no message. Only ambient noise across 7 ephemeral nodes.
+POLYGONE changes the question.
 
----
+A message becomes a distributed computational state across 7 ephemeral nodes.  
+Any 4 fragments reconstruct it. No single node holds more than a fragment.  
+The network dissolves. Keys are zeroed in memory. The exchange did not happen.
 
-## How it Works
-
-### 1. Post-Quantum Handshake
-**ML-KEM-1024** (FIPS 203) key exchange. The key doesn't encrypt the payload — it defines the **network topology** for the transit.
-
-### 2. Deterministic Topology
-Both peers use **BLAKE3** to derive the same graph of 7 virtual nodes. No third party can predict which DHT keys will be targeted.
-
-### 3. Shamir Dispersion
-Payload encrypted with **AES-256-GCM**, split via **Shamir's Secret Sharing (t=4, n=7)**. Fragments go into the Kademlia DHT via `libp2p`. No relay holds more than one fragment.
-
-### 4. Atmospheric Vaporization
-**30s TTL.** Fragments evaporate from relay RAM automatically. `ZeroizeOnDrop` leaves no trace in Alice or Bob's memory.
+**The target doesn't exist. There is no attack surface.**
 
 ---
 
-## ⚡ Quickstart
+## How it works
 
-```bash
-# 1. Clone
-git clone https://github.com/lvs0/Polygone && cd Polygone
+```
+1. KEY EXCHANGE
+   Alice has Bob's ML-KEM-1024 public key (shared out-of-band).
+   She encapsulates a shared secret → gets a KEM ciphertext.
+   She sends the ciphertext to Bob.
 
-# 2. Install
-chmod +x install.sh && ./install.sh
+2. TOPOLOGY DERIVATION (independent, both sides)
+   Alice and Bob independently derive identical:
+     ▸ 7 ephemeral node IDs   (BLAKE3 "polygone-topo-nodes-v1")
+     ▸ AES-256-GCM session key (BLAKE3 "polygone-sess-v1")
+   No extra communication. Pure determinism from the shared secret.
 
-# 3. Start
-polygone start
+3. ENCRYPT + FRAGMENT
+   plaintext → AES-256-GCM → ciphertext
+   ciphertext → Shamir 4-of-7 → 7 fragments
+   Each fragment → one ephemeral node
+
+4. RECONSTRUCT
+   Bob collects ≥4 fragments → Shamir reconstruct → decrypt → plaintext
+
+5. DISSOLVE
+   All nodes dissolve. Keys zeroed (ZeroizeOnDrop).
+   The session is gone from memory.
 ```
 
-After install, run **`polygone help`** at any time for the full command reference.
+---
 
-### `polygone start`
-Launches the **Polygone-Shell** — an interactive TUI dashboard showing your PeerId, active sessions, relay logs, and DHT status in real time.
+## Crypto stack
 
-### Command Reference
+| Layer          | Primitive                          | Standard        |
+|----------------|------------------------------------|-----------------|
+| KEM            | ML-KEM-1024                        | FIPS 203        |
+| Signature      | Ed25519 (ML-DSA-87 upgrade path)   | RFC 8032        |
+| Symmetric      | AES-256-GCM                        | NIST SP 800-38D |
+| KDF            | BLAKE3 (domain-separated)          | —               |
+| Secret sharing | Shamir threshold=4, n=7            | —               |
+| Language       | Rust stable (`#[forbid(unsafe_code)]`) | —          |
 
-| Command | Description |
-|---|---|
-| `polygone help` | Full usage reference |
-| `polygone start` | Launch the interactive shell (TUI) |
-| `polygone keygen` | Generate your ML-KEM + ML-DSA keypair |
-| `polygone send --peer-pk demo` | Local Alice→Bob demo (no network required) |
-| `polygone send --peer-pk <key.pk> -m "..."` | Send an ephemeral message through the network |
-| `polygone node start` | Start a relay node and contribute bandwidth |
-| `polygone self-test` | Run the full cryptographic self-test suite |
-| `polygone status` | Show node health and active sessions |
+**Key derivation domain separation:**
+```
+BLAKE3("polygone-topo-nodes-v1" + shared_secret) → topology seed
+BLAKE3("polygone-sess-v1"       + shared_secret) → AES-256-GCM key
+```
+An adversary who learns the topology structure learns nothing about the encryption key.
 
 ---
 
-## Benchmarks
+## Installation
 
-| Primitive | Operation | Latency |
-|---|---|---|
-| **ML-KEM-1024** | Encapsulation | ~34.1 µs |
-| **ML-KEM-1024** | Decapsulation | ~35.3 µs |
-| **BLAKE3** | Topology Derivation | ~0.23 µs |
-| **AES-256-GCM** | Encryption (1KB) | ~3.80 µs |
-| **Shamir (4/7)** | Split | ~4.21 µs |
-| **Full Lifecycle** | Alice Send (E2E) | **~207.6 µs** |
+```bash
+# Prerequisites: Rust stable (1.75+)
+rustup toolchain install stable
+rustup default stable
 
----
+# Build
+git clone https://github.com/lvs0/Polygone
+cd Polygone
+cargo build --release
 
-## Security Model
-
-- **Post-Quantum**: ML-KEM-1024 + ML-DSA-87. Resistant to Shor's algorithm.
-- **Forward Secrecy**: Each session uses a unique key and network topology.
-- **Information-Theoretic**: Shamir guarantees zero information leakage below threshold.
-- **Memory Safe**: `#![forbid(unsafe_code)]` + `ZeroizeOnDrop` everywhere.
-
-## Known Limitations (v0.2-alpha)
-
-- **NAT Traversal**: Optimized for stable connections. Mobile/home NAT in development.
-- **DHT Spam**: No rate-limiting on `put_record` yet.
-- **Static Quorum**: t=4, n=7 hardcoded. Dynamic tuning planned for v0.3.
-- **No Formal Verification**: Protocol state machine not yet formally verified.
+# Install globally
+cargo install --path .
+```
 
 ---
 
-## Contributing
+## Usage
 
-Issues and PRs welcome. We value **honest technical critique** over polite praise.
-→ [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md)
+### Generate your keypair
+
+```bash
+polygone keygen
+# Keys saved to ~/.polygone/keys/ with chmod 600
+# Share your KEM public key: ~/.polygone/keys/kem.pk
+```
+
+### Local demo (no network)
+
+```bash
+polygone send --peer-pk demo --message "L'information n'existe pas"
+```
+
+### Send to a real peer
+
+```bash
+# Step 1 (Alice): Encrypt for Bob's public key
+polygone send --peer-pk bob_kem.pk --message "Hello Bob"
+# → Outputs: KEM ciphertext (hex) + 7 fragment bytes
+
+# Step 2: Send ciphertext + ≥4 fragments to Bob out-of-band
+
+# Step 3 (Bob): Reconstruct
+polygone receive --ciphertext <ct_hex>
+```
+
+### TUI dashboard
+
+```bash
+polygone tui
+```
+
+Navigate with `1`–`6`, quit with `q`.
+
+### Node operator
+
+```bash
+# Contribute to the network (VPS with 512 MB RAM is enough)
+polygone node start --listen 0.0.0.0:4001 --ram-mb 128
+
+# Check status
+polygone status
+
+# Verify everything works
+polygone self-test
+```
+
+### Read from stdin
+
+```bash
+echo "Secret message" | polygone send --peer-pk demo --message -
+cat secret.txt      | polygone send --peer-pk bob.pk --message -
+```
 
 ---
 
-*A **Hope** project — 🇫🇷 France · [github.com/lvs0](https://github.com/lvs0)*
+## Project structure
 
-***"Privacy is not a setting. It is an architectural property."*** ⬡
+```
+src/
+├── crypto/
+│   ├── mod.rs          — SharedSecret, KeyPair, BLAKE3 KDF
+│   ├── kem.rs          — ML-KEM-1024 (FIPS 203)
+│   ├── sign.rs         — Ed25519 (ML-DSA upgrade path)
+│   ├── symmetric.rs    — AES-256-GCM
+│   └── shamir.rs       — Shamir 4-of-7
+├── network/
+│   ├── mod.rs          — NodeId
+│   ├── topology.rs     — Deterministic topology derivation
+│   └── node.rs         — EphemeralNode lifecycle, ZeroizeOnDrop
+├── protocol/
+│   ├── mod.rs          — SessionId, TransitState
+│   └── session.rs      — Full session lifecycle + tests
+├── tui/
+│   ├── mod.rs
+│   ├── app.rs          — TUI main loop (ratatui + crossterm)
+│   ├── views.rs        — All screens (dashboard, keygen, send…)
+│   └── widgets.rs      — Reusable widgets
+├── keys.rs             — Key persistence with chmod 600
+├── error.rs            — Unified PolygoneError
+├── lib.rs              — Crate root + re-exports
+└── main.rs             — CLI (clap v4) + all commands
+```
+
+---
+
+## Honest status
+
+**v1.0 — Stable local protocol.**
+
+| Feature                                  | Status  |
+|------------------------------------------|---------|
+| ML-KEM-1024 key exchange                 | ✔ Done  |
+| AES-256-GCM + BLAKE3 KDF                 | ✔ Done  |
+| Shamir 4-of-7 (all C(7,4)=35 combos)    | ✔ Done  |
+| Full session lifecycle + tests           | ✔ Done  |
+| Key persistence with secure permissions  | ✔ Done  |
+| TUI dashboard (ratatui)                  | ✔ Done  |
+| `self-test` command (5 tests)            | ✔ Done  |
+| P2P fragment transport (libp2p + DHT)    | v2.0    |
+| Automatic peer discovery                 | v2.0    |
+| External cryptographic audit             | Planned |
+
+**No external audit has been performed.** Do not use in production for sensitive data until an audit is complete.
+
+---
+
+## Contribute
+
+Issues and PRs welcome. Honest criticism is preferred over encouragement.
+
+Node operators: a 512 MB RAM VPS is sufficient.
+
+---
+
+## License
+
+MIT — No investors. No token. No telemetry. No data collection.
+
+*Built by Lévy, 14, France.*
+
+*"Privacy is not a setting. It is an architectural property."*

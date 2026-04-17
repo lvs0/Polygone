@@ -1,66 +1,70 @@
 [package]
-name    = "polygone"
-version = "0.1.0"
+name = "polygone"
+version = "1.0.0"
 edition = "2021"
-authors = ["l-vs (Hope)"]
-description = "Post-quantum ephemeral network - Unified Ecosystem"
+authors = ["Lévy <polygone@proton.me>"]
+description = "Post-quantum ephemeral privacy network — ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM"
+license = "MIT"
+repository = "https://github.com/lvs0/Polygone"
+keywords = ["post-quantum", "p2p", "privacy", "cryptography", "ephemeral"]
+categories = ["cryptography", "network-programming", "command-line-utilities"]
+rust-version = "1.75"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 1
+
+[lib]
+name = "polygone"
+path = "src/lib.rs"
+
+[[bin]]
+name = "polygone"
+path = "src/main.rs"
 
 [dependencies]
-# ── Post-Quantum Cryptography ──────────────────────────────
+# ── Post-Quantum KEM ─────────────────────────────────────────────────────────
 pqcrypto-mlkem    = "0.1"
 pqcrypto-mldsa    = "0.1"
 pqcrypto-traits   = "0.3"
 
-# ── Symmetric / Hash ──────────────────────────────────────
-aes-gcm           = { version = "0.10", features = ["aes"] }
-blake3            = "1"
-hex               = "0.4"
-zeroize           = { version = "1", features = ["derive"] }
-subtle            = "2"
+# ── Symmetric + Hash ─────────────────────────────────────────────────────────
+aes-gcm         = { version = "0.10", features = ["aes"] }
+blake3          = "1"
+zeroize         = { version = "1", features = ["derive"] }
+subtle          = "2"
 
-# ── Secret Sharing ────────────────────────────────────────
-sharks            = { version = "0.5", default-features = false }
-rand              = "0.8"
-getrandom         = "0.2"
+# ── Signatures (Ed25519 — ML-DSA swap-ready via trait) ───────────────────────
+ed25519-dalek   = { version = "2", features = ["rand_core"] }
 
-# ── Async Runtime + Networking ────────────────────────────
-tokio             = { version = "1", features = ["full"] }
-libp2p            = { version = "0.53", features = [
-                      "tokio", "tcp", "noise", "yamux", "macros",
-                      "kad", "identify", "ping", "gossipsub", "request-response", "cbor",
-                      "websocket", "dns"] }
-futures           = "0.3"
+# ── Secret Sharing ───────────────────────────────────────────────────────────
+sharks          = { version = "0.5", default-features = false }
+rand            = "0.8"
+getrandom       = "0.2"
 
-# ── Serialization ─────────────────────────────────────────
-serde             = { version = "1", features = ["derive"] }
-serde_json        = "1"
-bincode           = "1"
-base64            = "0.22"
+# ── Async Runtime ────────────────────────────────────────────────────────────
+tokio           = { version = "1", features = ["full"] }
 
-# ── Error Handling ────────────────────────────────────────
-thiserror         = "1"
-anyhow            = "1"
+# ── Serialization ────────────────────────────────────────────────────────────
+serde           = { version = "1", features = ["derive"] }
+serde_json      = "1"
+bincode         = "1"
+hex             = "0.4"
 
-# ── CLI & Logging ─────────────────────────────────────────
-clap              = { version = "4", features = ["derive"] }
-reqwest           = { version = "0.11", features = ["json"] }
-tracing           = "0.1"
+# ── Error Handling ───────────────────────────────────────────────────────────
+thiserror       = "1"
+anyhow          = "1"
+
+# ── CLI & Logging ────────────────────────────────────────────────────────────
+clap            = { version = "4", features = ["derive"] }
+tracing          = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# ── Time ──────────────────────────────────────────────────
-tokio-util        = { version = "0.7", features = ["time"] }
-
-[profile.release]
-opt-level     = 3
-lto           = true
-codegen-units = 1
-panic         = "abort"
-strip         = true
-
-[[bin]]
-name = "polygone-cli"
-path = "src/main.rs"
-
-[[bin]]
-name = "polygone-server"
-path = "src/bin/polygone-server.rs"
+# ── System ───────────────────────────────────────────────────────────────────
+dirs            = "5"
