@@ -2,6 +2,8 @@
 
 use thiserror::Error;
 
+pub type Result<T = ()> = std::result::Result<T, PolygoneError>;
+
 #[derive(Debug, Error)]
 pub enum PolygoneError {
     // ── Crypto ────────────────────────────────────────────────────────────────

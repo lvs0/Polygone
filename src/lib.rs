@@ -32,4 +32,9 @@ pub mod network;
 pub mod protocol;
 pub mod tui;
 
+pub use crypto::{SharedSecret, KeyPair};
+pub use protocol::Session;
 pub use error::{PolygoneError, Result};
+
+/// Crate version.
+pub const VERSION: &str = "1.0.0";

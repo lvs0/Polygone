@@ -234,7 +234,7 @@ async fn cmd_send(peer_pk_arg: String, message_arg: String) -> anyhow::Result<()
     // In v2.0, this will be dispatched via the DHT automatically.
 
     session.establish(None)?;
-    let topo = session.topology.as_ref().unwrap();
+    let topo = session.topology.as_ref().unwrap().clone();
     println!("  [2/4] Topology derived — {}", topo.describe());
     println!("        Nodes:");
     for (i, node) in topo.nodes.iter().enumerate() {
@@ -282,7 +282,7 @@ async fn cmd_send_demo(message: String) -> anyhow::Result<()> {
     // Both establish topology independently
     alice.establish(None)?;
     bob.establish(None)?;
-    let topo = alice.topology.as_ref().unwrap();
+    let topo = alice.topology.as_ref().unwrap().clone();
     println!("  [BOTH]  Topology derived — {}", topo.describe());
 
     // Alice checks both sides derive the same topology
