@@ -252,6 +252,11 @@ impl Session {
         self.state = TransitState::Dissolved;
     }
 
+    /// Returns a reference to the established session key, if available.
+    pub fn session_key(&self) -> Option<&SessionKey> {
+        self.session_key.as_ref()
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     fn assert_state_is(&self, expected: TransitState, target: &str) -> Result<()> {
