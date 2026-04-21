@@ -1,6 +1,7 @@
 # POLYGONE — FICHE TECHNIQUE COMPLÈTE
 
-> Document de référence interne — Lévy, 2025
+> Document de référence interne — **l-vs** · collectif **Hope** (*by Hope*) — 2025–2026  
+> Ne pas confondre avec le message public du projet : **post-quantique** et **protocole** ; les choix d’hébergement opérationnels restent du ressort des opérateurs.
 
 ---
 
@@ -191,7 +192,7 @@ cargo doc --open
 
 ```bash
 # Site (fichier fourni : index.html)
-# Hébergement : GitHub Pages (gratuit, déploiement automatique)
+# Déploiement statique (ex. GitHub Pages ou équivalent) — détail opérateur
 
 # Structure GitHub :
 polygone/
@@ -203,11 +204,9 @@ polygone/
 ### Semaine 4 — VPS + Bootstrap Node
 
 ```bash
-# Option gratuite : Oracle Cloud Free Tier
-# 1 OCPU, 1 GB RAM, toujours gratuit
-# Ou Hetzner CX11 : 3.29€/mois, 2 vCPU, 2 GB RAM
+# Déployer un nœud bootstrap sur un VPS selon charge et budget (choix opérateur, hors message public)
 
-# Sur le VPS :
+# Sur le serveur :
 wget https://github.com/polygone/core/releases/polygone
 chmod +x polygone
 ./polygone node start --ram-mb 512 --listen 0.0.0.0:4001
@@ -351,44 +350,11 @@ POLYGONE MESH v0.4 (roadmap)
 
 ---
 
-## 7. STRATÉGIE SERVEUR — PARTIR DE RIEN
+## 7. DÉPLOIEMENT & HÉBERGEMENT (INTERNE AUX OPÉRATEURS)
 
-### 7.1 Option 0€ (maintenant)
+Les choix concrets (fournisseurs, coûts, URLs publiques, « pulse », registre d’images) relèvent des **mainteneurs** et ne font **pas** partie du discours public de **Hope**. La communication externe met l’accent sur le **post-quantique** et le **protocole**, pas sur l’économie de l’hébergement.
 
-**Oracle Cloud Free Tier** — toujours gratuit :
-- 1 VM : 1 OCPU AMD, 1 GB RAM, 47 GB storage
-- 1 VM ARM : 4 OCPU, 24 GB RAM (le vrai jackpot)
-- Bande passante : 10 TB/mois sortant gratuit
-
-```bash
-# S'inscrire sur cloud.oracle.com
-# Créer une instance ARM (Ampere A1)
-# Déployer polygone node
-```
-
-**GitHub Pages** — site web gratuit + HTTPS automatique
-
-### 7.2 Option ~3€/mois (lancement)
-
-**Hetzner CX11** : 2 vCPU, 2 GB RAM, 20 GB SSD, 20 TB bande passante  
-C'est ton bootstrap node + API backend.
-
-### 7.3 L'architecture à 0€ pour le bootstrap
-
-```
-GitHub Pages         ← site statique (gratuit)
-Oracle Cloud ARM     ← bootstrap DHT node (gratuit)
-Fly.io free tier     ← API backend léger (gratuit)
-Cloudflare free      ← DNS + DDoS protection (gratuit)
-──────────────────────────────────────────────────────
-Total : 0€/mois jusqu'à usage significatif
-```
-
-### 7.4 Scaler sans dépenser
-
-Quand les utilisateurs arrivent → **ils deviennent les serveurs**.  
-Chaque nouveau node qui tourne chez quelqu'un = capacité supplémentaire gratuite.  
-C'est la beauté du modèle P2P : la charge scale avec les utilisateurs.
+Documenter ces décisions dans un espace **opérationnel** (runbook privé, pas README « marketing »).
 
 ---
 
@@ -452,7 +418,7 @@ MAINTENANT (semaine 1-2)
 └── Pousser le code + README
 
 SEMAINE 3-4
-├── VPS Oracle gratuit : déployer le bootstrap node
+├── Déployer un bootstrap node (infra opérateur)
 ├── Tester send/receive entre deux machines
 └── Documenter les résultats honnêtement
 

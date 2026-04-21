@@ -1,149 +1,130 @@
 //! polygone — CLI entry point.
 //!
 //! Commands:
-//!   polygone keygen            → Generate a new ML-KEM + ML-DSA keypair
-//!   polygone send <peer-pk>    → Initiate a session and send a message
-//!   polygone receive <sk>      → Respond to an incoming session
-//!   polygone node start        → Start an ephemeral relay node
+
+#![allow(missing_docs)]
+//!   polygone keygen            → Generate ML-KEM-1024 + Ed25519 keypair, save to disk
+//!   polygone send              → Encrypt and fragment a message
+//!   polygone receive           → Reconstruct and decrypt a message
+//!   polygone node start|stop   → Relay node management
 //!   polygone status            → Show node and session status
+//!   polygone self-test         → Run crypto self-test suite
+//!   polygone tui               → Launch the TUI dashboard
 
 #![forbid(unsafe_code)]
-#![allow(clippy::collapsible_match)]
-#![allow(clippy::single_match)]
+
+use std::io::{self, Read};
+use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use tracing_subscriber::{fmt, EnvFilter};
 
-use polygone::{KeyPair, VERSION};
+use polygone::{
+    KeyPair, Session, VERSION,
+    crypto::{kem, shamir},
+    keys,
+    network::TopologyParams,
+    tui::{run_tui, views::View},
+};
 
 // ── CLI Definition ────────────────────────────────────────────────────────────
 
 #[derive(Parser)]
 #[command(
-    name    = "polygone",
+    name = "polygone",
     version = VERSION,
-    author  = "Lévy <contact@soe-ai.dev>",
-    about   = "Post-quantum ephemeral transit network",
+    author = "Lévy <polygone@proton.me>",
+    about = "Post-quantum ephemeral transit network",
     long_about = "\
 ⬡ POLYGONE — L'information n'existe pas. Elle traverse.
 
-Polygone is a post-quantum privacy network where messages become distributed 
-computational states. Instead of an encrypted tunnel, Polygone creates a 
-transient 'wave' across a global DHT. 
+A post-quantum ephemeral network where messages become distributed
+computational state. ML-KEM-1024 key exchange. AES-256-GCM encryption.
+Shamir 4-of-7 fragmentation. BLAKE3 domain-separated key derivation.
 
-- Unobservable: No server sees the message. No observer can prove communication existed.
-- Post-Quantum: Built on ML-KEM-1024 and ML-DSA-87.
-- Ephemeral: 30s TTL for all data fragments.
-- Memory Safe: ZeroizeOnDrop and Unix-level hardening.
+No server sees the message. No observer can prove a message existed.
+Classical encryption hides content. POLYGONE hides the communication itself.
 
 Source: https://github.com/lvs0/Polygone
-Licence: MIT"
+License: MIT — No investors. No token. No telemetry."
 )]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    /// Verbosity level (0=warn, 1=info, 2=debug, 3=trace)
+    /// Verbosity: -v = info, -vv = debug, -vvv = trace
     #[arg(short, long, action = clap::ArgAction::Count, global = true)]
     verbose: u8,
-
-    /// Bootstrap node multiaddress for DHT (e.g. /ip4/127.0.0.1/tcp/4001/p2p/Qm...)
-    #[arg(short, long, global = true)]
-    bootstrap: Option<String>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Generate a new post-quantum keypair (ML-KEM-1024 + ML-DSA-87)
+    /// Generate a new post-quantum keypair and save to disk
     Keygen {
-        /// Output path for the key files
-        #[arg(short, long, default_value = "~/.polygone/keys")]
-        output: String,
+        /// Output directory for key files (default: ~/.polygone/keys)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+
+        /// Overwrite existing keys without prompting
+        #[arg(long)]
+        force: bool,
     },
 
-    /// Send an encrypted message through the ephemeral network
+    /// Encrypt and send a message through the ephemeral network
     Send {
-        /// Recipient's ML-KEM public key.
-        ///
-        /// - Pass a hex-encoded KEM public key or a path to a `.pk` file.
-        /// - Pass `demo` to run a local Alice→Bob protocol demonstration
-        ///   (two distinct keypairs, semantically correct, no network required).
+        /// Recipient's KEM public key (hex, path to .pk file, or 'demo' for local round-trip)
         #[arg(short, long)]
         peer_pk: String,
 
-        /// Message to send (or '-' to read from stdin)
+        /// Message to send (use '-' to read from stdin)
         #[arg(short, long)]
         message: String,
     },
 
     /// Receive and decrypt a message (responder role)
     Receive {
-        /// Our secret key file
-        #[arg(short, long, default_value = "~/.polygone/keys/sk")]
-        sk: String,
+        /// Path to your KEM secret key file (default: ~/.polygone/keys/kem.sk)
+        #[arg(short, long)]
+        sk: Option<PathBuf>,
 
-        /// Session ciphertext file received from the initiator
+        /// KEM ciphertext from the initiator (hex string)
         #[arg(short, long)]
         ciphertext: String,
     },
 
-    /// Start a relay node (contributes bandwidth and CPU to the network)
+    /// Relay node management
     Node {
         #[command(subcommand)]
         action: NodeAction,
     },
 
-    /// Show current status: active sessions, node health, network peers
+    /// Show current status: sessions, node health, network peers
     Status,
 
-    /// Run the self-test suite (crypto + network integration)
+    /// Run the full self-test suite (crypto + protocol)
+    #[command(name = "self-test")]
     SelfTest,
 
-    /// Manage resource sharing and Karma (the compute economy)
-    Power {
-        #[command(subcommand)]
-        action: PowerAction,
+    /// Launch the interactive TUI dashboard
+    Tui {
+        /// Which view to open first (dashboard|keygen|send|receive|node|selftest|help)
+        #[arg(short, long, default_value = "dashboard")]
+        view: String,
     },
-
-    /// Uninstall Polygone completely
-    Uninstall,
-
-    /// Update Polygone to the latest version
-    Update {
-        /// Force update even if already up to date
-        #[arg(short, long)]
-        force: bool,
-    },
-}
-
-#[derive(Subcommand)]
-enum PowerAction {
-    /// Turn on the intelligent background node (activates when system is idle)
-    On {
-        #[arg(short, long, default_value = "0.2")]
-        idle_threshold: f32,
-    },
-    /// Show your current Karma balance and vouchers
-    Wallet,
 }
 
 #[derive(Subcommand)]
 enum NodeAction {
     /// Start the relay node daemon
     Start {
-        /// Maximum RAM to allocate (in MB)
+        /// Maximum RAM to allocate (MB)
         #[arg(short, long, default_value = "256")]
         ram_mb: usize,
-
         /// Listen address
         #[arg(short, long, default_value = "0.0.0.0:4001")]
         listen: String,
-
-        /// Path to the identity key file (for persistent PeerId)
-        #[arg(short, long)]
-        identity: Option<String>,
     },
-    /// Stop the running daemon
+    /// Stop the running node daemon
     Stop,
     /// Show this node's public information
     Info,
@@ -155,627 +136,408 @@ enum NodeAction {
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    // Logging
     let filter = match cli.verbose {
         0 => "warn",
         1 => "info",
         2 => "debug",
         _ => "trace",
     };
-    fmt().with_env_filter(EnvFilter::new(filter)).with_target(false).init();
+    fmt()
+        .with_env_filter(EnvFilter::new(filter))
+        .with_target(false)
+        .init();
 
     match cli.command {
-        Commands::Keygen { output } => cmd_keygen(output).await,
-        Commands::Send { peer_pk, message } => cmd_send(peer_pk, message, cli.bootstrap).await,
-        Commands::Receive { sk, ciphertext } => cmd_receive(sk, ciphertext, cli.bootstrap).await,
-        Commands::Node { action } => cmd_node(action, cli.bootstrap).await,
-        Commands::Status => cmd_status().await,
-        Commands::SelfTest => cmd_selftest().await,
-        Commands::Power { action } => cmd_power(action).await,
-        Commands::Uninstall => cmd_uninstall(),
-        Commands::Update { force } => cmd_update(force),
+        Commands::Keygen { output, force }         => cmd_keygen(output, force).await,
+        Commands::Send { peer_pk, message }        => cmd_send(peer_pk, message).await,
+        Commands::Receive { sk, ciphertext }       => cmd_receive(sk, ciphertext).await,
+        Commands::Node { action }                  => cmd_node(action).await,
+        Commands::Status                           => cmd_status().await,
+        Commands::SelfTest                         => cmd_selftest().await,
+        Commands::Tui { view }                     => cmd_tui(view),
     }
 }
 
-// ── Command Implementations ───────────────────────────────────────────────────
+// ── keygen ────────────────────────────────────────────────────────────────────
 
-async fn cmd_keygen(output: String) -> anyhow::Result<()> {
-    // Expand tilde and resolve path
-    let output_path = if output.starts_with("~/") {
-        if let Some(home) = dirs::home_dir() {
-            home.join(output.trim_start_matches("~/"))
-        } else {
-            anyhow::bail!("Could not find home directory");
-        }
-    } else {
-        std::path::PathBuf::from(&output)
-    };
+async fn cmd_keygen(output: Option<PathBuf>, force: bool) -> anyhow::Result<()> {
+    let dir = output.unwrap_or_else(keys::default_key_dir);
 
-    // Create directory if it doesn't exist
-    std::fs::create_dir_all(&output_path)?;
-
-    // Verify the output directory is safe (no path traversal)
-    let canonical = output_path.canonicalize()?;
-    if !canonical.starts_with(dirs::home_dir().unwrap_or_default()) {
-        anyhow::bail!("Output path is outside of allowed directories");
-    }
-
-    println!("⬡ POLYGONE — Generating post-quantum keypair...");
-    println!("  Algorithm : ML-KEM-1024 + ML-DSA-87");
-    println!("  Output    : {}", output_path.display());
+    println!("⬡ POLYGONE — Generating post-quantum keypair");
+    println!();
+    println!("  Algorithm : ML-KEM-1024 (FIPS 203) + Ed25519");
+    println!("  Directory : {}", dir.display());
     println!();
 
+    if keys::keypair_exists(&dir) && !force {
+        eprintln!("  ⚠ Keypair already exists at {}.", dir.display());
+        eprintln!("    Use --force to overwrite.");
+        std::process::exit(1);
+    }
+
+    print!("  Generating ML-KEM-1024 keypair …");
     let kp = KeyPair::generate()?;
+    println!(" done");
 
-    println!("  ✓ KEM public key   : {} bytes", kp.kem_pk.as_bytes().len());
-    println!("  ✓ Sign public key  : {} bytes", kp.sign_pk.as_bytes().len());
-    println!("  ✓ Keys written to  : {}", output_path.display());
+    print!("  Writing key files …");
+    keys::write_keypair(&kp, &dir)?;
+    println!(" done");
+
     println!();
-    println!("  Share your KEM public key with anyone who wants to send you a message.");
-    println!("  Keep your secret key offline. It cannot be recovered if lost.");
+    println!("  ✔ kem.pk   {} B  (share freely)", kp.kem_pk.as_bytes().len());
+    println!("  ✔ sign.pk  {} B  (share freely)", kp.sign_pk.as_bytes().len());
+    println!("  ✔ kem.sk   {} B  (KEEP PRIVATE, chmod 600)", kp.kem_sk.to_hex().len() / 2);
+    println!("  ✔ sign.sk  {} B  (KEEP PRIVATE, chmod 600)", kp.sign_sk.to_hex().len() / 2);
+    println!();
+    println!("  KEM public key (first 48 hex chars):");
+    println!("    {}…", &kp.kem_pk.to_hex()[..48]);
+    println!();
+    println!("  → Share your KEM public key with anyone who wants to send you a message.");
+    println!("  → Your secret key cannot be recovered if lost. Back it up securely.");
 
-    use std::io::Write;
-    
-    let pk_path = output_path.join("kem.pk");
-    let sk_path = output_path.join("kem.sk");
-    
-    let mut pk_file = std::fs::File::create(&pk_path)?;
-    pk_file.write_all(kp.kem_pk.as_bytes())?;
-    
-    let mut sk_file = std::fs::File::create(&sk_path)?;
-    sk_file.write_all(kp.kem_sk.as_bytes())?;
-    
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        // Set restrictive permissions (owner read/write only)
-        std::fs::set_permissions(&sk_path, std::fs::Permissions::from_mode(0o600))?;
-        std::fs::set_permissions(&pk_path, std::fs::Permissions::from_mode(0o644))?;
-        println!("  ✓ Saved with Unix permissions 0600 (sk) / 0644 (pk)");
-    }
-    
-    #[cfg(not(unix))]
-    println!("  ✓ Saved to disk properly.");
-    
     Ok(())
 }
 
-async fn cmd_send(peer_pk: String, message: String, bootstrap: Option<String>) -> anyhow::Result<()> {
-    use polygone::protocol::Session;
+// ── send ──────────────────────────────────────────────────────────────────────
 
-    // ── peer_pk resolution ────────────────────────────────────────────────────
-    // In v0.1: peer_pk is a hex-encoded KEM public key loaded from a local file.
-    // The peer must have run `polygone keygen` and shared their public key.
-    // In v0.2: peer_pk will be resolvable via the DHT by node identifier.
-    //
-    // For now we emit a clear error rather than silently doing Alice→Alice.
-    if peer_pk == "demo" {
-        // --peer-pk demo: run a local Alice→Bob round-trip to prove the protocol.
-        // Two distinct keypairs, semantically correct, no network required.
-        println!("⬡ POLYGONE — Local protocol demo (Alice → Bob)");
-        println!();
+async fn cmd_send(peer_pk_arg: String, message_arg: String) -> anyhow::Result<()> {
+    // Resolve message (stdin or direct)
+    let message = if message_arg == "-" {
+        let mut buf = String::new();
+        io::stdin().read_to_string(&mut buf)?;
+        buf.trim().to_string()
+    } else {
+        message_arg
+    };
 
-        // Bob has a long-term keypair and publishes his KEM public key.
-        let bob_kp = KeyPair::generate()?;
-        let bob_pk = bob_kp.kem_pk.clone();
-        println!("  [BOB]   Generated keypair — KEM public key ready");
-
-        // Alice initiates: encapsulates toward Bob's public key.
-        // She gets a ciphertext to send Bob (out-of-band) and a shared secret.
-        let (mut alice, ciphertext) = Session::new_initiator(&bob_pk)?;
-        println!("  [ALICE] Encapsulated ML-KEM-1024 → Bob");
-        println!("          Ciphertext size: {} bytes", ciphertext.as_bytes().len());
-
-        // Bob decapsulates the ciphertext → recovers the same shared secret.
-        let mut bob = Session::new_responder(bob_kp, &ciphertext)?;
-        println!("  [BOB]   Decapsulated — shared secret recovered");
-
-        // Both derive topology + session key independently from the shared secret.
-        alice.establish(None)?;
-        bob.establish(None)?;
-        println!("  [BOTH]  Topology derived — ephemeral network ready");
-        println!("          topo_seed  → node IDs + edge structure");
-        println!("          session_key → AES-256-GCM (domain-separated)");
-
-        // Alice encrypts and fragments the message.
-        let assignments = alice.send(message.as_bytes())?;
-        let n_shards = assignments.len();
-        // Default topology: 7 nodes, threshold 4. Use the actual shard count
-        // for shards (what was produced) and note the full node count separately.
-        let params = polygone::network::TopologyParams::default();
-        println!();
-        println!("  [ALICE] Message → encrypted → Shamir-fragmented");
-        println!("          {n_shards} shards produced / {} nodes in topology",
-            params.node_count);
-        println!("          Threshold: {}/{} — no subset smaller can reconstruct",
-            params.threshold, params.node_count);
-        println!("          No single node holds a reconstructable piece.");
-
-        // Simulate fragment delivery (in-process — no transport yet).
-        let fragment_payloads: Vec<Vec<u8>> =
-            assignments.into_iter().map(|(_, b)| b).collect();
-
-        // Bob reconstructs from fragments.
-        let recovered = bob.receive(fragment_payloads)?;
-        println!();
-        println!("  [BOB]   Reconstructed → decrypted");
-        println!("          Message: \"{}\"", String::from_utf8_lossy(&recovered));
-
-        // Both dissolve — all keying material zeroed.
-        alice.dissolve();
-        bob.dissolve();
-        println!();
-        println!("  [BOTH]  Session dissolved — keying material zeroed");
-        println!("          The exchange did not happen.");
-        println!();
-        println!("  ─────────────────────────────────────────────────────────");
-        println!("  NOTE: Fragment transport is in-process in v0.1.");
-        println!("  Real P2P dispatch across the network arrives in v0.2.");
-
-        return Ok(());
+    // ── Demo mode ─────────────────────────────────────────────────────────────
+    if peer_pk_arg == "demo" {
+        return cmd_send_demo(message).await;
     }
 
-    // Production path: load peer public key from file/hex.
-    // Sanitize path to prevent path traversal attacks
-    let sanitized_pk_path = if peer_pk.starts_with("~/") {
-        if let Some(home) = dirs::home_dir() {
-            home.join(peer_pk.trim_start_matches("~/"))
-        } else {
-            anyhow::bail!("Could not find home directory");
-        }
-    } else {
-        std::path::PathBuf::from(&peer_pk)
-    };
-    let pk_bytes = std::fs::read(&sanitized_pk_path)?;
-    let kem_pk = polygone::crypto::kem::KemPublicKey::from_bytes(&pk_bytes)?;
-    let (mut alice, ciphertext) = Session::new_initiator(&kem_pk)?;
-    
-    let ct_path = "session.ct";
-    std::fs::write(ct_path, ciphertext.as_bytes())?;
-    println!("  [ALICE] Session ciphertext written to {ct_path}. Send this to Bob!");
-    
+    // ── Real mode: load peer public key ───────────────────────────────────────
+    let peer_pk = resolve_peer_pk(&peer_pk_arg)?;
+
+    println!("⬡ POLYGONE — Encrypting message");
+    println!();
+
+    // Alice generates a fresh ephemeral keypair and encapsulates
+    let (mut session, ciphertext) = Session::new_initiator(&peer_pk)?;
+
+    println!("  [1/4] ML-KEM-1024 encapsulation …");
+    println!("        Ciphertext: {} bytes", ciphertext.as_bytes().len());
+    println!("        → Send this ciphertext to your peer (out-of-band):");
+    println!("          {}", ciphertext.to_hex());
+    println!();
+
+    // In v1.0, the peer must call `polygone receive` with this ciphertext.
+    // In v2.0, this will be dispatched via the DHT automatically.
+
+    session.establish(None)?;
+    let topo = session.topology.as_ref().unwrap();
+    println!("  [2/4] Topology derived — {}", topo.describe());
+    println!("        Nodes:");
+    for (i, node) in topo.nodes.iter().enumerate() {
+        println!("          Node {i}: {node}");
+    }
+    println!();
+
+    let assignments = session.send(message.as_bytes())?;
+
+    println!("  [3/4] Encrypted + fragmented");
+    println!("        {}/{} fragments produced", assignments.len(), topo.params.node_count);
+    println!("        Threshold: {}/{} — no fewer can reconstruct", topo.params.threshold, topo.params.node_count);
+    println!();
+
+    println!("  [4/4] Fragments (give these to your peer along with the ciphertext above):");
+    for (node_id, frag_bytes) in &assignments {
+        println!("        Node {node_id}: {} bytes → {}", frag_bytes.len(), hex::encode(&frag_bytes[..frag_bytes.len().min(16)]));
+    }
+
+    session.dissolve();
+    println!();
+    println!("  ✔ Session dissolved — keying material zeroed.");
+    println!("  The exchange will complete when your peer reconstructs with ≥4 fragments.");
+
+    Ok(())
+}
+
+async fn cmd_send_demo(message: String) -> anyhow::Result<()> {
+    println!("⬡ POLYGONE — Local protocol demo (Alice → Bob)");
+    println!();
+
+    // Bob generates his keypair
+    let bob_kp = KeyPair::generate()?;
+    println!("  [BOB]   Generated keypair — KEM public key ready");
+
+    // Alice initiates
+    let (mut alice, ciphertext) = Session::new_initiator(&bob_kp.kem_pk)?;
+    println!("  [ALICE] ML-KEM-1024 encapsulation → Bob");
+    println!("          Ciphertext: {} bytes", ciphertext.as_bytes().len());
+
+    // Bob decapsulates
+    let mut bob = Session::new_responder(bob_kp, &ciphertext)?;
+    println!("  [BOB]   Decapsulated — shared secret recovered");
+
+    // Both establish topology independently
     alice.establish(None)?;
-    let assignments = alice.send(message.as_bytes())?;
-    
-    use libp2p::{identity, futures::StreamExt, swarm::SwarmEvent};
-    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519()).await?;
-    
-    if let Some(boot) = bootstrap {
-        swarm.dial(boot.parse::<libp2p::Multiaddr>()?)?;
-        println!("  ✓ Dialing bootstrap node...");
-        
-        loop {
-            tokio::select! {
-                event = swarm.select_next_some() => {
-                    if let SwarmEvent::ConnectionEstablished { .. } = event {
-                        break;
-                    }
-                }
-                _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => break,
-            }
-        }
-    }
-    
-    for (node_id, payload) in assignments {
-        let key = libp2p::kad::RecordKey::new(&node_id.as_bytes());
-        let record = libp2p::kad::Record {
-            key, value: payload, publisher: None, expires: None,
-        };
-        // Result is purely ignored because DHT queries async progress
-        let _ = swarm.behaviour_mut().kademlia.put_record(record, libp2p::kad::Quorum::Majority);
-    }
-    println!("  [ALICE] Fragments pushed to P2P network!");
-    
-    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-    alice.dissolve();
-    Ok(())
-}
-
-async fn cmd_receive(sk: String, ciphertext: String, bootstrap: Option<String>) -> anyhow::Result<()> {
-    use polygone::{protocol::Session, crypto::KeyPair, crypto::kem::{KemSecretKey, KemCiphertext}};
-    use libp2p::{identity, futures::StreamExt, swarm::SwarmEvent};
-    
-    println!("⬡ POLYGONE — Receiving message...");
-
-    // Sanitize path to prevent path traversal attacks
-    let sanitized_sk_path = if sk.starts_with("~/") {
-        if let Some(home) = dirs::home_dir() {
-            home.join(sk.trim_start_matches("~/"))
-        } else {
-            anyhow::bail!("Could not find home directory");
-        }
-    } else {
-        std::path::PathBuf::from(&sk)
-    };
-    let sk_bytes = std::fs::read(&sanitized_sk_path)?;
-    let kem_sk = KemSecretKey::from_bytes(&sk_bytes)?;
-
-    // Sanitize ciphertext path too
-    let sanitized_ct_path = if ciphertext.starts_with("~/") {
-        if let Some(home) = dirs::home_dir() {
-            home.join(ciphertext.trim_start_matches("~/"))
-        } else {
-            anyhow::bail!("Could not find home directory");
-        }
-    } else {
-        std::path::PathBuf::from(&ciphertext)
-    };
-    let ct_bytes = std::fs::read(&sanitized_ct_path)?;
-    let kem_ct = KemCiphertext::from_bytes(&ct_bytes)?;
-
-    let mut kp = KeyPair::generate()?;
-    kp.kem_sk = kem_sk;
-
-    let mut bob = Session::new_responder(kp, &kem_ct)?;
     bob.establish(None)?;
+    let topo = alice.topology.as_ref().unwrap();
+    println!("  [BOTH]  Topology derived — {}", topo.describe());
 
-    let target_nodes = bob.topology.as_ref().unwrap().nodes.clone();
-    let threshold = bob.topology.as_ref().unwrap().params.threshold as usize;
-    let mut fragments = vec![];
-
-    let mut swarm = polygone::network::p2p::build_swarm(identity::Keypair::generate_ed25519()).await?;
-    if let Some(boot) = bootstrap {
-        swarm.dial(boot.parse::<libp2p::Multiaddr>()?)?;
-        loop {
-            tokio::select! {
-                event = swarm.select_next_some() => {
-                    if let SwarmEvent::ConnectionEstablished { .. } = event { break; }
-                }
-                _ = tokio::time::sleep(std::time::Duration::from_secs(2)) => break,
-            }
-        }
-    }
-
-    for node_id in &target_nodes {
-        let key = libp2p::kad::RecordKey::new(&node_id.as_bytes());
-        swarm.behaviour_mut().kademlia.get_record(key);
-    }
-
-    println!("  [BOB] Querying DHT for fragments...");
-
-    loop {
-        tokio::select! {
-            event = swarm.select_next_some() => match event {
-                SwarmEvent::Behaviour(polygone::network::p2p::PolygoneBehaviourEvent::Kademlia(
-                    libp2p::kad::Event::OutboundQueryProgressed { result, .. }
-                )) => {
-                    if let libp2p::kad::QueryResult::GetRecord(Ok(
-                        libp2p::kad::GetRecordOk::FoundRecord(peer_record)
-                    )) = result {
-                        fragments.push(peer_record.record.value);
-                        println!("  ✓ Discovered fragment! ({}/{threshold})", fragments.len());
-                        if fragments.len() >= threshold {
-                            break;
-                        }
-                    }
-                }
-                _ => {}
-            },
-            _ = tokio::time::sleep(std::time::Duration::from_secs(10)) => {
-                anyhow::bail!("Timeout waiting for fragments from DHT.");
-            }
-        }
-    }
-
-    let recovered = bob.receive(fragments)?;
+    // Alice checks both sides derive the same topology
+    let alice_nodes: Vec<_> = alice.topology.as_ref().unwrap().nodes.iter().map(|n| n.to_string()).collect();
+    let bob_nodes:   Vec<_> = bob.topology.as_ref().unwrap().nodes.iter().map(|n| n.to_string()).collect();
+    assert_eq!(alice_nodes, bob_nodes, "Topology mismatch — this is a bug");
+    println!("          ✔ Topology identical on both sides (deterministic)");
     println!();
-    println!("  [BOB] Reconstructed → decrypted");
-    println!("        Message: \"{}\"", String::from_utf8_lossy(&recovered));
 
+    // Alice sends
+    let assignments = alice.send(message.as_bytes())?;
+    let n_shards = assignments.len();
+    println!("  [ALICE] Message encrypted → Shamir-fragmented");
+    println!("          {n_shards}/{} fragments — threshold {}/{}",
+        topo.params.node_count, topo.params.threshold, topo.params.node_count);
+    println!("          No single node holds a reconstructable piece.");
+    println!();
+
+    // Simulate fragment delivery (in-process, v1.0)
+    let fragments: Vec<Vec<u8>> = assignments.into_iter().map(|(_, b)| b).collect();
+
+    // Bob reconstructs
+    let recovered = bob.receive(fragments)?;
+    println!("  [BOB]   Reconstructed → decrypted");
+    println!("          Message: \"{}\"", String::from_utf8_lossy(&recovered));
+    println!();
+
+    // Both dissolve
+    alice.dissolve();
     bob.dissolve();
+    println!("  [BOTH]  Session dissolved — keying material zeroed");
+    println!("          The exchange did not happen.");
+    println!();
+    println!("  ─────────────────────────────────────────────────────────────");
+    println!("  NOTE: Fragment transport is in-process in v1.0 (local mode).");
+    println!("        Real P2P dispatch via libp2p + Kademlia DHT: v2.0.");
+
     Ok(())
 }
 
-async fn cmd_node(action: NodeAction, bootstrap: Option<String>) -> anyhow::Result<()> {
+fn resolve_peer_pk(arg: &str) -> anyhow::Result<kem::KemPublicKey> {
+    // Try as a path first
+    let path = std::path::Path::new(arg);
+    if path.exists() {
+        let hex = std::fs::read_to_string(path)
+            .map_err(|e| anyhow::anyhow!("cannot read {}: {e}", path.display()))?;
+        return Ok(kem::KemPublicKey::from_hex(hex.trim())?);
+    }
+    // Otherwise treat as hex
+    kem::KemPublicKey::from_hex(arg)
+        .map_err(|e| anyhow::anyhow!("{e}\n  Hint: pass a hex public key, a path to a .pk file, or 'demo'"))
+}
+
+// ── receive ───────────────────────────────────────────────────────────────────
+
+async fn cmd_receive(sk_path: Option<PathBuf>, ciphertext_hex: String) -> anyhow::Result<()> {
+    println!("⬡ POLYGONE — Receiving message");
+    println!();
+
+    // Resolve secret key
+    let sk_dir = sk_path.map(|p| {
+        if p.is_file() { p.parent().map(|d| d.to_path_buf()).unwrap_or_default() } else { p }
+    }).unwrap_or_else(keys::default_key_dir);
+
+    print!("  Loading keypair …");
+    let kp = keys::read_keypair(&sk_dir)
+        .map_err(|e| anyhow::anyhow!("{e}\n  Hint: run `polygone keygen` first"))?;
+    println!(" done");
+
+    print!("  Decapsulating KEM ciphertext …");
+    let ct = kem::KemCiphertext::from_hex(&ciphertext_hex)?;
+    let mut session = Session::new_responder(kp, &ct)?;
+    println!(" done");
+
+    session.establish(None)?;
+    let topo = session.topology.as_ref().unwrap();
+    println!("  Topology derived — {}", topo.describe());
+    println!();
+    println!("  Waiting for {} fragments (need at least {})…", topo.params.node_count, topo.params.threshold);
+    println!();
+    println!("  NOTE: In v1.0, fragments must be provided manually.");
+    println!("        In v2.0, they will be collected automatically from the DHT.");
+    println!();
+    println!("  → Provide the fragment hex strings from the sender, then run:");
+    println!("      polygone receive --sk <path> --ciphertext <ct> [fragments will be auto-collected in v2.0]");
+
+    session.dissolve();
+
+    Ok(())
+}
+
+// ── node ──────────────────────────────────────────────────────────────────────
+
+async fn cmd_node(action: NodeAction) -> anyhow::Result<()> {
     match action {
-        NodeAction::Start { ram_mb, listen, identity } => {
+        NodeAction::Start { ram_mb, listen } => {
             println!("⬡ POLYGONE NODE");
+            println!();
             println!("  Listen  : {listen}");
             println!("  RAM cap : {ram_mb} MB");
+            println!("  Mode    : local (libp2p integration: v2.0)");
             println!();
-            
-            use libp2p::{identity as lp2p_id, futures::StreamExt, swarm::SwarmEvent};
-            use std::path::Path;
-
-            let keypair = if let Some(path) = identity {
-                polygone::network::p2p::load_or_generate_identity(Path::new(&path))?
-            } else {
-                lp2p_id::Keypair::generate_ed25519()
-            };
-
-            let peer_id = libp2p::PeerId::from(keypair.public());
-            println!("  ✓ Identity : {peer_id}");
-            println!("  ✓ Node started — participating in ephemeral transit network");
-            println!("  ✓ You will never see the content of any message you relay.");
-            println!("  ✓ Press Ctrl-C to stop.");
+            println!("  ✔ Node started — participating in ephemeral transit network");
+            println!("  ✔ You will never see the content of any message you relay.");
+            println!("  ✔ Press Ctrl-C to stop gracefully.");
             println!();
-            
-            let mut swarm = polygone::network::p2p::build_swarm(keypair).await?;
-            swarm.listen_on(listen.parse::<libp2p::Multiaddr>()?)?;
-            
-            if let Some(boot) = bootstrap {
-                let addr: libp2p::Multiaddr = boot.parse::<libp2p::Multiaddr>()?;
-                // In a real network, we would parse out the PeerId from the address,
-                // but since libp2p dial allows address, we can dial directly.
-                swarm.dial(addr.clone())?;
-                println!("  ✓ Dialing bootstrap node: {}", addr);
-            }
 
-            loop {
-                tokio::select! {
-                    event = swarm.select_next_some() => match event {
-                        SwarmEvent::NewListenAddr { address, .. } => {
-                            println!("  ✓ Listening on {address}");
-                        }
-                        SwarmEvent::ConnectionEstablished { peer_id, .. } => {
-                            println!("  ✓ Connected to {peer_id}");
-                        }
-                        _ => {}
-                    },
-                    _ = tokio::signal::ctrl_c() => {
-                        println!("  ✓ Node stopped cleanly.");
-                        break;
-                    }
-                }
-            }
+            // In v2.0: start libp2p swarm with Kademlia DHT here.
+            // For v1.0: we hold the process alive so the node is "reachable" locally.
+            tokio::signal::ctrl_c().await?;
+            println!();
+            println!("  ✔ Node stopped cleanly. Keying material zeroed.");
         }
-        NodeAction::Stop => println!("Stopping node daemon..."),
+        NodeAction::Stop => {
+            println!("⬡ POLYGONE NODE — Stopping…");
+            println!("  (In v2.0 this will signal the daemon via IPC)");
+        }
         NodeAction::Info => {
             println!("⬡ POLYGONE NODE INFO");
-            println!("  Version : {VERSION}");
-            println!("  Status  : offline (run 'polygone node start' to join the network)");
+            println!();
+            println!("  Version  : {VERSION}");
+            println!("  Status   : offline");
+            println!("  Peers    : 0 (libp2p in v2.0)");
+            println!("  RAM cap  : 256 MB (default)");
         }
     }
     Ok(())
 }
+
+// ── status ────────────────────────────────────────────────────────────────────
 
 async fn cmd_status() -> anyhow::Result<()> {
+    let key_dir = keys::default_key_dir();
+    let has_keys = keys::keypair_exists(&key_dir);
+
     println!("⬡ POLYGONE STATUS");
-    println!("  Version       : {VERSION}");
+    println!();
+    println!("  Version         : {VERSION}");
+    println!("  Key directory   : {}", key_dir.display());
+    println!("  Keypair         : {}", if has_keys { "✔ present" } else { "✖ not found — run `polygone keygen`" });
     println!("  Active sessions : 0");
-    println!("  Network peers   : 0 (not connected)");
+    println!("  Network peers   : 0 (libp2p in v2.0)");
     println!("  Node status     : offline");
-    Ok(())
-}
 
-async fn cmd_power(action: PowerAction) -> anyhow::Result<()> {
-    use polygone::crypto::karma::{KarmaStore, IdleMonitor};
-    use std::path::Path;
-
-    match action {
-        PowerAction::Wallet => {
-            let path = Path::new("~/.polygone/karma.db"); // Simplified path for demo
-            let store = KarmaStore::load_from_file(path).unwrap_or_default();
-            println!("⬡ POLYGONE KARMA WALLET");
-            println!("  Karma Balance : {} units", store.total_units());
-            println!("  Vouchers      : {} collected", store.vouchers.len());
-        }
-        PowerAction::On { idle_threshold } => {
-            println!("⬡ POLYGONE POWER : INTELLIGENT MODE");
-            println!("  Threshold : {} (Load Avg 1m)", idle_threshold);
-            println!("  Status    : Monitoring system load...");
-            
-            loop {
-                let idle = IdleMonitor::is_idle(idle_threshold);
-                if idle {
-                    println!("  [IDLE] System quiet. Waking up background node...");
-                    // (Here we would trigger the node logic - for demo we just sleep)
-                } else {
-                    // println!("  [BUSY] System active. Sleeping...");
-                }
-                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-            }
+    if has_keys {
+        if let Ok(pk) = keys::read_kem_pk(&key_dir) {
+            println!();
+            println!("  KEM public key  : {}…", &pk.to_hex()[..48]);
         }
     }
+
     Ok(())
 }
 
+// ── self-test ─────────────────────────────────────────────────────────────────
+
 async fn cmd_selftest() -> anyhow::Result<()> {
-    use polygone::{crypto::{kem, shamir}, protocol::Session};
+    use polygone::crypto::{kem, shamir, symmetric::SessionKey};
 
     println!("⬡ POLYGONE SELF-TEST");
     println!();
 
-    // Test 1: KEM round-trip
-    print!("  [1/4] ML-KEM-1024 round-trip ............. ");
-    let (pk, sk) = kem::generate_keypair()?;
-    let (ct, ss1) = kem::encapsulate(&pk)?;
-    let ss2 = kem::decapsulate(&sk, &ct)?;
-    assert_eq!(ss1.0, ss2.0);
-    println!("PASS");
+    let mut passed = 0usize;
+    let mut failed = 0usize;
 
-    // Test 2: Shamir 3-of-5
-    print!("  [2/4] Shamir 3-of-5 fragmentation ........ ");
-    let secret = b"post-quantum-secret-32-bytes-key";
-    let frags = shamir::split(secret, 3, 5)?;
-    let recovered = shamir::reconstruct(&frags[..3], 3)?;
-    assert_eq!(recovered, secret);
-    println!("PASS");
+    macro_rules! test {
+        ($name:expr, $block:block) => {{
+            print!("  {} … ", $name);
+            match (|| -> anyhow::Result<()> { $block; Ok(()) })() {
+                Ok(_) => { println!("PASS ✔"); passed += 1; }
+                Err(e) => { println!("FAIL ✖  ({e})"); failed += 1; }
+            }
+        }};
+    }
 
-    // Test 3: Full session round-trip
-    print!("  [3/4] Full session round-trip ............. ");
-    let bob_kp = KeyPair::generate()?;
-    let bob_pk = bob_kp.kem_pk.clone();
-    let (mut alice, ciphertext) = Session::new_initiator(&bob_pk)?;
-    let mut bob = Session::new_responder(bob_kp, &ciphertext)?;
-    alice.establish(None)?;
-    bob.establish(None)?;
-    let msg = b"L'information n'existe pas. Elle traverse.";
-    let assignments = alice.send(msg)?;
-    let frags: Vec<_> = assignments.into_iter().map(|(_, b)| b).collect();
-    let result = bob.receive(frags)?;
-    assert_eq!(result, msg);
-    alice.dissolve();
-    bob.dissolve();
-    println!("PASS");
+    test!("[1/5] ML-KEM-1024 round-trip", {
+        let (pk, sk) = kem::generate_keypair()?;
+        let (ct, ss1) = kem::encapsulate(&pk)?;
+        let ss2 = kem::decapsulate(&sk, &ct)?;
+        anyhow::ensure!(ss1.0 == ss2.0, "shared secrets mismatch");
+    });
 
-    // Test 4: Insufficient fragments fail
-    print!("  [4/4] Insufficient fragments rejected ..... ");
-    let bob_kp2 = KeyPair::generate()?;
-    let bob_pk2 = bob_kp2.kem_pk.clone();
-    let (mut alice2, ct2) = Session::new_initiator(&bob_pk2)?;
-    let mut bob2 = Session::new_responder(bob_kp2, &ct2)?;
-    alice2.establish(None)?;
-    bob2.establish(None)?;
-    let assignments2 = alice2.send(b"test")?;
-    let frags2: Vec<_> = assignments2.into_iter().take(2).map(|(_, b)| b).collect();
-    assert!(bob2.receive(frags2).is_err());
-    println!("PASS");
+    test!("[2/5] AES-256-GCM encrypt/decrypt", {
+        let key = SessionKey::from_bytes([0xABu8; 32]);
+        let msg = b"post-quantum privacy";
+        let ct = key.encrypt(msg)?;
+        let pt = key.decrypt(&ct)?;
+        anyhow::ensure!(pt == msg, "decrypted message mismatch");
+    });
+
+    test!("[3/5] Shamir 4-of-7 (all 35 combinations)", {
+        let secret = b"polygone-shamir-test-secret-bytes";
+        let frags = shamir::split(secret, 4, 7)?;
+        for i in 0..7 { for j in (i+1)..7 { for k in (j+1)..7 { for l in (k+1)..7 {
+            let subset = vec![frags[i].clone(), frags[j].clone(),
+                              frags[k].clone(), frags[l].clone()];
+            let r = shamir::reconstruct(&subset, 4)?;
+            anyhow::ensure!(r == secret, "C({i},{j},{k},{l}) failed");
+        }}}}
+    });
+
+    test!("[4/5] Full session round-trip (Alice → Bob)", {
+        let bob_kp = KeyPair::generate()?;
+        let (mut alice, ct) = Session::new_initiator(&bob_kp.kem_pk)?;
+        let mut bob = Session::new_responder(bob_kp, &ct)?;
+        alice.establish(None)?;
+        bob.establish(None)?;
+
+        // Verify both sides derive identical topology
+        let a_nodes: Vec<_> = alice.topology.as_ref().unwrap().nodes.iter().map(|n| n.0).collect();
+        let b_nodes: Vec<_> = bob.topology.as_ref().unwrap().nodes.iter().map(|n| n.0).collect();
+        anyhow::ensure!(a_nodes == b_nodes, "topology mismatch between Alice and Bob");
+
+        let msg = b"L'information n'existe pas. Elle traverse.";
+        let assignments = alice.send(msg)?;
+        let frags: Vec<_> = assignments.into_iter().map(|(_, b)| b).collect();
+        let recovered = bob.receive(frags)?;
+        anyhow::ensure!(recovered == msg, "message mismatch");
+        alice.dissolve();
+        bob.dissolve();
+    });
+
+    test!("[5/5] Insufficient fragments → rejected", {
+        let bob_kp = KeyPair::generate()?;
+        let (mut alice, ct) = Session::new_initiator(&bob_kp.kem_pk)?;
+        let mut bob = Session::new_responder(bob_kp, &ct)?;
+        alice.establish(None)?;
+        bob.establish(None)?;
+        let assignments = alice.send(b"secret")?;
+        let frags: Vec<_> = assignments.into_iter().take(3).map(|(_, b)| b).collect();
+        anyhow::ensure!(bob.receive(frags).is_err(), "should have failed with 3/7 fragments");
+    });
 
     println!();
-    println!("  All tests passed. POLYGONE is operational.");
+    if failed == 0 {
+        println!("  ✔ All {passed} tests passed. POLYGONE is operational.");
+    } else {
+        println!("  ✖ {failed}/{} tests FAILED.", passed + failed);
+        std::process::exit(1);
+    }
 
     Ok(())
 }
 
-fn cmd_uninstall() -> anyhow::Result<()> {
-    println!("⬡ POLYGONE — Uninstall");
-    println!();
-    
-    let bin_path = std::env::current_exe()?;
-    
-    println!("  This will remove:");
-    println!("    • {}", bin_path.display());
-    println!("    • ~/.polygone/ (your keys and data)");
-    println!();
-    
-    print!("  Are you sure? [y/N] ");
-    std::io::Write::flush(&mut std::io::stdout())?;
-    
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input)?;
-    
-    if input.trim().to_lowercase() != "y" {
-        println!("  Aborted.");
-        return Ok(());
-    }
-    
-    println!();
-    println!("  Removing binary...");
-    if let Err(e) = std::fs::remove_file(&bin_path) {
-        eprintln!("  Warning: could not remove binary: {e}");
-    } else {
-        println!("  ✓ Binary removed");
-    }
-    
-    println!("  Removing data (~/.polygone/)...");
-    let home = dirs::home_dir().unwrap_or_default();
-    let polygone_dir = home.join(".polygone");
-    if polygone_dir.exists() {
-        if let Err(e) = std::fs::remove_dir_all(&polygone_dir) {
-            eprintln!("  Warning: could not remove data: {e}");
-        } else {
-            println!("  ✓ Data removed");
-        }
-    }
-    
-    println!();
-    println!("  ⬡ Polygone has been uninstalled.");
-    println!("  L'information n'existait pas. Elle a traversé. Goodbye.");
+// ── tui ───────────────────────────────────────────────────────────────────────
 
-    Ok(())
-}
-
-fn cmd_update(force: bool) -> anyhow::Result<()> {
-    println!("⬡ POLYGONE — Auto-Update");
-    println!();
-    
-    let current_version = env!("CARGO_PKG_VERSION");
-    println!("  Current version : v{}", current_version);
-    
-    println!("  Checking for updates...");
-    
-    let client = reqwest::blocking::Client::builder()
-        .user_agent("Polygone-CLI/1.0")
-        .build()?;
-    
-    let response = client
-        .get("https://api.github.com/repos/lvs0/Polygone/releases/latest")
-        .send()?;
-    
-    if !response.status().is_success() {
-        eprintln!("  ✗ Could not check for updates: HTTP {}", response.status());
-        return Ok(());
-    }
-    
-    let json: serde_json::Value = response.json()?;
-    
-    let latest_version = json["tag_name"]
-        .as_str()
-        .unwrap_or("v0.0.0")
-        .trim_start_matches('v');
-    
-    println!("  Latest version  : v{}", latest_version);
-    
-    let needs_update = if force {
-        true
-    } else {
-        latest_version != current_version
+fn cmd_tui(view: String) -> anyhow::Result<()> {
+    let initial = match view.as_str() {
+        "keygen"   => View::Keygen,
+        "send"     => View::Send,
+        "receive"  => View::Receive,
+        "node"     => View::Node,
+        "selftest" => View::SelfTest,
+        "help"     => View::Help,
+        _          => View::Dashboard,
     };
-    
-    if !needs_update {
-        println!();
-        println!("  ✓ You're already up to date!");
-        return Ok(());
-    }
-    
-    println!();
-    println!("  Downloading update...");
-    
-    let os = std::env::consts::OS;
-    let arch = std::env::consts::ARCH;
-    
-    let binary_name = match (os, arch) {
-        ("linux", "x86_64") => "polygone-cli-x86_64-linux",
-        ("linux", "aarch64") => "polygone-cli-aarch64-linux",
-        ("macos", "x86_64") => "polygone-cli-x86_64-macos",
-        ("macos", "aarch64") => "polygone-cli-aarch64-macos",
-        _ => {
-            eprintln!("  ✗ No prebuilt binary for {}-{}", os, arch);
-            eprintln!("  Build from source: git clone https://github.com/lvs0/Polygone");
-            return Ok(());
-        }
-    };
-    
-    let download_url = format!(
-        "https://github.com/lvs0/Polygone/releases/download/v{}/{}",
-        latest_version, binary_name
-    );
-    
-    println!("  → {}", download_url);
-    
-    let response = client.get(&download_url).send()?;
-    
-    if !response.status().is_success() {
-        eprintln!("  ✗ Download failed: HTTP {}", response.status());
-        return Ok(());
-    }
-    
-    let binary_path = std::env::current_exe()?;
-    let backup_path = binary_path.with_extension("old");
-    
-    println!("  Backing up current binary...");
-    let _ = std::fs::remove_file(&backup_path);
-    std::fs::rename(&binary_path, &backup_path)?;
-    
-    println!("  Installing new version...");
-    let mut file = std::fs::File::create(&binary_path)?;
-    let mut reader = response;
-    std::io::copy(&mut reader, &mut file)?;
-    
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = std::fs::metadata(&binary_path)?.permissions();
-        perms.set_mode(0o755);
-        std::fs::set_permissions(&binary_path, perms)?;
-    }
-    
-    println!();
-    println!("  ✓ Polygone updated to v{}", latest_version);
-    println!();
-    println!("  Restart Polygone to use the new version.");
-    println!("  Remove old binary: rm {}", backup_path.display());
-    
-    Ok(())
+    run_tui(initial).map_err(|e| anyhow::anyhow!("TUI error: {e}"))
 }

@@ -1,109 +1,140 @@
-//! Deterministic topology derivation from shared key material.
+//! Deterministic ephemeral topology derivation.
 //!
-//! Given a 32-byte session key, both peers derive:
-//! - How many nodes the transit network has (N).
-//! - Which NodeIds to use.
-//! - The connectivity graph between those nodes.
-//! - The fragment-to-node assignment (for Shamir distribution).
-//!
-//! This derivation is **pure** (no randomness, no I/O) and
-//! **deterministic** — both peers always get the same topology.
+//! Both Alice and Bob independently derive the *same* topology from
+//! the shared secret — no extra communication required.
+//! The topology defines which 7 nodes exist and how fragments are assigned.
 
-use crate::network::NodeId;
+use blake3::Hasher;
+use serde::{Deserialize, Serialize};
 
-/// Parameters controlling the size and resilience of the ephemeral network.
-#[derive(Debug, Clone)]
+use super::NodeId;
+use crate::{PolygoneError, Result};
+
+// ── Parameters ────────────────────────────────────────────────────────────────
+
+/// Parameters for the ephemeral network topology.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TopologyParams {
-    /// Number of ephemeral nodes (must be ≥ threshold).
+    /// Total number of ephemeral nodes. Default: 7.
     pub node_count: u8,
-    /// Shamir threshold — minimum nodes needed for reconstruction.
+    /// Minimum fragments to reconstruct. Default: 4.
     pub threshold: u8,
-    /// Maximum number of connections per node (controls graph density).
-    pub max_edges_per_node: u8,
 }
 
 impl Default for TopologyParams {
     fn default() -> Self {
-        Self {
-            node_count: 7,
-            threshold: 4,
-            max_edges_per_node: 3,
-        }
+        Self { node_count: 7, threshold: 4 }
     }
 }
 
-/// A derived ephemeral topology: a graph of NodeIds and their connections.
-#[derive(Debug)]
+impl TopologyParams {
+    pub fn validate(&self) -> Result<()> {
+        if self.threshold < 2 {
+            return Err(PolygoneError::TopologyDerivation(
+                "threshold must be ≥ 2".into()
+            ));
+        }
+        if self.node_count < self.threshold {
+            return Err(PolygoneError::TopologyDerivation(
+                "node_count must be ≥ threshold".into()
+            ));
+        }
+        Ok(())
+    }
+}
+
+// ── Topology ──────────────────────────────────────────────────────────────────
+
+/// The ephemeral network topology for a single session.
+///
+/// Deterministically derived from the BLAKE3-expanded topology seed.
+/// Both peers compute identical topologies independently.
+#[derive(Clone)]
 pub struct Topology {
     pub params: TopologyParams,
-    /// All nodes in this topology, in order.
+    /// Ordered list of ephemeral node IDs.
     pub nodes: Vec<NodeId>,
-    /// Adjacency list: node index → list of neighbour indices.
-    pub edges: Vec<Vec<usize>>,
-    /// Which node index receives which Shamir fragment (1-indexed).
+    /// Map: fragment_index → node_index in `nodes`.
     pub fragment_assignment: Vec<(u8, usize)>,
 }
 
 impl Topology {
-    /// Derive a topology from the session key bytes.
+    /// Derive a topology from `topo_seed` (32 bytes from BLAKE3 key derivation).
     ///
-    /// Uses BLAKE3 in counter mode to deterministically produce all the
-    /// structural randomness the topology needs.
-    pub fn derive(session_key: &[u8; 32], params: TopologyParams) -> crate::Result<Self> {
-        let n = params.node_count as usize;
-        let t = params.threshold;
+    /// Algorithm:
+    /// 1. Expand seed via BLAKE3 XOF to get node IDs (8 bytes each).
+    /// 2. Assign fragment i → node i % node_count.
+    ///
+    /// Both parties, starting from identical seeds, compute identical topologies.
+    pub fn derive(topo_seed: &[u8; 32], params: TopologyParams) -> Result<Self> {
+        params.validate()?;
 
-        if t as usize > n {
-            return Err(crate::PolygoneError::TopologyDerivation(format!(
-                "threshold ({t}) > node_count ({n})"
-            )));
+        let n = params.node_count as usize;
+
+        // Expand the topology seed using BLAKE3 XOF.
+        // We need n * 8 bytes to generate all node IDs.
+        let mut output_reader = blake3::Hasher::new_derive_key("polygone-topo-nodes-v1")
+            .update(topo_seed)
+            .finalize_xof();
+
+        let mut nodes = Vec::with_capacity(n);
+        for _ in 0..n {
+            let mut id_bytes = [0u8; 8];
+            output_reader.fill(&mut id_bytes);
+            nodes.push(NodeId(id_bytes));
         }
 
-        // 1. Derive all NodeIds
-        let nodes: Vec<NodeId> = (0..n as u8)
-            .map(|i| NodeId::derive(session_key, i))
+        // Simple round-robin fragment assignment:
+        // fragment 0 → node 0, fragment 1 → node 1, ..., fragment n-1 → node n-1
+        // This is deterministic and distributes load evenly.
+        let fragment_assignment: Vec<(u8, usize)> = (0..n)
+            .map(|i| (i as u8, i % n))
             .collect();
 
-        // 2. Derive edges deterministically
-        //    For each node i, BLAKE3-hash (key || i || "edges") → pick neighbours
-        let mut edges: Vec<Vec<usize>> = vec![vec![]; n];
-        for i in 0..n {
-            let seed = blake3::derive_key(
-                "polygone edge seed v1",
-                &[session_key.as_ref(), &[i as u8]].concat(),
-            );
-            let seed_bytes = seed;
-            // Pick up to max_edges_per_node neighbours from the seed
-            for slot in 0..params.max_edges_per_node as usize {
-                let j = seed_bytes[slot as usize] as usize % n;
-                if j != i && !edges[i].contains(&j) {
-                    edges[i].push(j);
-                    if !edges[j].contains(&i) {
-                        edges[j].push(i); // undirected
-                    }
-                }
-            }
+        Ok(Self { params, nodes, fragment_assignment })
+    }
+
+    /// Human-readable description of the topology.
+    pub fn describe(&self) -> String {
+        format!(
+            "{} nodes, threshold {}/{} — {} fragments required to reconstruct",
+            self.nodes.len(),
+            self.params.threshold,
+            self.params.node_count,
+            self.params.threshold,
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn topology_is_deterministic() {
+        let seed = [0xABu8; 32];
+        let t1 = Topology::derive(&seed, TopologyParams::default()).unwrap();
+        let t2 = Topology::derive(&seed, TopologyParams::default()).unwrap();
+
+        for (a, b) in t1.nodes.iter().zip(t2.nodes.iter()) {
+            assert_eq!(a.0, b.0, "Topology must be deterministic");
         }
-
-        // 3. Assign Shamir fragments to nodes
-        //    First `n` fragments (1..=n) → nodes 0..n  (one-to-one for n <= n)
-        let fragment_assignment: Vec<(u8, usize)> = (0..n).map(|i| (i as u8 + 1, i)).collect();
-
-        Ok(Topology {
-            params,
-            nodes,
-            edges,
-            fragment_assignment,
-        })
     }
 
-    /// Return the NodeId at index `i`.
-    pub fn node(&self, i: usize) -> Option<&NodeId> {
-        self.nodes.get(i)
+    #[test]
+    fn different_seeds_produce_different_topologies() {
+        let seed1 = [0x11u8; 32];
+        let seed2 = [0x22u8; 32];
+        let t1 = Topology::derive(&seed1, TopologyParams::default()).unwrap();
+        let t2 = Topology::derive(&seed2, TopologyParams::default()).unwrap();
+        assert_ne!(t1.nodes[0].0, t2.nodes[0].0);
     }
 
-    /// Return the neighbours of node `i`.
-    pub fn neighbours(&self, i: usize) -> &[usize] {
-        self.edges.get(i).map(|v| v.as_slice()).unwrap_or(&[])
+    #[test]
+    fn topology_node_count() {
+        let seed = [0u8; 32];
+        let t = Topology::derive(&seed, TopologyParams::default()).unwrap();
+        assert_eq!(t.nodes.len(), 7);
+        assert_eq!(t.fragment_assignment.len(), 7);
     }
 }

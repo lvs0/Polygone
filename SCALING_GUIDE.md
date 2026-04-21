@@ -1,30 +1,33 @@
 # ⬢ POLYGONE : GUIDE DE PASSAGE À L'ÉCHELLE (SCALING)
 
-Ce document explique comment transformer ce service en un réseau mondial indestructible composé de dizaines de nœuds "Vapor".
+Ce document décrit comment ajouter des **nœuds relais** et renforcer la résilience du réseau.  
+Le message public du projet reste la **cryptographie post-quantique** et le **protocole** — les choix concrets d’hébergement (fournisseurs, budgets, relais) relèvent des **opérateurs** et ne font pas partie du discours public de **Hope**.
 
-## 1. Stratégie Multi-VPS (Gratuit)
-Tu peux multiplier ton nœud sur plusieurs fournisseurs pour créer une "Grille de Puissance" :
-- **Render** : (Déjà fait) Nœud de contrôle.
-- **Oracle Cloud** : Offre "Always Free" avec 4 instances ARM (Très puissantes pour Polygone).
-- **Fly.io / Railway / Northflank** : Excellents pour des petits nœuds de transit.
+## 1. Stratégie multi-nœuds
 
-## 2. Configuration Technique (Variables)
-Pour chaque nouveau nœud, utilise l'image Docker `ghcr.io/lvs0/polygone:latest` et configure les variables :
+Déploie plusieurs relais sur des machines **distinctes**, chacun avec une **identité réseau unique**. Relie-les via une adresse de **bootstrap** connue du maillage.
 
-| Variable | Valeur | Description |
-| :--- | :--- | :--- |
-| `POLY_P2P_SEED` | `Une-Clé-Base64-32-Octets` | Unique pour chaque nœud (ton identité) |
-| `RENDER_URL` | `https://ton-app.onrender.com` | Utilise ton lien public pour le "Pulse" |
-| `BOOTSTRAP_ADDR` | `/dns4/polygone-one.onrender.com/tcp/443/wss/p2p/TON_ID` | L'adresse de ton 1er nœud maillé |
+## 2. Variables et déploiement (référence)
 
-## 3. Résilience : Que se passe-t-il si un PC s'arrête ?
-Polygone utilise le principe de la **Multi-Localisation**. Chaque fragment de donnée est répliqué sur 20 nœuds différents (K=20).
-- Si un PC s'arrête brutalement : **Zéro perte**. Le réseau redirige automatiquement les requêtes vers les 19 autres en temps réel.
-- Le réseau se "re-cicatrise" tout seul dès que le nœud est de nouveau en ligne.
+Les noms exacts évoluent avec le dépôt ; consulte le `Dockerfile` et le dépôt **Polygone-Server** pour la liste à jour. En pratique :
 
-## 4. Vision : Prêt de Puissance Intelligent
-En connectant ton PC au réseau (variable copiée-collée), ton PC délègue le travail réseau lourd aux VPS gratuits. En retour, tu accumules du **Karma**. 
-Plus tu as de Karma, plus le réseau te donne la priorité pour les calculs lourds, rendant ton utilisation locale fluide.
+| Concept | Rôle |
+| :--- | :--- |
+| Identité / graine | Une clé par nœud — ne jamais réutiliser la même entre instances |
+| Bootstrap | Multiaddr vers un pair déjà dans le réseau |
+| Santé / exposition HTTP | Selon ton orchestration (healthcheck, shim, etc.) |
+
+L’image conteneur et le registre utilisés par les mainteneurs ne sont pas un argument « marketing » : l’accent public reste le **post-quantique** et le **protocole**.
+
+## 3. Résilience
+
+Le modèle vise une **multi-localisation** des fragments : la perte d’un relais ne doit pas détruire le message si le quorum Shamir est atteint.
+
+## 4. Karma (vision)
+
+Le prêt de ressources peut être assorti d’un système de **Karma** / vouchers — voir le code et la documentation du core.
 
 ---
-**L'information n'existe pas. Elle traverse.** ⬡
+
+**L'information n'existe pas. Elle traverse.** ⬡  
+**l-vs** · **Hope** (*by Hope*)
