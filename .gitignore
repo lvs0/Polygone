@@ -1,10 +1,41 @@
-/target/
+```
+# Dependencies
+target/
 **/*.rs.bk
-Cargo.lock
-*.exe
-*.dll
-*.so
-*.dylib
-polygone-*
-!/polygone.sh
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
 .DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+```

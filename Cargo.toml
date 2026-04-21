@@ -68,3 +68,33 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # ── System ───────────────────────────────────────────────────────────────────
 dirs            = "5"
+
+# ── TUI (Terminal User Interface) ────────────────────────────────────────────
+ratatui         = { version = "0.29", features = ["all-widgets"] }
+crossterm       = { version = "0.28", features = ["event-stream"] }
+
+# ── Multi-platform support ───────────────────────────────────────────────────
+[target.'cfg(windows)'.dependencies]
+winapi          = { version = "0.3", features = ["winuser"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa           = "0.26"
+
+# ── Packaging & Installation ─────────────────────────────────────────────────
+[package.metadata.deb]
+maintainer      = "Lévy <polygone@proton.me>"
+copyright       = "2024, Lévy"
+license-file    = ["LICENSE", "0"]
+depends         = "$auto"
+section         = "net"
+priority        = "optional"
+assets          = [
+    ["target/release/polygone", "/usr/bin/", "755"],
+    ["README.md", "/usr/share/doc/polygone/README", "644"],
+]
+
+[package.metadata.generate-rpm]
+assets          = [
+    { source = "target/release/polygone", dest = "/usr/bin/polygone", mode = "755" },
+    { source = "README.md", dest = "/usr/share/doc/polygone/README", mode = "644" },
+]

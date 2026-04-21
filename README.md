@@ -2,7 +2,7 @@
 
 > *"Information does not exist. It drifts."* / *"L'information n'existe pas. Elle traverse."*
 
-**POLYGONE** is a post-quantum ephemeral privacy network designed to solve the **Metadata Problem**. Built in pure Rust.
+**POLYGONE** is a post-quantum ephemeral privacy network designed to solve the **Metadata Problem**. Built in pure Rust with a beautiful TUI interface.
 
 ---
 
@@ -16,7 +16,9 @@ Traditional encryption protects **content**, but it cannot hide that a **communi
 
 ---
 
-## Quick Start (30 seconds)
+## 🚀 Quick Start (30 seconds)
+
+### One-Line Installation
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
@@ -24,38 +26,55 @@ curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bas
 
 That's it! Then run:
 ```bash
-polygone help
+polygone tui    # Launch the beautiful terminal interface
 ```
 
-### Commands
+### Pre-built Binaries
 
-| Command | Description |
-|---------|-------------|
-| `polygone help` | Show all commands |
-| `polygone self-test` | Verify installation |
-| `polygone keygen` | Generate encryption keys |
-| `polygone send` | Send a message |
-| `polygone node` | Start relay node |
-| `polygone update` | Update to latest |
-| `polygone uninstall` | Remove Polygone |
+Download ready-to-use binaries for your platform from [Releases](https://github.com/lvs0/Polygone/releases):
+
+| Platform | Download |
+|----------|----------|
+| 🐧 Linux (x86_64) | `polygone-linux-x86_64.tar.gz` |
+| 🍎 macOS (Intel) | `polygone-macos-x86_64.tar.gz` |
+| 🍎 macOS (Apple Silicon) | `polygone-macos-arm64.tar.gz` |
+| 🪟 Windows (x86_64) | `polygone-windows-x86_64.zip` |
 
 ---
 
-## How It Works
+## 📱 Commands
+
+| Command | Description |
+|---------|-------------|
+| `polygone tui` | 🎨 Launch the interactive TUI dashboard |
+| `polygone help` | Show all commands |
+| `polygone self-test` | ✅ Verify installation |
+| `polygone keygen` | 🔑 Generate post-quantum keys |
+| `polygone send` | 📤 Send an encrypted message |
+| `polygone receive` | 📥 Receive a message |
+| `polygone node start` | 🌐 Start a relay node |
+| `polygone status` | 📊 View network status |
+
+---
+
+## 🎯 How It Works
 
 1. **Post-Quantum Handshake**: ML-KEM-1024 key exchange
 2. **Deterministic Topology**: BLAKE3 derives 7 random nodes
 3. **Shamir Dispersion**: AES-256-GCM + 4-of-7 secret sharing
 4. **Vaporization**: 30s TTL, data auto-evaporates
 
-### Security
+### 🔒 Security Stack
 
-- **Post-Quantum**: ML-KEM-1024 + ML-DSA-87
-- **Information-Theoretic**: Shamir (k-1 fragments = 0 info)
+- **Post-Quantum KEM**: ML-KEM-1024 (FIPS 203)
+- **Signatures**: Ed25519 (ML-DSA ready)
+- **Symmetric**: AES-256-GCM
+- **KDF**: BLAKE3 (domain-separated)
+- **Secret Sharing**: Shamir 4-of-7
 - **Memory Safety**: `#![forbid(unsafe_code)]` + ZeroizeOnDrop
 - **Forward Secrecy**: Unique keys per session
 
-### Benchmarks
+### ⚡ Performance
 
 | Operation | Latency |
 |-----------|---------|
@@ -65,17 +84,86 @@ polygone help
 
 ---
 
-## Known Limitations
+## 💻 Platform Support
 
-- NAT traversal in progress (v0.3)
-- DHT spam protection planned
-- Static quorum (4-of-7)
+| OS | Status | Notes |
+|----|--------|-------|
+| Fedora | ✅ Native | `dnf install rust cargo` |
+| Ubuntu/Debian | ✅ Native | `apt install rustc cargo` |
+| Arch Linux | ✅ Native | `pacman -S rust cargo` |
+| macOS | ✅ Native | Intel + Apple Silicon |
+| Windows | ✅ WSL2 / Native | PowerShell or WSL |
+
+See detailed instructions in [INSTALL.md](INSTALL.md)
 
 ---
 
-## Contributing
+## 🛠️ Build from Source
 
-Issues and PRs welcome. Privacy is an architectural property, not a setting. ⬡
+### Prerequisites
+
+- Rust >= 1.75 ([rustup.rs](https://rustup.rs))
+- OpenSSL development files
+- pkg-config
+- Git
+
+### Build Steps
+
+```bash
+git clone https://github.com/lvs0/Polygone.git
+cd Polygone
+cargo build --release
+sudo cp target/release/polygone /usr/local/bin/
+```
+
+---
+
+## 📸 TUI Features
+
+The built-in terminal interface provides:
+
+- 📊 **Dashboard**: Real-time network status
+- 🔑 **Key Management**: Easy key generation and preview
+- 📤 **Send/Receive**: Guided message workflows
+- 🌐 **Node Control**: Start/stop relay nodes
+- 🧪 **Self-Tests**: Verify crypto primitives
+- 📖 **Help**: Built-in documentation
+
+Navigate with number keys (1-6), quit with `q`.
+
+---
+
+## ⚠️ Known Limitations
+
+- NAT traversal in progress (v2.0)
+- DHT spam protection planned
+- Static quorum (4-of-7)
+- P2P network dispatch arrives in v2.0 (libp2p + Kademlia DHT)
+
+---
+
+## 🤝 Contributing
+
+Issues and PRs welcome! Privacy is an architectural property, not a setting. ⬡
+
+### Development
+
+```bash
+# Run tests
+cargo test
+
+# Run linter
+cargo clippy --all-features -- -D warnings
+
+# Format code
+cargo fmt
+```
+
+---
+
+## 📄 License
+
+MIT License — No investors. No token. No telemetry.
 
 ---
 
@@ -87,11 +175,11 @@ Le chiffrement traditionnel ne cache pas qu'une communication a eu lieu.
 
 **POLYGONE change le paradigme.** Un message devient un état mathématique distribué transient qui s'évapore.
 
-### Installation
+### Installation Rapide
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
-polygone help
+polygone tui    # Interface graphique terminal
 ```
 
 ### Sécurité
@@ -100,6 +188,15 @@ polygone help
 - **Information-Théorique**: Shamir Secret Sharing
 - **Mémoire**: `#![forbid(unsafe_code)]` + ZeroizeOnDrop
 
+### Documentation Complète
+
+- [Guide d'installation](INSTALL.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Protocole](docs/PROTOCOL.md)
+- [Sécurité](docs/SECURITY.md)
+
 ---
 
 *by Lévy, 14 ans, France*
+
+> ⬡ *"L'information n'existe pas. Elle traverse."*
