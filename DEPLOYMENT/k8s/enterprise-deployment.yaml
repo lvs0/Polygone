@@ -1,0 +1,392 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: polygone-enterprise
+  labels:
+    name: polygone-enterprise
+    environment: production
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: polygone-config
+  namespace: polygone-enterprise
+data:
+  NODE_ID: "k8s-node-001"
+  BOOTSTRAP_NODES: "polygone-core-0.polygone-enterprise:4001,polygone-core-1.polygone-enterprise:4001"
+  LOG_LEVEL: "info"
+  ENTERPRISE_MODE: "true"
+  MAX_CONCURRENT_REQUESTS: "10"
+  ENABLE_TRAINING: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: polygone-secrets
+  namespace: polygone-enterprise
+type: Opaque
+data:
+  POSTGRES_PASSWORD: cG9seHN0bGxvcyQ0xNDE1MjI=
+  ENTERPRISE_API_KEY: cG9seHN0bGxvcyQ0xNDE1MjI=
+  POLICY_ENCRYPTION_KEY: cG9seHN0bGxvcyQ0xNDE1MjI=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polygone-core
+  namespace: polygone-enterprise
+  labels:
+    app: polygone-core
+    version: v2.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: polygone-core
+  template:
+    metadata:
+      labels:
+        app: polygone-core
+    spec:
+      containers:
+      - name: polygone-core
+        image: polygone/core:v2.0.0
+        ports:
+        - containerPort: 4001
+          protocol: UDP
+        - containerPort: 4002
+          protocol: UDP
+        - containerPort: 4003
+          protocol: UDP
+        env:
+        - name: NODE_ID
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: NODE_ID
+        - name: BOOTSTRAP_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: BOOTSTRAP_NODES
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: LOG_LEVEL
+        - name: ENTERPRISE_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: ENTERPRISE_MODE
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 4000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: polygone-data
+          mountPath: /data
+        - name: polygone-config
+          mountPath: /config
+      volumes:
+      - name: polygone-data
+        persistentVolumeClaim:
+          claimName: polygone-data-pvc
+      - name: polygone-config
+        configMap:
+          name: polygone-config
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: polygone-petals
+  namespace: polygone-enterprise
+  labels:
+    app: polygone-petals
+    version: v2.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: polygone-petals
+  template:
+    metadata:
+      labels:
+        app: polygone-petals
+    spec:
+      containers:
+      - name: polygone-petals
+        image: polygone/petals:v2.0.0
+        ports:
+        - containerPort: 4003
+          protocol: TCP
+        - containerPort: 4004
+          protocol: TCP
+        env:
+        - name: LAYERS
+          value: "0-15"
+        - name: MODEL_PATH
+          value: "/models/llama-7b"
+        - name: MAX_CONCURRENT_REQUESTS
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: MAX_CONCURRENT_REQUESTS
+        - name: ENABLE_TRAINING
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: ENABLE_TRAINING
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: polygone-data
+          mountPath: /data
+        - name: model-volume
+          mountPath: /models
+        - name: checkpoint-volume
+          mountPath: /checkpoints
+      volumes:
+      - name: polygone-data
+        persistentVolumeClaim:
+          claimName: polygone-data-pvc
+      - name: model-volume
+        persistentVolumeClaim:
+          claimName: model-volume-pvc
+      - name: checkpoint-volume
+        persistentVolumeClaim:
+          claimName: checkpoint-volume-pvc
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: polygone-hide
+  namespace: polygone-enterprise
+  labels:
+    app: polygone-hide
+    version: v2.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: polygone-hide
+  template:
+    metadata:
+      labels:
+        app: polygone-hide
+    spec:
+      containers:
+      - name: polygone-hide
+        image: polygone/hide:v2.0.0
+        ports:
+        - containerPort: 1080
+          protocol: TCP
+        env:
+        - name: LISTEN_PORT
+          value: "1080"
+        - name: MAX_CONNECTIONS
+          value: "1000"
+        - name: ENABLE_ENTERPRISE
+          valueFrom:
+            configMapKeyRef:
+              name: polygone-config
+              key: ENTERPRISE_MODE
+        - name: POLICY_FILE
+          value: "/config/enterprise-policy.json"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: polygone-config
+          mountPath: /config
+          readOnly: true
+        - name: polygone-logs
+          mountPath: /logs
+      volumes:
+      - name: polygone-config
+        configMap:
+          name: polygone-config
+      - name: polygone-logs
+        persistentVolumeClaim:
+          claimName: polygone-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polygone-core-service
+  namespace: polygone-enterprise
+spec:
+  selector:
+    app: polygone-core
+  ports:
+  - name: udp-4001
+    port: 4001
+    protocol: UDP
+  - name: udp-4002
+    port: 4002
+    protocol: UDP
+  - name: udp-4003
+    port: 4003
+    protocol: UDP
+  - name: http-health
+    port: 4000
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polygone-petals-service
+  namespace: polygone-enterprise
+spec:
+  selector:
+    app: polygone-petals
+  ports:
+  - name: api-4003
+    port: 4003
+    protocol: TCP
+  - name: api-4004
+    port: 4004
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polygone-hide-service
+  namespace: polygone-enterprise
+spec:
+  selector:
+    app: polygone-hide
+  ports:
+  - name: socks5
+    port: 1080
+    protocol: TCP
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: polygone-data-pvc
+  namespace: polygone-enterprise
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-volume-pvc
+  namespace: polygone-enterprise
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: checkpoint-volume-pvc
+  namespace: polygone-enterprise
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: polygone-logs-pvc
+  namespace: polygone-enterprise
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 30Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: polygone-enterprise-ingress
+  namespace: polygone-enterprise
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  tls:
+  - hosts:
+    - api.polygone.ai
+    - petals.polygone.ai
+    - hide.polygone.ai
+    secretName: polygone-tls
+  rules:
+  - host: api.polygone.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: polygone-core-service
+            port:
+              number: 4000
+  - host: petals.polygone.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: polygone-petals-service
+            port:
+              number: 4003
+  - host: hide.polygone.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: polygone-hide-service
+            port:
+              number: 1080
