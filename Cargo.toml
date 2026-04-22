@@ -1,6 +1,6 @@
 [package]
 name = "polygone"
-version = "2.0.0"
+version = "2.1.0"
 edition = "2021"
 authors = ["Lévy <lvs0@proton.me>", "Hope Collective"]
 description = "Post-quantum private messaging for everyone — Secure, ephemeral, invisible"
@@ -33,11 +33,17 @@ name = "polygone-gui"
 path = "src/bin/polygone-gui.rs"
 required-features = ["gui"]
 
+[[bin]]
+name = "polygone-config"
+path = "src/bin/polygone-config.rs"
+required-features = ["cli"]
+
 [features]
 default = ["cli"]
 cli = []
 gui = ["dep:iced", "dep:qrcode"]
 full = ["cli", "gui"]
+p2p = ["dep:libp2p"]
 
 [dependencies]
 # ── Post-Quantum KEM ─────────────────────────────────────────────────────────
@@ -73,19 +79,29 @@ thiserror       = "1"
 anyhow          = "1"
 
 # ── CLI & Logging ────────────────────────────────────────────────────────────
-clap            = { version = "4", features = ["derive"] }
+clap            = { version = "4", features = ["derive", "env"] }
 tracing          = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+indicatif       = "0.17"
+dialoguer       = "0.11"
+comfy-table     = "7"
+toml            = "0.8"
 
 # ── System ───────────────────────────────────────────────────────────────────
 dirs            = "5"
+hostname        = "0.4"
+whoami          = "1"
+
+# ── TUI ──────────────────────────────────────────────────────────────────────
+ratatui         = "0.29"
+crossterm       = "0.28"
 
 # ── GUI (optional) ───────────────────────────────────────────────────────────
 iced            = { version = "0.13", features = ["tokio"], optional = true }
 qrcode          = { version = "0.14", optional = true }
 
 # ── Networking (v2.0) ────────────────────────────────────────────────────────
-libp2p          = { version = "0.54", features = ["tcp", "noise", "yamux", "kad", "dns", "quic"], optional = true }
+libp2p          = { version = "0.54", features = ["tcp", "noise", "yamux", "kad", "dns", "quic", "websocket"], optional = true }
 
 [dev-dependencies]
 criterion = "0.5"

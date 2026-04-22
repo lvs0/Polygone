@@ -1,8 +1,6 @@
 //! polygone — CLI entry point.
 //!
 //! Commands:
-
-#![allow(missing_docs)]
 //!   polygone keygen            → Generate ML-KEM-1024 + Ed25519 keypair, save to disk
 //!   polygone send              → Encrypt and fragment a message
 //!   polygone receive           → Reconstruct and decrypt a message
@@ -10,6 +8,7 @@
 //!   polygone status            → Show node and session status
 //!   polygone self-test         → Run crypto self-test suite
 //!   polygone tui               → Launch the TUI dashboard
+//!   polygone config            → Interactive configuration tool
 
 #![forbid(unsafe_code)]
 
@@ -111,6 +110,13 @@ enum Commands {
         #[arg(short, long, default_value = "dashboard")]
         view: String,
     },
+
+    /// Launch the interactive configuration tool
+    Config {
+        /// Skip welcome screen
+        #[arg(long)]
+        quick: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -155,6 +161,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Status                           => cmd_status().await,
         Commands::SelfTest                         => cmd_selftest().await,
         Commands::Tui { view }                     => cmd_tui(view),
+        Commands::Config { quick }                 => cmd_config(quick),
     }
 }
 
@@ -540,4 +547,28 @@ fn cmd_tui(view: String) -> anyhow::Result<()> {
         _          => View::Dashboard,
     };
     run_tui(initial).map_err(|e| anyhow::anyhow!("TUI error: {e}"))
+}
+
+// ── config ────────────────────────────────────────────────────────────────────
+
+fn cmd_config(quick: bool) -> anyhow::Result<()> {
+    use std::process::Command;
+    
+    println!();
+    println!("  ⬡ Lancement de l'outil de configuration POLYGONE...");
+    println!();
+    
+    // Launch polygone-config binary
+    let mut cmd = Command::new("polygone-config");
+    if quick {
+        cmd.arg("--quick");
+    }
+    
+    let status = cmd.status()?;
+    
+    if !status.success() {
+        anyhow::bail!("Configuration tool exited with error");
+    }
+    
+    Ok(())
 }

@@ -4,6 +4,81 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ---
 
+## [2.1.0] - 2024-XX-XX — 🎨 Expérience Utilisateur Premium
+
+### ✨ Nouvelles Fonctionnalités
+
+#### Outil de Configuration Interactif (`polygone-config`)
+- **Interface CLI interactive** inspirée d'OpenCode/OpenClaw
+- Menu de navigation avec flèches directionnelles
+- Gestion complète des clés (génération, backup, affichage)
+- Configuration réseau intuitive (P2P, adresse d'écoute, relais)
+- Paramètres de confidentialité (auto-delete, metadata)
+- Préférences d'affichage (thème, verbosité, emojis)
+- Options avancées (expérimental, debug, logs)
+- Sauvegarde automatique dans `~/.polygone/config.toml`
+
+#### Améliorations UX CLI
+- **Progress bars** avec `indicatif` pour opérations longues
+- **Tables formatées** avec `comfy-table` pour affichages structurés
+- **Prompts interactifs** avec `dialoguer` pour saisies utilisateur
+- Messages en français avec emojis cohérents
+- Codes couleur : cyan (info), vert (succès), rouge (erreur), jaune (warning)
+
+#### Commande `polygone config`
+- Intégration de l'outil de configuration dans la CLI principale
+- Lancement via `polygone config` ou `polygone-config`
+- Option `--quick` pour跳过 l'écran de bienvenue
+
+### 🔧 Améliorations Techniques
+
+#### Dépendances Ajoutées
+- `indicatif` v0.17 — Progress bars stylisées
+- `dialoguer` v0.11 — Prompts interactifs (Select, Input, Confirm, FuzzySelect)
+- `comfy-table` v7 — Tables ASCII élégantes
+- `toml` v0.8 — Parsing/écriture configuration
+- `hostname` v0.4 — Informations système
+- `whoami` v1 — Identification utilisateur
+- `ratatui` v0.29 — Framework TUI (déjà présent, version mise à jour)
+- `crossterm` v0.28 — Backend terminal (déjà présent, version mise à jour)
+
+#### Features Cargo
+- Nouvelle feature `p2p` pour activer libp2p optionnellement
+- Feature `full` = `cli` + `gui`
+- Feature par défaut : `cli`
+
+### 📝 Documentation
+
+#### Nouveau Fichier
+- `PROMPT_TRANSFERT_QWEN.md` — Guide complet pour sessions IA futures
+  - Architecture détaillée de l'écosystème
+  - Standards de qualité et checklist
+  - Instructions pour harmoniser tous les dépôts `Polygone-*`
+  - Templates de communication inter-dev
+  - Métriques de succès
+
+#### Mises à Jour
+- README.md — Ajout section `polygone config`
+- INSTALL.md — Méthodes d'installation supplémentaires
+- GUIDE_UTILISATEUR.md — Section configuration interactive
+
+### 🔒 Sécurité
+
+#### Renforcements
+- Audit des logs pour suppression métadonnées
+- Permissions 600 automatiques sur fichiers secrets
+- Zeroize mémoire pour toutes données sensibles
+- Mode furtif configurable (désactivation logs PeerId)
+
+### 🐛 Corrections
+
+#### CLI Principale
+- Meilleure gestion des erreurs avec messages actionnables
+- Affichage cohérent entre commandes
+- Support stdin amélioré pour `polygone send`
+
+---
+
 ## [2.0.0] - 2026-01-XX — 🎉 Version Grand Public
 
 ### ✨ Nouvelles Fonctionnalités

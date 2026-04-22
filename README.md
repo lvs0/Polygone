@@ -43,7 +43,7 @@ Puis vérifiez l'installation :
 polygone --version
 ```
 
-### Option 2 : Compilation Manuelles
+### Option 2 : Compilation Manuelle
 
 ```bash
 # Prérequis : Rust nightly
@@ -63,6 +63,16 @@ cargo install --path .
 
 ```bash
 cargo install --path . --features gui
+```
+
+### Option 4 : Outil de Configuration Interactif
+
+```bash
+# Lancer l'outil de configuration
+polygone config
+
+# Ou directement
+polygone-config
 ```
 
 ---
@@ -94,6 +104,7 @@ polygone send --peer <clé_publique> --message "Votre message secret"
 | `polygone status` | Voir l'état du réseau |
 | `polygone self-test` | Vérifier l'installation |
 | `polygone tui` | Interface terminal interactive |
+| `polygone config` | 🆕 Outil de configuration interactif |
 | `polygone-gui` | Lancer l'interface graphique |
 
 ---
