@@ -1,12 +1,12 @@
 [package]
 name = "polygone"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2021"
-authors = ["Lévy <lvs0@proton.me>"]
-description = "Post-quantum ephemeral privacy network — ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM"
+authors = ["Lévy <lvs0@proton.me>", "Hope Collective"]
+description = "Post-quantum private messaging for everyone — Secure, ephemeral, invisible"
 license = "MIT"
 repository = "https://github.com/lvs0/Polygone"
-keywords = ["post-quantum", "p2p", "privacy", "cryptography", "ephemeral"]
+keywords = ["post-quantum", "privacy", "messaging", "cryptography", "secure"]
 categories = ["cryptography", "network-programming", "command-line-utilities"]
 rust-version = "1.75"
 
@@ -27,6 +27,17 @@ path = "src/lib.rs"
 [[bin]]
 name = "polygone"
 path = "src/main.rs"
+
+[[bin]]
+name = "polygone-gui"
+path = "src/bin/polygone-gui.rs"
+required-features = ["gui"]
+
+[features]
+default = ["cli"]
+cli = []
+gui = ["dep:iced", "dep:qrcode"]
+full = ["cli", "gui"]
 
 [dependencies]
 # ── Post-Quantum KEM ─────────────────────────────────────────────────────────
@@ -68,3 +79,18 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # ── System ───────────────────────────────────────────────────────────────────
 dirs            = "5"
+
+# ── GUI (optional) ───────────────────────────────────────────────────────────
+iced            = { version = "0.13", features = ["tokio"], optional = true }
+qrcode          = { version = "0.14", optional = true }
+
+# ── Networking (v2.0) ────────────────────────────────────────────────────────
+libp2p          = { version = "0.54", features = ["tcp", "noise", "yamux", "kad", "dns", "quic"], optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+tempfile = "3"
+
+[[bench]]
+name = "crypto_bench"
+harness = false

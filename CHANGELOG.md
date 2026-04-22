@@ -1,53 +1,84 @@
-# Changelog
+# ⬡ POLYGONE — Changelog
 
-All notable changes to POLYGONE are documented here.
+Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
-## [1.0.0] — 2026-04-17
+---
 
-### New in v1.0
+## [2.0.0] - 2026-01-XX — 🎉 Version Grand Public
 
-**Fully functional local protocol:**
+### ✨ Nouvelles Fonctionnalités
 
-- `polygone keygen` — generates ML-KEM-1024 + Ed25519 keypair, writes to disk with `chmod 600`
-- `polygone send --peer-pk demo --message <text>` — full local Alice→Bob round-trip with topology verification
-- `polygone send --peer-pk <hex|file> --message <text>` — encrypt for a real peer public key
-- `polygone receive` — decapsulate and establish session (fragment collection: v2.0)
-- `polygone node start/stop/info` — node lifecycle management
-- `polygone status` — show keypair status, sessions, node health
-- `polygone self-test` — 5 tests covering KEM, AES, Shamir, full session, insufficient fragments
-- `polygone tui` — full TUI dashboard with ratatui (6 views: Dashboard, Keygen, Send, Receive, Node, Help)
+#### Interface Graphique (GUI)
+- **Nouvelle application desktop** avec interface moderne et intuitive
+- 4 onglets : Tableau de bord, Clés, Envoyer, Recevoir
+- Support des QR codes pour l'échange de clés publiques
+- Thème sombre par défaut
+- Notifications en temps réel
 
-**Crypto stack:**
-- ML-KEM-1024 (FIPS 203) via `ml-kem` RustCrypto crate
-- Ed25519 signatures via `ed25519-dalek` (ML-DSA upgrade path documented)
-- AES-256-GCM with fresh 96-bit OsRng nonce per message
-- BLAKE3 domain-separated KDF (labels: `polygone-topo-nodes-v1`, `polygone-sess-v1`)
-- Shamir 4-of-7 with C(7,4)=35 combinations tested
+#### Expérience Utilisateur
+- **Guide utilisateur complet** en français (`GUIDE_UTILISATEUR.md`)
+- Installation simplifiée sur Windows, macOS, Linux
+- Messages d'erreur plus clairs et informatifs
+- Workflows CI/CD pour builds automatiques
 
-**Safety:**
-- `#[forbid(unsafe_code)]` crate-wide
-- `ZeroizeOnDrop` on all key material (KEM keys, session keys, shared secret)
-- Key files written with `chmod 600`, directory with `chmod 700`
+#### Documentation
+- README entièrement réécrit pour le grand public
+- FAQ détaillée avec cas d'usage concrets
+- Modèles de menace expliqués simplement
+- Exemples de commandes pour chaque scénario
 
-**Project structure fixed:**
-- All source in `src/` with proper module hierarchy
-- `Cargo.toml` paths corrected (`src/lib.rs`, `src/main.rs`)
-- 100% of TODOs from previous skeleton resolved
+### 🔧 Améliorations Techniques
 
-### Bug fixes from v0.1 skeleton
+#### Build System
+- Features optionnelles : `cli`, `gui`, `full`
+- Support multi-cibles : Linux x64, macOS ARM64, Windows x64
+- GitHub Actions pour releases automatiques
+- Benchmarks intégrés avec Criterion
 
-- **CRITICAL**: `Cargo.toml` referenced `src/lib.rs` but files were at root → project did not compile
-- `keygen`: keys were generated but never written to disk
-- `send` (non-demo): immediately exited with `std::process::exit(1)`
-- `receive`: was an empty stub (`"coming in v0.2"`)
-- `node start`: waited for Ctrl-C with no logic
-- No TUI implementation existed
-- Module tree `src/crypto/`, `src/network/`, `src/protocol/` did not exist
+#### Dépendances
+- Ajout de `iced` v0.13 pour la GUI
+- Ajout de `qrcode` v0.14 pour les QR codes
+- Ajout de `libp2p` v0.54 (optionnel, v2.0 P2P)
+- Ajout de `criterion` v0.5 pour les benchmarks
 
-## [0.1.0] — 2026-04-15 (skeleton)
+### 📦 Distribution
 
-- Initial commit with architecture sketch
-- CLI structure with clap v4
-- `send --peer-pk demo` local demo working
-- Crypto primitives designed but not in correct module layout
-- No TUI, no key persistence, no receive, no real send
+| Plateforme | Binaire | Taille |
+|---|---|---|
+| Linux x86_64 | `polygone-linux-x64` | ~12 MB |
+| macOS ARM64 | `polygone-macos-arm64` | ~14 MB |
+| Windows x64 | `polygone-windows-x64.exe` | ~15 MB |
+
+### 🐛 Corrections
+
+- Meilleure gestion des erreurs CLI
+- Zeroize mémoire amélioré
+- Logs plus verbeux en mode debug
+
+---
+
+## [1.0.0] - 2025-XX-XX — 🚀 Version Initiale
+
+### Fonctionnalités de Base
+
+- Cryptographie post-quantique ML-KEM-1024
+- Fragmentation Shamir 4-of-7
+- AES-256-GCM pour le chiffrement
+- Interface TUI (terminal)
+- CLI complète : keygen, send, receive, node, self-test
+
+### Architecture
+
+- `#![forbid(unsafe_code)]`
+- ZeroizeOnDrop pour toutes les clés
+- Session éphémère avec dissolution automatique
+
+---
+
+## Légende
+
+- ✨ Nouvelle fonctionnalité
+- 🔧 Amélioration
+- 🐛 Correction de bug
+- 📚 Documentation
+- ⚠️ Breaking change

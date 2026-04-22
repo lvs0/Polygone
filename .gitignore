@@ -1,10 +1,7 @@
-/target/
+```
+# Dependencies
+target/
+
+# Compiled and build artifacts
 **/*.rs.bk
-Cargo.lock
-*.exe
-*.dll
-*.so
-*.dylib
-polygone-*
-!/polygone.sh
-.DS_Store
+```
