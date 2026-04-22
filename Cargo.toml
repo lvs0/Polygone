@@ -2,7 +2,7 @@
 name = "polygone"
 version = "1.0.0"
 edition = "2021"
-authors = ["Lévy <polygone@proton.me>"]
+authors = ["Lévy <lvs0@proton.me>"]
 description = "Post-quantum ephemeral privacy network — ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM"
 license = "MIT"
 repository = "https://github.com/lvs0/Polygone"
