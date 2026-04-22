@@ -6,12 +6,12 @@
 
 ### Linux/macOS
 ```bash
-curl -sSL https://install.polygone.ai | bash
+curl -sSL https://raw.githubusercontent.com/lvs0/Polygone/main/install-polygone.sh | bash
 ```
 
 ### Windows
 ```cmd
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/POLYGONE/main/install-polygone.bat' -OutFile 'install-polygone.bat'; .\install-polygone.bat"
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/Polygone/main/install-polygone.sh' -OutFile 'install-polygone.sh'; .\install-polygone.sh"
 ```
 
 ---
@@ -21,8 +21,8 @@ powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/l
 **Testez tous les composants avec une seule commande:**
 
 ```bash
-git clone https://github.com/lvs0/POLYGONE.git
-cd POLYGONE
+git clone https://github.com/lvs0/Polygone.git
+cd Polygone
 ./test-polygone.sh
 ```
 

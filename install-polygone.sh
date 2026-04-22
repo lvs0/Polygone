@@ -2,7 +2,7 @@
 
 # 🌸 POLYGONE Universal Installer v2.0.0
 # Compatible: Windows (WSL), macOS, Linux
-# Usage: curl -sSL https://install.polygone.ai | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/lvs0/POLYGONE/main/install-polygone.sh | bash
 
 set -e
 
@@ -127,13 +127,13 @@ download_components() {
     cd "$POLYGONE_DIR"
     
     # Download Docker Compose file
-    curl -fsSL https://raw.githubusercontent.com/lvs0/POLYGONE/main/DEPLOYMENT/docker-compose.enterprise.yml -o docker-compose.yml
+    curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/DEPLOYMENT/docker-compose.enterprise.yml -o docker-compose.yml
     
     # Download configuration files
-    curl -fsSL https://raw.githubusercontent.com/lvs0/POLYGONE/main/MAX/simple-config.json -o config.json
+    curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/MAX/simple-config.json -o config.json
     
     # Download installer script
-    curl -fsSL https://raw.githubusercontent.com/lvs0/POLYGONE/main/MAX/installer.html -o installer.html
+    curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/MAX/installer.html -o installer.html
     
     # Download enterprise policy template
     cat > enterprise-policy.json << EOF

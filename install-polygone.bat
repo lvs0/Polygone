@@ -40,9 +40,9 @@ REM Download components
 echo ⬇️ Downloading POLYGONE components...
 cd /d "%POLYGONE_DIR%"
 
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/POLYGONE/main/DEPLOYMENT/docker-compose.enterprise.yml' -OutFile 'docker-compose.yml'"
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/POLYGONE/main/MAX/simple-config.json' -OutFile 'config.json'"
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/POLYGONE/main/MAX/installer.html' -OutFile 'installer.html'"
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/Polygone/main/DEPLOYMENT/docker-compose.enterprise.yml' -OutFile 'docker-compose.yml'"
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/Polygone/main/MAX/simple-config.json' -OutFile 'config.json'"
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/Polygone/main/MAX/installer.html' -OutFile 'installer.html'"
 
 REM Generate SSL certificates
 echo 🔐 Generating SSL certificates...
