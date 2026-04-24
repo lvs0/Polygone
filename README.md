@@ -1,204 +1,105 @@
-# 🌸 POLYGONE - Installation & Testing
+# ⬡ POLYGONE
 
-## 🚀 One-Line Universal Installer
+> *"Information does not exist. It drifts."* / *"L'information n'existe pas. Elle traverse."*
 
-**Compatible avec Windows, macOS, Linux - Une seule commande!**
-
-### Linux/macOS
-```bash
-curl -sSL https://raw.githubusercontent.com/lvs0/Polygone/main/install-polygone.sh | bash
-```
-
-### Windows
-```cmd
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/lvs0/Polygone/main/install-polygone.sh' -OutFile 'install-polygone.sh'; .\install-polygone.sh"
-```
+**POLYGONE** is a post-quantum ephemeral privacy network designed to solve the **Metadata Problem**. Built in pure Rust.
 
 ---
 
-## 🧪 Test Complet Automatisé
+## English | [Français](#français)
 
-**Testez tous les composants avec une seule commande:**
+### The Problem: The Metadata Leak
 
-```bash
-git clone https://github.com/lvs0/Polygone.git
-cd Polygone
-./test-polygone.sh
-```
+Traditional encryption protects **content**, but it cannot hide that a **communication occurred**. Source IPs, target IPs, timing, and packet sizes remain visible to observers.
+
+**POLYGONE changes the paradigm.** Instead of an encrypted tunnel between A and B, POLYGONE turns a message into a distributed, transient mathematical state—a wave that crosses a global DHT and then vaporizes.
 
 ---
 
-## 📋 Ce Qui Est Testé
+## Quick Start (30 seconds)
 
-### ✅ **Infrastructure Docker**
-- Docker Daemon
-- Docker Compose
-- Tous les conteneurs POLYGONE
-- Configuration réseau
+```bash
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
+```
 
-### ✅ **Connectivité Réseau**
-- API Polygone Core (port 4000)
-- API Polygone Petals (port 4003)
-- API MAX Assistant (port 8000)
-- API Ollama (port 11434)
-- Proxy SOCKS5 Polygone Hide (port 1080)
-- Dashboard Monitoring (port 9090)
+That's it! Then run:
+```bash
+polygone help
+```
 
-### ✅ **Fonctionnalités IA**
-- Liste modèles Ollama
-- Chat API MAX
-- Inférence distribuée Petals
-- Intégration complète stack
+### Commands
 
-### ✅ **Sécurité Post-Quantique**
-- Certificats SSL auto-générés
-- Chiffrement ML-KEM-1024
-- Politiques enterprise
-- Logs d'audit immuables
-
-### ✅ **Performance**
-- Temps réponse API <1s
-- Temps réponse MAX <2s
-- Monitoring temps réel
-- Métriques Prometheus
-
-### ✅ **Persistance Données**
-- Base de données MAX
-- Logs structurés
-- Backups automatiques
-- Configuration persistante
-
-### ✅ **Mobile & Accessibilité**
-- Interface responsive
-- Support multi-langues
-- WCAG 2.1 AA compliance
-- Touch gestures
-
-### ✅ **Enterprise**
-- Monitoring Grafana
-- Alertes configurables
-- Multi-tenant isolation
-- Scalabilité horizontale
+| Command | Description |
+|---------|-------------|
+| `polygone help` | Show all commands |
+| `polygone self-test` | Verify installation |
+| `polygone keygen` | Generate encryption keys |
+| `polygone send` | Send a message |
+| `polygone node` | Start relay node |
+| `polygone update` | Update to latest |
+| `polygone uninstall` | Remove Polygone |
 
 ---
 
-## 🎯 Résultats Attendus
+## How It Works
 
-### **Installation Succès**
-```
-🌸 POLYGONE v2.0.0 Installation Complete! 🌸
+1. **Post-Quantum Handshake**: ML-KEM-1024 key exchange
+2. **Deterministic Topology**: BLAKE3 derives 7 random nodes
+3. **Shamir Dispersion**: AES-256-GCM + 4-of-7 secret sharing
+4. **Vaporization**: 30s TTL, data auto-evaporates
 
-📊 Access URLs:
-   🌐 Dashboard: http://localhost:9090
-   🤖 MAX AI: http://localhost:8000
-   🔐 Polygone Hide: socks5://localhost:1080
-   📡 Polygone Petals: http://localhost:4003
-```
+### Security
 
-### **Test Suite Succès**
-```
-📊 POLYGONE Test Report
-========================
-Total Tests: 25
-Passed: 25
-Failed: 0
-Success Rate: 100%
+- **Post-Quantum**: ML-KEM-1024 + ML-DSA-87
+- **Information-Theoretic**: Shamir (k-1 fragments = 0 info)
+- **Memory Safety**: `#![forbid(unsafe_code)]` + ZeroizeOnDrop
+- **Forward Secrecy**: Unique keys per session
 
-🎉 ALL TESTS PASSED! POLYGONE is ready for deployment.
-```
+### Benchmarks
+
+| Operation | Latency |
+|-----------|---------|
+| ML-KEM Encapsulation | ~34 µs |
+| AES-256-GCM Encrypt | ~3.8 µs |
+| Full Send (E2E) | ~208 µs |
 
 ---
 
-## 🔧 Configuration Rapide
+## Known Limitations
 
-Après installation, configurez rapidement:
-
-```bash
-# Ouvrir configuration
-nano ~/.polygone/config.json
-
-# Personnaliser modèles IA
-{
-  "ai": {
-    "model": "qwen2.5:7b",
-    "temperature": 0.7
-  }
-}
-
-# Redémarrer services
-cd ~/.polygone && docker-compose restart
-```
+- NAT traversal in progress (v0.3)
+- DHT spam protection planned
+- Static quorum (4-of-7)
 
 ---
 
-## 🚨 Dépannage
+## Contributing
 
-### Services ne démarrent pas:
-```bash
-cd ~/.polygone && docker-compose logs
-```
-
-### Problèmes réseau:
-```bash
-# Vérifier ports
-netstat -tulpn | grep -E ':(4000|4003|8000|1080|9090|11434)'
-
-# Tester connectivité
-curl -v http://localhost:4000/health
-```
-
-### Problèmes Docker:
-```bash
-# Vérifier Docker
-docker --version
-docker-compose version
-
-# Nettoyer et réinstaller
-docker system prune -a
-cd ~/.polygone && docker-compose down && docker-compose up -d
-```
+Issues and PRs welcome. Privacy is an architectural property, not a setting. ⬡
 
 ---
 
-## 📚 Documentation Complète
+## Français
 
-- [Documentation Technique](https://docs.polygone.ai)
-- [API Reference](https://api.polygone.ai)
-- [Guides Enterprise](https://enterprise.polygone.ai)
-- [Communauté](https://community.polygone.ai)
+### Le Problème
+
+Le chiffrement traditionnel ne cache pas qu'une communication a eu lieu.
+
+**POLYGONE change le paradigme.** Un message devient un état mathématique distribué transient qui s'évapore.
+
+### Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
+polygone help
+```
+
+### Sécurité
+
+- **Post-Quantique**: ML-KEM-1024 + ML-DSA-87
+- **Information-Théorique**: Shamir Secret Sharing
+- **Mémoire**: `#![forbid(unsafe_code)]` + ZeroizeOnDrop
 
 ---
 
-## 🌍 Déploiement
-
-### **Local Testing**
-```bash
-./test-polygone.sh
-```
-
-### **Staging**
-```bash
-docker-compose -f docker-compose.staging.yml up -d
-```
-
-### **Production**
-```bash
-# Kubernetes
-kubectl apply -f k8s/enterprise-deployment.yaml
-
-# Terraform
-cd terraform && terraform apply
-```
-
----
-
-## 🎯 Prêt Pour Production
-
-✅ **Installation one-line**  
-✅ **Test complet automatisé**  
-✅ **Multi-plateforme**  
-✅ **Enterprise-ready**  
-✅ **Sécurité post-quantique**  
-✅ **Performance optimisée**  
-
-**POLYGONE v2.0.0 est prêt pour déploiement immédiat!**
+*by Lévy, 14 ans, France*
