@@ -288,6 +288,25 @@
     .man-body p + p { margin-top:20px; }
 
     /* ═══════════════════════════════════
+       INSTALLER / QUICK START
+    ═══════════════════════════════════ */
+    .inst-wrap { max-width:860px; margin:0 auto; }
+    .inst-tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:4px; width:fit-content; margin:0 auto 28px; }
+    .inst-tab { padding:8px 20px; border-radius:7px; font-family:var(--font-m); font-size:10px; font-weight:500; letter-spacing:.15em; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--text-dim); transition:all .25s; }
+    .inst-tab.on { background:var(--cobalt-dim); color:var(--cobalt); border:1px solid rgba(26,107,255,.3); }
+    .inst-cmd { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px 28px; display:flex; align-items:center; gap:16px; margin-bottom:12px; transition:border-color .3s; }
+    .inst-cmd:hover { border-color:var(--cobalt); }
+    .inst-cmd code { font-family:var(--font-m); font-size:13px; color:var(--text-bright); flex:1; word-break:break-all; }
+    .inst-copy { padding:8px 16px; background:var(--cobalt-dim); border:1px solid rgba(26,107,255,.3); border-radius:8px; font-family:var(--font-m); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--cobalt); cursor:pointer; transition:all .2s; white-space:nowrap; }
+    .inst-copy:hover { background:var(--cobalt); color:var(--void); }
+    .inst-copy.copied { background:rgba(0,229,200,.15); border-color:rgba(0,229,200,.3); color:var(--teal); }
+    .inst-note { text-align:center; font-size:10px; color:var(--text-dim); font-style:italic; margin-top:16px; }
+    .inst-universal { text-align:center; margin-bottom:24px; }
+    .inst-universal-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 28px; background:linear-gradient(135deg,var(--cobalt-dim),rgba(26,107,255,.08)); border:1px solid rgba(26,107,255,.4); border-radius:12px; font-family:var(--font-m); font-size:12px; color:var(--cobalt); letter-spacing:.08em; transition:all .3s; }
+    .inst-universal-btn:hover { background:var(--cobalt-dim); border-color:var(--cobalt); box-shadow:0 0 20px rgba(26,107,255,.2); }
+    .inst-universal-note { font-size:10px; color:var(--text-dim); margin-top:8px; }
+
+    /* ═══════════════════════════════════
        REJOINDRE
     ═══════════════════════════════════ */
     .rj-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); }
@@ -345,6 +364,7 @@
         <a href="#problem">Le Problème</a>
         <a href="#vague">Le Concept</a>
         <a href="#arch">Protocole</a>
+        <a href="#install">Installation</a>
         <a href="#manifeste">Manifeste</a>
         <a href="#rj" class="ncta">Devenir Nœud</a>
       </div>
@@ -359,6 +379,7 @@
     <a href="#problem">Le Problème</a>
     <a href="#vague">Le Concept</a>
     <a href="#arch">Protocole</a>
+    <a href="#install">Installation</a>
     <a href="#manifeste">Manifeste</a>
     <a href="#rj">Devenir Nœud</a>
   </div>
@@ -630,6 +651,72 @@
   </section>
 
   <!-- ═══════════════════════════════
+       INSTALLER
+  ═══════════════════════════════ -->
+  <section id="install" class="sec sec-border">
+    <div class="sec-label">04 — Installation</div>
+    <h2 class="sec-title rv">INSTALLER POLYGONE</h2>
+    <div class="inst-wrap">
+      <div class="inst-universal">
+        <div class="inst-universal-btn" onclick="copyCmd('curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash')">
+          <span style="font-size:16px;">⚡</span>
+          <span>Installation universelle (recommandée)</span>
+        </div>
+        <div class="inst-universal-note">Fonctionne sur Linux, macOS, WSL (Windows)</div>
+      </div>
+
+      <div class="inst-tabs">
+        <button class="inst-tab on" onclick="showInst('linux')">Linux</button>
+        <button class="inst-tab" onclick="showInst('mac')">macOS</button>
+        <button class="inst-tab" onclick="showInst('win')">Windows</button>
+      </div>
+
+      <div id="inst-linux" class="inst-cmd-group">
+        <div class="inst-cmd">
+          <code>curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash')">Copier</button>
+        </div>
+        <div class="inst-cmd">
+          <code># ou avec wget</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'wget -qO- https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash')">Copier</button>
+        </div>
+        <div class="inst-cmd">
+          <code># Cloner et build depuis les sources</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'git clone https://github.com/lvs0/Polygone && cd Polygone && cargo build --release && sudo cp target/release/polygone /usr/local/bin/')">Copier</button>
+        </div>
+      </div>
+
+      <div id="inst-mac" class="inst-cmd-group" style="display:none">
+        <div class="inst-cmd">
+          <code>curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash')">Copier</button>
+        </div>
+        <div class="inst-cmd">
+          <code># Avec Homebrew (si disponible)</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'brew install polygone')">Copier</button>
+        </div>
+      </div>
+
+      <div id="inst-win" class="inst-cmd-group" style="display:none">
+        <div class="inst-cmd">
+          <code># PowerShell (admin)</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'irm https://raw.githubusercontent.com/lvs0/Polygone/main/install.ps1 | iex')">Copier</button>
+        </div>
+        <div class="inst-cmd">
+          <code># Via Git Bash / WSL</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash')">Copier</button>
+        </div>
+        <div class="inst-cmd">
+          <code># Chocolatey</code>
+          <button class="inst-copy" onclick="copyCmd(this, 'choco install polygone')">Copier</button>
+        </div>
+      </div>
+
+      <div class="inst-note">Après installation : <code style="color:var(--cobalt)">polygone help</code> pour commencer</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════
        REJOINDRE
   ═══════════════════════════════ -->
   <section id="rj" class="sec sec-border">
@@ -773,6 +860,32 @@
     ss[1].style.transform=mop?'rotate(-45deg) translate(4px,-4px)':'';};
   mob.querySelectorAll('a').forEach(a=>a.onclick=()=>{mop=false;mob.classList.remove('open');
     burg.querySelectorAll('span').forEach(s=>s.style.transform='');});
+
+  /* ── INSTALLER TABS ── */
+  function showInst(platform) {
+    document.querySelectorAll('.inst-tab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.inst-cmd-group').forEach(g=>g.style.display='none');
+    const el=document.getElementById('inst-'+platform);
+    if(el) el.style.display='block';
+    event.target.classList.add('on');
+  }
+
+  function copyCmd(btn, cmd) {
+    navigator.clipboard.writeText(cmd).then(()=>{
+      const orig=btn.textContent;
+      btn.textContent='✓ Copié';
+      btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied');},2000);
+    }).catch(()=>{
+      const ta=document.createElement('textarea');
+      ta.value=cmd;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent='✓ Copié';
+      btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='Copier';btn.classList.remove('copied');},2000);
+    });
+  }
   </script>
 </body>
 </html>
