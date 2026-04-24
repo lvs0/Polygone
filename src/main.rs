@@ -22,9 +22,8 @@ use tracing_subscriber::{fmt, EnvFilter};
 use polygone::{
     compute::{ComputeDaemon, ComputeConfig, daemon_is_running, write_pid, remove_pid, daemon_pid_path},
     KeyPair, Session, VERSION,
-    crypto::{kem, shamir},
+    crypto::kem,
     keys,
-    network::TopologyParams,
     tui::{run_tui, views::View},
 };
 

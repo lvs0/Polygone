@@ -4,7 +4,6 @@ pub mod session;
 
 pub use session::Session;
 
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::Instant;
 

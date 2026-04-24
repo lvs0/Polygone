@@ -10,9 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// A unique ephemeral node identifier (derived from the shared secret).
-///
-/// NodeIds are deterministic: both Alice and Bob independently derive
-/// identical node IDs from the shared secret, without any extra communication.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct NodeId(pub [u8; 8]);
 

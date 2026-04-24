@@ -6,7 +6,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
 
 use crate::crypto::{KeyPair, kem, sign};
 use crate::{PolygoneError, Result};

@@ -1,10 +1,10 @@
 use libp2p::{
-    identify::{self, Behaviour as Identify, Config as IdentifyConfig},
+    identify::{Behaviour as Identify, Config as IdentifyConfig},
     identity::Keypair,
     kad::{
         store::MemoryStore, Behaviour as Kademlia, Config as KademliaConfig, Mode,
     },
-    noise, tcp, yamux, PeerId, StreamProtocol, Swarm, SwarmBuilder,
+    noise, tcp, yamux, PeerId, StreamProtocol, Swarm, SwarmBuilder, dns,
 };
 use std::time::Duration;
 use std::path::Path;
@@ -40,42 +40,44 @@ pub struct PolygoneBehaviour {
 pub async fn build_swarm(
     keypair: Keypair,
 ) -> anyhow::Result<Swarm<PolygoneBehaviour>> {
-    let swarm = SwarmBuilder::with_existing_identity(keypair.clone())
-        .with_tokio()
-        .with_tcp(
-            tcp::Config::default(),
-            noise::Config::new,
-            yamux::Config::default,
-        )?
-        .with_dns()?
-        .with_websocket(
-            noise::Config::new,
-            yamux::Config::default,
-        )
-        .await?
-        .with_behaviour(|key: &libp2p::identity::Keypair| {
-            let local_peer_id = PeerId::from(key.public());
+    // Build transport: TCP + DNS + noise + yamux
+    let transport = tcp::async_io::Transport::new(tcp::Config::default())
+        .upgrade(libp2p::core::upgrade::Version::V1Lazy)
+        .authenticate(noise::Config::new(&keypair)?)
+        .multiplex(yamux::Config::default())
+        .unwrap()
+        .into();
 
-            // Kademlia
-            let store = MemoryStore::new(local_peer_id);
-            let mut kad_config = KademliaConfig::default();
-            kad_config.set_protocol_names(vec![StreamProtocol::new("/polygone/kad/1.1.0")]);
-            kad_config.set_record_ttl(Some(Duration::from_secs(30)));
-            kad_config.set_provider_record_ttl(Some(Duration::from_secs(30)));
-            let mut kademlia = Kademlia::with_config(local_peer_id, store, kad_config);
-            kademlia.set_mode(Some(Mode::Server));
+    // Wrap with DNS for domain name support
+    let dns_resolver = dns::ResolverConfig::cloudflare();
+    let dns_opts = dns::ResolverOpts::default();
+    let transport = dns::Transport::custom(transport)
+        .resolvable(dns::Transport::resolvable(dns_resolver, dns_opts)?)
+        .boxed();
 
-            // Identify
-            let identify_config = IdentifyConfig::new("/polygone/1.1.0".to_string(), key.public())
-                .with_push_listen_addr_updates(true);
-            let identify = Identify::new(identify_config);
+    let local_peer_id = PeerId::from(keypair.public());
 
-            PolygoneBehaviour {
-                kademlia,
-                identify,
-            }
-        })?
-        .with_swarm_config(|c: libp2p::swarm::Config| c.with_idle_connection_timeout(Duration::from_secs(60)))
+    // Build behaviour
+    let store = MemoryStore::new(local_peer_id);
+    let mut kad_config = KademliaConfig::new();
+    kad_config.set_protocol_names(vec![StreamProtocol::new("/polygone/kad/1.1.0")]);
+    kad_config.set_record_ttl(Some(Duration::from_secs(30)));
+    kad_config.set_provider_record_ttl(Some(Duration::from_secs(30)));
+    let mut kademlia = Kademlia::with_config(local_peer_id, store, kad_config);
+    kademlia.set_mode(Some(Mode::Server));
+
+    let identify_config = IdentifyConfig::new("/polygone/1.1.0".to_string(), keypair.public())
+        .with_push_listen_addr_updates(true);
+    let identify = Identify::new(identify_config);
+
+    let behaviour = PolygoneBehaviour {
+        kademlia,
+        identify,
+    };
+
+    // Create swarm
+    let swarm = SwarmBuilder::new(transport, behaviour, local_peer_id)
+        .idle_timeout(std::time::Duration::from_secs(60))
         .build();
 
     Ok(swarm)
