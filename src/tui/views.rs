@@ -25,6 +25,8 @@ pub enum View {
     Receive,
     Node,
     SelfTest,
+    Services,
+    Params,
     Help,
 }
 
@@ -37,7 +39,9 @@ impl View {
             Self::Receive   => 3,
             Self::Node      => 4,
             Self::SelfTest  => 5,
-            Self::Help      => 6,
+            Self::Services  => 6,
+            Self::Params    => 7,
+            Self::Help      => 8,
         }
     }
 }
@@ -70,6 +74,8 @@ pub fn render_view(frame: &mut Frame, app: &App) {
         View::Receive   => render_receive(frame, chunks[2], app),
         View::Node      => render_node(frame, chunks[2], app),
         View::SelfTest  => render_selftest(frame, chunks[2], app),
+        View::Services  => render_services(frame, chunks[2], app),
+        View::Params    => render_params(frame, chunks[2], app),
         View::Help      => render_help(frame, chunks[2]),
     }
 
@@ -644,4 +650,188 @@ fn render_help(frame: &mut Frame, area: Rect) {
 
     let p = Paragraph::new(nav_lines).block(section_block("Navigation & Info"));
     frame.render_widget(p, chunks[1]);
+}
+
+// ── Services ───────────────────────────────────────────────────────────────────
+
+fn render_services(frame: &mut Frame, area: Rect, app: &App) {
+    use ratatui::layout::{Constraint, Direction, Layout};
+
+    let modules: [(&str, &str, &str, Color, bool); 4] = [
+        ("Drive",   "▣", "Encrypted distributed file storage. Sharded with Shamir, E2E encrypted.", Color::Yellow, false),
+        ("Hide",    "◈", "Traffic obfuscation through ephemeral nodes. No observer can prove a connection.", Color::Yellow, false),
+        ("Compute", "⬡", "Lend idle CPU/RAM. Earn credits. Ollama inference sharing.", Color::Green, true),
+        ("Petals",  "✿", "Distributed ML inference through peer-to-peer network of contributors.", Color::Yellow, false),
+    ];
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(3), Constraint::Min(1), Constraint::Length(8)])
+        .split(area);
+
+    // Header
+    let header = vec![
+        Line::from(vec![
+            Span::styled(" Services ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled("— Polygone modules and extensions", Style::default().fg(Color::DarkGray)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Run ", Style::default().fg(Color::DarkGray)),
+            Span::styled("polygone compute start", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled(" to lend power. ", Style::default().fg(Color::DarkGray)),
+            Span::styled("polygone compute status", Style::default().fg(Color::Yellow)),
+            Span::styled(" for stats.", Style::default().fg(Color::DarkGray)),
+        ]),
+    ];
+    frame.render_widget(Paragraph::new(header).block(section_block("Services")), chunks[0]);
+
+    // Module cards in 2x2 grid
+    let grid = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(chunks[1]);
+
+    let left_cols = Layout::default().direction(Direction::Vertical).constraints([Constraint::Percentage(50), Constraint::Percentage(50)]).split(grid[0]);
+    let right_cols = Layout::default().direction(Direction::Vertical).constraints([Constraint::Percentage(50), Constraint::Percentage(50)]).split(grid[1]);
+
+    'outer: for col_idx in 0..2 {
+        for row_idx in 0..2 {
+            let idx = col_idx * 2 + row_idx;
+            let module_area = if col_idx == 0 { left_cols[row_idx] } else { right_cols[row_idx] };
+            if idx >= modules.len() { break 'outer; }
+            let (name, icon, desc, color, available) = modules[idx];
+            let spinner = ["◐", "◓", "◑", "◒"];
+            let spin = spinner[(app.tick / 3) as usize % 4];
+
+            let status_icon = if available { spin } else { "○" };
+            let status_color = if available { Color::Green } else { Color::DarkGray };
+            let version = if available { "v1.0" } else { "v2.0" };
+
+            let lines = vec![
+                Line::from(vec![
+                    Span::styled(format!("{} ", icon), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                    Span::styled(name, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                    Span::raw("  "),
+                    Span::styled(status_icon, Style::default().fg(status_color)),
+                    Span::raw("  "),
+                    Span::styled(version, Style::default().fg(color)),
+                ]),
+                Line::from(vec![
+                    Span::styled(format!("  {}", desc), Style::default().fg(Color::DarkGray)),
+                ]),
+            ];
+
+            let block = Block::default()
+                .title(Span::styled(format!(" {} ", name), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)))
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(Style::default().fg(if available { Color::Blue } else { Color::DarkGray }));
+
+            frame.render_widget(Paragraph::new(lines).block(block).wrap(ratatui::widgets::Wrap { trim: true }), module_area);
+        }
+    }
+
+    // Compute quick panel
+    let compute_lines = vec![
+        Line::from(vec![
+            Span::styled("⬡ Compute", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled("  Power Lending Daemon", Style::default().fg(Color::DarkGray)),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  Idle threshold  ", Style::default().fg(Color::DarkGray)),
+            Span::styled("300s (5 min)", Style::default().fg(Color::White)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Max RAM fraction ", Style::default().fg(Color::DarkGray)),
+            Span::styled("50%", Style::default().fg(Color::White)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Ollama           ", Style::default().fg(Color::DarkGray)),
+            Span::styled("enabled", Style::default().fg(Color::Green)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Commands  ", Style::default().fg(Color::DarkGray)),
+            Span::styled("polygone compute start | stop | status", Style::default().fg(Color::Yellow)),
+        ]),
+    ];
+    let block = Block::default()
+        .title(Span::styled(" Polygone-Compute ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)))
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::default().fg(Color::Blue));
+    frame.render_widget(Paragraph::new(compute_lines).block(block).wrap(ratatui::widgets::Wrap { trim: true }), chunks[2]);
+}
+
+// ── Parameters ─────────────────────────────────────────────────────────────────
+
+fn render_params(frame: &mut Frame, area: Rect, _app: &App) {
+    use ratatui::layout::{Constraint, Direction, Layout};
+
+    let params: [(&str, &str, &str); 12] = [
+        ("network.listen_addr",   "0.0.0.0:4001",          "P2P listen address (v2.0)"),
+        ("network.port",         "4001",                  "Legacy relay port"),
+        ("node.ram_mb",          "256",                   "Max RAM per node (MB)"),
+        ("node.ttl_sec",         "3600",                  "Ephemeral node TTL (s)"),
+        ("node.threshold",       "4",                     "Shamir reconstruction threshold"),
+        ("node.fragment_count",  "7",                     "Total fragment / node count"),
+        ("compute.idle_threshold","300",                  "Idle before lending (seconds)"),
+        ("compute.max_ram_frac", "0.50",                  "Max RAM fraction for lending"),
+        ("compute.max_cpu_frac", "80.0",                  "Max CPU % before pausing"),
+        ("compute.status_listen","127.0.0.1:4002",        "Compute daemon status endpoint"),
+        ("paths.keys",           "~/.polygone/keys",      "Key storage directory"),
+        ("paths.config",         "~/.polygone",           "Config directory"),
+    ];
+
+    let crypto_params: [(&str, &str, &str); 5] = [
+        ("crypto.kem",       "ML-KEM-1024 (FIPS 203)",  "Key encapsulation"),
+        ("crypto.sign",      "Ed25519 (ML-DSA ready)",  "Signatures"),
+        ("crypto.cipher",   "AES-256-GCM",             "Symmetric encryption"),
+        ("crypto.kdf",       "BLAKE3 (domain-separated)","Key derivation"),
+        ("crypto.threshold","Shamir 4-of-7",            "Secret sharing"),
+    ];
+
+    let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(area);
+
+    // Left: network + node params
+    let left_lines: Vec<Line> = params.iter().map(|(key, val, _desc)| {
+        Line::from(vec![
+            Span::styled(format!("  {:.<26}", key), Style::default().fg(Color::Cyan)),
+            Span::styled(*val, Style::default().fg(Color::White)),
+        ])
+    }).collect();
+
+    let left_block = Block::default()
+        .title(Span::styled(" Network & Node ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)))
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::default().fg(Color::Blue));
+    frame.render_widget(Paragraph::new(left_lines).block(left_block).wrap(ratatui::widgets::Wrap { trim: true }), chunks[0]);
+
+    // Right: compute + crypto
+    let right_lines: Vec<Line> = crypto_params.iter().map(|(key, val, _desc)| {
+        Line::from(vec![
+            Span::styled(format!("  {:.<26}", key), Style::default().fg(Color::Cyan)),
+            Span::styled(*val, Style::default().fg(Color::White)),
+        ])
+    }).collect();
+
+    let right_block = Block::default()
+        .title(Span::styled(" Compute & Crypto ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)))
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::default().fg(Color::Blue));
+    frame.render_widget(Paragraph::new(right_lines).block(right_block).wrap(ratatui::widgets::Wrap { trim: true }), chunks[1]);
+
+    // Bottom legend
+    let legend = vec![
+        Line::from(vec![
+            Span::styled(" Edit via ", Style::default().fg(Color::DarkGray)),
+            Span::styled("~/.polygone/polygone.toml", Style::default().fg(Color::Yellow)),
+        ]),
+    ];
+    frame.render_widget(Paragraph::new(legend), area);
 }

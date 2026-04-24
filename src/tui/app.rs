@@ -94,6 +94,8 @@ impl App {
             KeyCode::Char('4') => self.current_view = View::Receive,
             KeyCode::Char('5') => self.current_view = View::Node,
             KeyCode::Char('6') => self.current_view = View::SelfTest,
+            KeyCode::Char('7') => self.current_view = View::Services,
+            KeyCode::Char('8') => self.current_view = View::Params,
             KeyCode::Char('?') | KeyCode::Char('h') => self.current_view = View::Help,
             _ => {}
         }

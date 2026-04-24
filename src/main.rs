@@ -20,6 +20,7 @@ use clap::{Parser, Subcommand};
 use tracing_subscriber::{fmt, EnvFilter};
 
 use polygone::{
+    compute::{ComputeDaemon, ComputeConfig, daemon_is_running, write_pid, remove_pid, daemon_pid_path},
     KeyPair, Session, VERSION,
     crypto::{kem, shamir},
     keys,
@@ -105,9 +106,15 @@ enum Commands {
     #[command(name = "self-test")]
     SelfTest,
 
+    /// Polygone-Compute: power lending daemon
+    Compute {
+        #[command(subcommand)]
+        action: ComputeAction,
+    },
+
     /// Launch the interactive TUI dashboard
     Tui {
-        /// Which view to open first (dashboard|keygen|send|receive|node|selftest|help)
+        /// Which view to open first (dashboard|keygen|send|receive|node|selftest|services|params|help)
         #[arg(short, long, default_value = "dashboard")]
         view: String,
     },
@@ -128,6 +135,26 @@ enum NodeAction {
     Stop,
     /// Show this node's public information
     Info,
+}
+
+#[derive(Subcommand)]
+enum ComputeAction {
+    /// Start the power lending daemon
+    Start {
+        /// Seconds of idle before lending starts (default: 300 = 5 min)
+        #[arg(short, long)]
+        idle_threshold: Option<f64>,
+        /// Maximum RAM fraction to use (0.0–1.0, default: 0.5)
+        #[arg(short, long)]
+        max_ram: Option<f32>,
+        /// Disable Ollama integration
+        #[arg(long)]
+        no_ollama: bool,
+    },
+    /// Stop the power lending daemon
+    Stop,
+    /// Show compute daemon status
+    Status,
 }
 
 // ── Entry Point ───────────────────────────────────────────────────────────────
@@ -154,6 +181,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Node { action }                  => cmd_node(action).await,
         Commands::Status                           => cmd_status().await,
         Commands::SelfTest                         => cmd_selftest().await,
+        Commands::Compute { action }               => cmd_compute(action).await,
         Commands::Tui { view }                     => cmd_tui(view),
     }
 }
@@ -412,6 +440,98 @@ async fn cmd_node(action: NodeAction) -> anyhow::Result<()> {
     Ok(())
 }
 
+// ── compute ───────────────────────────────────────────────────────────────────
+
+async fn cmd_compute(action: ComputeAction) -> anyhow::Result<()> {
+    match action {
+        ComputeAction::Start { idle_threshold, max_ram, no_ollama } => {
+            if daemon_is_running() {
+                println!("⬡ POLYGONE-COMPUTE");
+                println!();
+                println!("  ⚠ Compute daemon is already running.");
+                println!("  Use `polygone compute stop` to stop it first.");
+                return Ok(());
+            }
+
+            let mut config = ComputeConfig::default();
+            if let Some(t) = idle_threshold {
+                config.idle_threshold_sec = t;
+            }
+            if let Some(r) = max_ram {
+                config.max_ram_fraction = r;
+            }
+            if no_ollama {
+                config.ollama_enabled = false;
+            }
+
+            // Write PID before daemon starts
+            let _ = write_pid();
+
+            let mut daemon = ComputeDaemon::new(config);
+            let stop_flag = daemon.stop_flag();
+
+            // Handle Ctrl+C gracefully
+            let flag_clone = stop_flag.clone();
+            tokio::spawn(async move {
+                tokio::signal::ctrl_c().await.ok();
+                flag_clone.store(true, std::sync::atomic::Ordering::Relaxed);
+            });
+
+            // Run the daemon
+            if let Err(e) = daemon.run() {
+                eprintln!("  ✖ Daemon error: {e}");
+            }
+            let _ = remove_pid();
+        }
+        ComputeAction::Stop => {
+            use std::fs;
+            let pid_path = daemon_pid_path();
+            if let Ok(pid_str) = fs::read_to_string(&pid_path) {
+                if let Ok(pid) = pid_str.trim().parse::<u32>() {
+                    // Send SIGTERM to the process
+                    #[cfg(unix)]
+                    {
+                        use std::process::Command;
+                        let _ = Command::new("kill").arg("-TERM").arg(pid.to_string()).output();
+                    }
+                    println!("⬡ POLYGONE-COMPUTE — Stopping daemon (PID {pid})…");
+                }
+            } else {
+                println!("⬡ POLYGONE-COMPUTE");
+                println!();
+                println!("  ⚠ No compute daemon is running.");
+            }
+        }
+        ComputeAction::Status => {
+            if daemon_is_running() {
+                use std::fs;
+                let pid_path = daemon_pid_path();
+                let pid = fs::read_to_string(&pid_path)
+                    .map(|s| s.trim().to_string())
+                    .unwrap_or_else(|_| "unknown".to_string());
+
+                println!("⬡ POLYGONE-COMPUTE STATUS");
+                println!();
+                println!("  Daemon      : running (PID {})", pid);
+                println!("  Status      : ● Lending");
+                println!("  Idle threshold: 300s (5 min)");
+                println!("  Max RAM fraction: 50%");
+                println!("  Ollama     : enabled");
+                println!();
+                println!("  Use `polygone compute stop` to stop the daemon.");
+            } else {
+                println!("⬡ POLYGONE-COMPUTE STATUS");
+                println!();
+                println!("  Daemon      : stopped");
+                println!("  Status      : ○ Not running");
+                println!();
+                println!("  Start with: polygone compute start");
+            }
+        }
+    }
+    Ok(())
+}
+
 // ── status ────────────────────────────────────────────────────────────────────
 
 async fn cmd_status() -> anyhow::Result<()> {
@@ -536,6 +656,8 @@ fn cmd_tui(view: String) -> anyhow::Result<()> {
         "receive"  => View::Receive,
         "node"     => View::Node,
         "selftest" => View::SelfTest,
+        "services" => View::Services,
+        "params"   => View::Params,
         "help"     => View::Help,
         _          => View::Dashboard,
     };

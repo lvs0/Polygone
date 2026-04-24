@@ -25,6 +25,7 @@
 
 #![allow(missing_docs)]
 
+pub mod compute;
 pub mod crypto;
 pub mod error;
 pub mod keys;

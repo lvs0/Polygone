@@ -51,13 +51,15 @@ pub fn render_header(frame: &mut Frame, area: Rect) {
 /// Render the view navigation tab bar.
 pub fn render_tabs(frame: &mut Frame, area: Rect, active_idx: usize) {
     let tabs = [
-        ("[1] Dashboard", 0),
-        ("[2] Keygen",    1),
-        ("[3] Send",      2),
-        ("[4] Receive",   3),
-        ("[5] Node",      4),
-        ("[6] Self-Test", 5),
-        ("[?] Help",      6),
+        ("[1] Dashboard",  0),
+        ("[2] Keygen",     1),
+        ("[3] Send",       2),
+        ("[4] Receive",    3),
+        ("[5] Node",       4),
+        ("[6] Self-Test",  5),
+        ("[7] Services",   6),
+        ("[8] Params",     7),
+        ("[?] Help",       8),
     ];
 
     let spans: Vec<Span> = tabs.iter().flat_map(|(label, idx)| {
@@ -112,7 +114,7 @@ pub fn render_statusbar(frame: &mut Frame, area: Rect) {
     let line = Line::from(vec![
         Span::styled(" q", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
         Span::styled(":quit  ", Style::default().fg(Color::DarkGray)),
-        Span::styled("1-6", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+        Span::styled("1-8", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
         Span::styled(":navigate  ", Style::default().fg(Color::DarkGray)),
         Span::styled("?", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
         Span::styled(":help  ", Style::default().fg(Color::DarkGray)),
