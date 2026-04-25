@@ -43,6 +43,7 @@ enum InstallState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(dead_code)]
 enum NodeChoice { None, Passive, Active }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -98,6 +99,7 @@ impl Config {
         }
     }
 
+    #[allow(dead_code)]
     fn save(&self) {
         std::fs::create_dir_all(&self.config_dir).ok();
         let node_str = match self.node {
@@ -115,13 +117,17 @@ impl Config {
         std::fs::write(self.config_dir.join("config.json"), serde_json::to_string_pretty(&obj).unwrap_or_default()).ok();
     }
 
-    fn tr(&self, en: &str, fr: &str) -> &'static str {
-        match self.lang { Lang::FR => fr, Lang::EN => en }
+    fn tr(&self, en: &str, fr: &str) -> String {
+        match self.lang { Lang::FR => fr.to_string(), Lang::EN => en.to_string() }
     }
 
-    fn label(&self) -> &'static str {
-        match self.lang { Lang::FR => "Français", Lang::EN => "English" }
+    fn label(&self) -> String {
+        match self.lang { Lang::FR => "Français".to_string(), Lang::EN => "English".to_string() }
     }
+}
+
+fn step_msg(lang: Lang, en: &str, fr: &str) -> String {
+    match lang { Lang::FR => fr.to_string(), Lang::EN => en.to_string() }
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -166,8 +172,8 @@ impl App {
         self.binary_path().exists()
     }
 
-    fn push_log(&mut self, msg: &str) {
-        self.install_log.push(msg.to_string());
+    fn push_log(&mut self, msg: String) {
+        self.install_log.push(msg);
         if self.install_log.len() > 8 { self.install_log.remove(0); }
     }
 
@@ -185,9 +191,9 @@ impl App {
         );
 
         // Step 1: Downloading
-        self.install_status = format!("[1/4] {}", Self::step_msg(lang, "Downloading Polygone...", "Téléchargement de Polygone..."));
+        self.install_status = format!("[1/4] {}", step_msg(lang, "Downloading Polygone...", "Téléchargement de Polygone..."));
         self.install_pct = 0.15;
-        self.push_log(&self.install_status);
+        self.push_log(self.install_status.clone());
 
         std::fs::create_dir_all(&install_dir).ok();
 
@@ -199,17 +205,17 @@ impl App {
 
         match dl {
             Ok(out) if out.status.success() => {
-                self.install_status = format!("[2/4] {}", Self::step_msg(lang, "Installing...", "Installation..."));
+                self.install_status = format!("[2/4] {}", step_msg(lang, "Installing...", "Installation..."));
                 self.install_pct = 0.60;
-                self.push_log(&self.install_status);
+                self.push_log(self.install_status.clone());
                 if std::fs::copy("/tmp/polygone", &install_dest).is_ok() {
                     #[cfg(unix)] {
                         use std::os::unix::fs::PermissionsExt;
                         std::fs::set_permissions(&install_dest, std::fs::Permissions::from_mode(0o755)).ok();
                     }
-                    self.install_status = format!("[3/4] {}", Self::step_msg(lang, "Configuring...", "Configuration..."));
+                    self.install_status = format!("[3/4] {}", step_msg(lang, "Configuring...", "Configuration..."));
                     self.install_pct = 0.85;
-                    self.push_log(&self.install_status);
+                    self.push_log(self.install_status.clone());
 
                     // Save config
                     std::fs::create_dir_all(&config_dir).ok();
@@ -227,34 +233,34 @@ impl App {
                     });
                     std::fs::write(config_dir.join("config.json"), serde_json::to_string_pretty(&obj).unwrap_or_default()).ok();
 
-                    self.install_status = format!("[4/4] {}", Self::step_msg(lang, "Done!", "Terminé!"));
+                    self.install_status = format!("[4/4] {}", step_msg(lang, "Done!", "Terminé!"));
                     self.install_pct = 1.0;
-                    self.push_log("Done!");
+                    self.push_log("Done!".to_string());
                     self.state = InstallState::Configure;
                 } else {
-                    self.install_error = Some(Self::step_msg(lang, "Copy failed", "Échec de la copie"));
+                    self.install_error = Some(step_msg(lang, "Copy failed", "Échec de la copie"));
                 }
             }
             _ => {
-                self.install_status = format!("[1/4] {}", Self::step_msg(lang, "Building from source...", "Compilation depuis les sources..."));
+                self.install_status = format!("[1/4] {}", step_msg(lang, "Building from source...", "Compilation depuis les sources..."));
                 self.install_pct = 0.20;
-                self.push_log(&self.install_status);
+                self.push_log(self.install_status.clone());
 
                 let build_dir = dirs::home_dir()
                     .unwrap_or_else(|| PathBuf::from("."))
                     .join("polygone-src");
 
                 if !build_dir.exists() {
-                    self.push_log("Cloning Polygone repository...");
+                    self.push_log("Cloning Polygone repository...".to_string());
                     let _ = Command::new("git")
                         .args(["clone", "https://github.com/lvs0/Polygone.git"])
                         .arg(&build_dir)
                         .output();
                 }
 
-                self.install_status = format!("[2/4] {}", Self::step_msg(lang, "Compiling (may take a while)...", "Compilation (peut prendre du temps)..."));
+                self.install_status = format!("[2/4] {}", step_msg(lang, "Compiling (may take a while)...", "Compilation (peut prendre du temps)..."));
                 self.install_pct = 0.50;
-                self.push_log("cargo build --release");
+                self.push_log("cargo build --release".to_string());
                 let build = Command::new("cargo")
                     .current_dir(&build_dir)
                     .args(["build", "--release", "--bin", "polygone"])
@@ -262,9 +268,9 @@ impl App {
 
                 match build {
                     Ok(out) if out.status.success() => {
-                        self.install_status = format!("[3/4] {}", Self::step_msg(lang, "Installing compiled binary...", "Installation du binaire compilé..."));
+                        self.install_status = format!("[3/4] {}", step_msg(lang, "Installing compiled binary...", "Installation du binaire compilé..."));
                         self.install_pct = 0.85;
-                        self.push_log(&self.install_status);
+                        self.push_log(self.install_status.clone());
                         let src = build_dir.join("target/release/polygone");
                         if std::fs::copy(&src, &install_dest).is_ok() {
                             #[cfg(unix)] {
@@ -287,16 +293,16 @@ impl App {
                             });
                             std::fs::write(config_dir.join("config.json"), serde_json::to_string_pretty(&obj).unwrap_or_default()).ok();
 
-                            self.install_status = format!("[4/4] {}", Self::step_msg(lang, "Done!", "Terminé!"));
+                            self.install_status = format!("[4/4] {}", step_msg(lang, "Done!", "Terminé!"));
                             self.install_pct = 1.0;
-                            self.push_log("Done!");
+                            self.push_log("Done!".to_string());
                             self.state = InstallState::Configure;
                         } else {
-                            self.install_error = Some(Self::step_msg(lang, "Copy failed", "Échec de la copie"));
+                            self.install_error = Some(step_msg(lang, "Copy failed", "Échec de la copie"));
                         }
                     }
                     _ => {
-                        self.install_error = Some(Self::step_msg(lang,
+                        self.install_error = Some(step_msg(lang,
                             "Build failed. Install Rust: curl https://sh.rustup.rs | sh",
                             "Compilation échouée. Installe Rust: curl https://sh.rustup.rs | sh"));
                     }
@@ -305,9 +311,7 @@ impl App {
         }
     }
 
-    fn step_msg(lang: Lang, en: &str, fr: &str) -> &'static str {
-        match lang { Lang::FR => fr, Lang::EN => en }
-    }
+
 
     fn do_uninstall(&mut self) {
         if let Ok(metadata) = std::fs::metadata(&self.binary_path()) {
@@ -317,7 +321,7 @@ impl App {
         }
         std::fs::remove_file(&self.binary_path()).ok();
         std::fs::remove_file(self.config.config_dir.join("config.json")).ok();
-        self.push_log("Uninstalled Polygone");
+        self.push_log("Uninstalled Polygone".to_string());
         self.state = InstallState::Done;
     }
 
@@ -341,7 +345,7 @@ impl App {
         Rect::new(x, y, w.min(size.width), h.min(size.height))
     }
 
-    fn block(&self, title: &str) -> Block {
+    fn block(&self, title: &str) -> Block<'_> {
         Block::new()
             .title(format!("  {}  ", title))
             .title_style(Style::new().fg(C_COBALT).bold())
@@ -402,19 +406,20 @@ impl App {
         let box_w = 52u16.min(size.width.saturating_sub(6));
         let box_h = (4 + self.menu_actions.len() as u16 * 3).min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
-        f.render_widget(self.block(self.config.tr("Polygone is already installed", "Polygone est déjà installé")), rect);
+        let title = self.config.tr("Polygone is already installed", "Polygone est déjà installé");
+        f.render_widget(self.block(&title), rect);
         let inner = rect.inner(Margin::new(2, 1));
 
         let items: Vec<ListItem> = self.menu_actions.iter().enumerate().map(|(i, action)| {
             let sel = self.menu_idx == i;
             let icon = if sel { "▶" } else { " " };
             let style = if sel { Style::new().fg(C_GREEN).bold() } else { Style::new().fg(C_TEXT) };
-            let label: &'static str = match action {
+            let label: String = match action {
                 MenuAction::Update => self.config.tr("Update to latest version", "Mettre à jour"),
                 MenuAction::Reinstall => self.config.tr("Reinstall Polygone", "Réinstaller Polygone"),
                 MenuAction::Uninstall => self.config.tr("Uninstall Polygone", "Désinstaller Polygone"),
                 MenuAction::Launch => self.config.tr("Launch Polygone", "Lancer Polygone"),
-                MenuAction::None => "",
+                MenuAction::None => String::new(),
             };
             ListItem::new(vec![
                 Line::from(vec![Span::styled(icon, style), Span::raw("  "), Span::styled(label, style)]),
@@ -442,7 +447,7 @@ impl App {
         let box_w = 60u16.min(size.width.saturating_sub(6));
         let box_h = 22u16.min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
-        f.render_widget(self.block(self.config.tr("Installing Polygone", "Installation de Polygone")), rect);
+        let title = self.config.tr("Installing Polygone", "Installation de Polygone"); f.render_widget(self.block(&title), rect);
         let inner = rect.inner(Margin::new(2, 1));
 
         let pct = (self.install_pct * 100.0) as u16;
@@ -477,16 +482,16 @@ impl App {
         let box_w = 52u16.min(size.width.saturating_sub(6));
         let box_h = 22u16.min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
-        f.render_widget(self.block(self.config.tr("Configure Polygone", "Configurer Polygone")), rect);
+        let title = self.config.tr("Configure Polygone", "Configurer Polygone"); f.render_widget(self.block(&title), rect);
         let inner = rect.inner(Margin::new(2, 1));
 
-        let t = self.config.tr;
+        let tr = |en, fr| self.config.tr(en, fr);
         let lang_label = self.config.label();
         let user_label = if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() };
-        let node_label: &'static str = match self.config.node {
-            NodeChoice::None => t("Disabled", "Désactivé"),
-            NodeChoice::Passive => t("Passive — invisible", "Passif — invisible"),
-            NodeChoice::Active => t("Active — shared power", "Actif — puissance partagée"),
+        let node_label: String = match self.config.node {
+            NodeChoice::None => tr("Disabled", "Désactivé"),
+            NodeChoice::Passive => tr("Passive — invisible", "Passif — invisible"),
+            NodeChoice::Active => tr("Active — shared power", "Actif — puissance partagée"),
         };
 
         let lines = vec![
@@ -495,12 +500,12 @@ impl App {
             Line::from(Span::raw("")),
             Line::from(vec![Span::raw("  Language:  "), Span::styled(lang_label, Style::new().fg(C_COBALT))]),
             Line::from(vec![Span::raw("  Username:   "), Span::raw(&user_label)]),
-            Line::from(vec![Span::raw("  Node:       "), Span::raw(node_label)]),
+            Line::from(vec![Span::raw("  Node:       "), Span::raw(&node_label)]),
             Line::from(Span::raw("")),
             Line::from(vec![
                 Span::raw("  "),
                 Span::styled("ENTER", Style::new().fg(C_GREEN).bold()),
-                Span::raw(format!("  {}", t("Launch dashboard", "Ouvrir le dashboard"))),
+                Span::raw(format!("  {}", tr("Launch dashboard", "Ouvrir le dashboard"))),
             ]),
             Line::from(Span::raw("")),
         ];
@@ -579,11 +584,11 @@ impl App {
 
     fn draw_tab_home(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
-        let t = self.config.tr;
-        let node_status: &'static str = match self.config.node {
-            NodeChoice::None => t("Disabled", "Désactivé"),
-            NodeChoice::Passive => t("Passive (invisible)", "Passif (invisible)"),
-            NodeChoice::Active => t("Active (sharing power)", "Actif (puissance partagée)"),
+        let tr = |en, fr| self.config.tr(en, fr);
+        let node_status = match self.config.node {
+            NodeChoice::None => tr("Disabled", "Désactivé"),
+            NodeChoice::Passive => tr("Passive (invisible)", "Passif (invisible)"),
+            NodeChoice::Active => tr("Active (sharing power)", "Actif (puissance partagée)"),
         };
         let lines = vec![
             Line::from(""),
@@ -591,13 +596,13 @@ impl App {
             Line::from(""),
             Line::from(vec![Span::raw("  Status: "), Span::styled("Running", Style::new().fg(C_GREEN))]),
             Line::from(vec![Span::raw("  User:   "), Span::raw(if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() })]),
-            Line::from(vec![Span::raw("  Node:   "), Span::raw(node_status)]),
+            Line::from(vec![Span::raw("  Node:   "), Span::raw(&node_status)]),
             Line::from(Span::raw("")),
             Line::from(Span::raw("  Quick actions:")),
             Line::from(""),
-            Line::from(vec![Span::styled(if self.dash_item == 0 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(t("Run self-test", "Test crypto"))]),
-            Line::from(vec![Span::styled(if self.dash_item == 1 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(t("Generate keys", "Générer clés"))]),
-            Line::from(vec![Span::styled(if self.dash_item == 2 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(t("Send a message", "Envoyer un message"))]),
+            Line::from(vec![Span::styled(if self.dash_item == 0 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(tr("Run self-test", "Test crypto"))]),
+            Line::from(vec![Span::styled(if self.dash_item == 1 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(tr("Generate keys", "Générer clés"))]),
+            Line::from(vec![Span::styled(if self.dash_item == 2 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(tr("Send a message", "Envoyer un message"))]),
             Line::from(Span::raw("")),
         ];
         let p = Paragraph::new(lines).style(Style::new().fg(C_TEXT)).wrap(Wrap { trim: true });
@@ -635,7 +640,7 @@ impl App {
 
     fn draw_tab_nodes(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
-        let t = self.config.tr;
+        let tr = |en, fr| self.config.tr(en, fr);
         let node_lines: Vec<Line> = match self.config.node {
             NodeChoice::None => vec![
                 Line::from(Span::raw("  Node is disabled.")),
@@ -659,9 +664,9 @@ impl App {
                 Line::from(Span::raw("  It shares bandwidth in the background.")),
                 Line::from(Span::raw("  You can pause it anytime.")),
                 Line::from(Span::raw("")),
-                Line::from(vec![Span::styled(if self.dash_item == 0 { "  ▶ " } else { "    " }, Style::new().fg(C_YELLOW)), Span::raw(t("Pause for 1 hour", "Pause 1h"))]),
-                Line::from(vec![Span::styled(if self.dash_item == 1 { "  ▶ " } else { "    " }, Style::new().fg(C_YELLOW)), Span::raw(t("Pause for 4 hours", "Pause 4h"))]),
-                Line::from(vec![Span::styled(if self.dash_item == 2 { "  ▶ " } else { "    " }, Style::new().fg(C_RED)), Span::raw(t("Disable node", "Désactiver le noeud"))]),
+                Line::from(vec![Span::styled(if self.dash_item == 0 { "  ▶ " } else { "    " }, Style::new().fg(C_YELLOW)), Span::raw(tr("Pause for 1 hour", "Pause 1h"))]),
+                Line::from(vec![Span::styled(if self.dash_item == 1 { "  ▶ " } else { "    " }, Style::new().fg(C_YELLOW)), Span::raw(tr("Pause for 4 hours", "Pause 4h"))]),
+                Line::from(vec![Span::styled(if self.dash_item == 2 { "  ▶ " } else { "    " }, Style::new().fg(C_RED)), Span::raw(tr("Disable node", "Désactiver le noeud"))]),
                 Line::from(Span::raw("")),
             ],
         };
@@ -673,16 +678,16 @@ impl App {
 
     fn draw_tab_settings(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
-        let t = self.config.tr;
-        let settings: Vec<(&'static str, String)> = vec![
-            (t("Username", "Nom d'utilisateur"), if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() }),
-            (t("Language", "Langue"), self.config.label().to_string()),
-            (t("Node mode", "Mode noeud"), match self.config.node {
-                NodeChoice::None => t("Disabled", "Désactivé").to_string(),
-                NodeChoice::Passive => t("Passive", "Passif").to_string(),
-                NodeChoice::Active => t("Active", "Actif").to_string(),
+        let tr = |en, fr| self.config.tr(en, fr);
+        let settings: Vec<(String, String)> = vec![
+            (tr("Username", "Nom d'utilisateur"), if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() }),
+            (tr("Language", "Langue"), self.config.label()),
+            (tr("Node mode", "Mode noeud"), match self.config.node {
+                NodeChoice::None => tr("Disabled", "Désactivé"),
+                NodeChoice::Passive => tr("Passive", "Passif"),
+                NodeChoice::Active => tr("Active", "Actif"),
             }),
-            ("Version", VERSION.to_string()),
+            ("Version".to_string(), VERSION.to_string()),
         ];
 
         let lines: Vec<Line> = vec![Line::from(Span::raw("  Settings  "))]
@@ -691,7 +696,7 @@ impl App {
                 vec![
                     Line::from(vec![
                         if self.dash_item == i { Span::styled("  ▶ ", Style::new().fg(C_GREEN)) } else { Span::raw("    ") },
-                        Span::raw(*key),
+                        Span::raw(key),
                         Span::raw(": "),
                         Span::styled(val, Style::new().fg(C_COBALT)),
                     ]),
