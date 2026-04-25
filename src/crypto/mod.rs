@@ -72,7 +72,7 @@ impl KeyPair {
 // ── SharedSecret ─────────────────────────────────────────────────────────────
 
 /// 32 bytes of shared secret produced by KEM, zeroised on drop.
-#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Debug, PartialEq, Eq, Zeroize, ZeroizeOnDrop)]
 pub struct SharedSecret(pub [u8; 32]);
 
 impl SharedSecret {
