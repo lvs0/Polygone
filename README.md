@@ -7,8 +7,8 @@
 ⚠️ **v1.0.0 is a local prototype.** Real P2P networking with the anonymity properties described below is targeted for v2.0.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-purple.svg)](https://github.com/lvs0/Polygone/blob/main/LICENSE)
-[![Rust](https://img.shields.io/badge/Rust-100%25-b71200.svg)](https://www.rust-lang.org/)
-[![No unsafe code](https://img.shields.io/badge/unsafe-forbidden-b00000.svg)](https://github.com/lvs0/Polygone)
+[![Rust](https://img.shields.io/badge/Rust-API%20%2B%20app-00.svg)](https://www.rust-lang.org/)
+[![Memory safety](https://img.shields.io/badge/memory%20safety-ZeroizeOnDrop-2a4.svg)](https://github.com/lvs0/Polygone)
 [![v1.0.0](https://img.shields.io/badge/version-1.0.0-8b6dff.svg)](https://github.com/lvs0/Polygone/releases)
 [![Binary: 2.1 MB](https://img.shields.io/badge/binary-2.1%20MB-purple.svg)](https://github.com/lvs0/Polygone/releases)
 [![Self-test: 5/5 PASS](https://img.shields.io/badge/self--test-5%2F5%20PASS-green.svg)](https://github.com/lvs0/Polygone#how-it-works)
@@ -181,9 +181,11 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
    → Fragments deleted, no forensic trail
    → ⚠️ TTL behavior is local in v1.0.0; network TTL is v2.0
 
-6. MEMORY SAFETY (✓ implemented)
-   → Zero unsafe code (#![forbid(unsafe_code)])
-   → ZeroizeOnDrop, no heap leaks
+6. MEMORY SAFETY (✓ binary, ⚠️ deps)
+   → Binary: `#![forbid(unsafe_code)]` (main.rs)
+   → Library: pure Rust APIs; pqcrypto wraps libcrux (has unsafe internals)
+   → Session keys: `ZeroizeOnDrop`, no heap leaks
+   → ⚠️ ML-KEM/DSA implementations (libcrux via pqcrypto) contain unsafe assembly
 ```
 
 ---
@@ -227,7 +229,7 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 | Post-quantum KEM | ✗ | ✗ | ✓ (ML-KEM-1024) | ✓ |
 | Forward secrecy | ✓ | ✓ | ✓ (session keys) | ✓ |
 | No telemetry | Rare | ✗ | ✓ (no network in v1) | ✓ |
-| 100% Rust | Rare | ✗ | ✓ | ✓ |
+| 100% Rust | Rare | ✗ | ✓ (API + app, ⚠️ libcrux internals) | ✓ |
 
 ---
 

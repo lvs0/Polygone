@@ -42,8 +42,8 @@ A post-quantum ephemeral network where messages become distributed
 computational state. ML-KEM-1024 key exchange. AES-256-GCM encryption.
 Shamir 4-of-7 fragmentation. BLAKE3 domain-separated key derivation.
 
-No server sees the message. No observer can prove a message existed.
-Classical encryption hides content. POLYGONE hides the communication itself.
+⚠️ v1.0.0 is a LOCAL PROTOTYPE. Real P2P networking targets v2.0.
+Classical encryption hides content. POLYGONE aims to hide the communication itself.
 
 Source: https://github.com/lvs0/Polygone
 License: MIT — No investors. No token. No telemetry."
