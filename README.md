@@ -58,7 +58,7 @@ Classical encryption protects **content** — but an observer can always prove a
 | Tor | Partial | ✗ |
 | **POLYGONE** | ✓ | **✓** |
 
-POLYGONE doesn't build a tunnel between A and B. It turns a message into a distributed computational state across a global DHT — then makes it evaporate.
+POLYGONE doesn't build a tunnel between A and B. It turns a message into a distributed computational state across nodes selected via Fisher-Yates shuffle — then makes it evaporate.
 
 ---
 
@@ -100,9 +100,9 @@ Sender                Network                 Receiver
   │     Fragment          │                       │
   │─────────────────────►│───────────────────────►│
   │                      │                       │
-  │  4. BLAKE3 DHT Route  │                       │
-  │     7 random nodes    │                       │
-  │     30s TTL          │                       │
+  │  4. Fisher-Yates      │                       │
+  │     7 selected nodes  │                       │
+  │     (local, v2.0)    │                       │
   │                      │                       │
   │  5. Vaporize          │                       │
   │     Fragments DELETE │                       │
@@ -156,6 +156,8 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 2. ZERO METADATA
    → No source IP, no target IP, no timing correlation
    → Message becomes distributed state, not traffic
+   
+   _Note: In v1.0.0 this is the cryptographic design goal. The network operates in local/simulated mode (P2P networking is targeted for v2.0)._
 
 3. INFORMATION-THEORETIC
    → Shamir k-1 fragments = 0 information leaked
