@@ -29,40 +29,27 @@ const C_GREEN:   Color = Color::Rgb(40, 200, 64);
 const C_RED:     Color = Color::Rgb(255, 59, 48);
 const C_YELLOW:  Color = Color::Rgb(255, 204, 0);
 const C_TEXT:    Color = Color::Rgb(200, 200, 232);
-const C_DIM:     Color = Color::Rgb(74, 74, 106);
+const C_DIM:    Color = Color::Rgb(74, 74, 106);
 
 // ─── Install state ────────────────────────────────────────────────────────────
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum InstallState {
-    // Pre-install
     Welcome,
-    AlreadyInstalled,   // detected existing install
+    AlreadyInstalled,
     Installing,
-    // Post-install config
     Configure,
-    // Dashboard
     Dashboard,
     Done,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum NodeChoice {
-    None,
-    Passive,
-    Active,
-}
+enum NodeChoice { None, Passive, Active }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Lang { EN, FR }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum MenuAction {
-    None,
-    Update,
-    Reinstall,
-    Uninstall,
-    Launch,
-}
+enum MenuAction { None, Update, Reinstall, Uninstall, Launch }
 
 // ─── Step data ───────────────────────────────────────────────────────────────
 struct Config {
@@ -91,9 +78,10 @@ impl Config {
     }
 
     fn load(&mut self) {
+        use json::JsonValue;
         let cfg_file = self.config_dir.join("config.json");
         if let Ok(data) = std::fs::read_to_string(&cfg_file) {
-            if let Ok(v) = json::parse(&data) {
+            if let Ok(v) = data.parse::<JsonValue>() {
                 if let Some(u) = v.get("username").and_then(|x| x.as_str()) {
                     self.username = u.to_string();
                 }
@@ -119,16 +107,23 @@ impl Config {
             NodeChoice::Active => "active",
         };
         let lang_str = match self.lang { Lang::FR => "fr", Lang::EN => "en" };
-        let data = json::json!({
-            "version": VERSION,
-            "username": self.username,
-            "node_mode": node_str,
-            "language": lang_str,
-        });
-        std::fs::write(self.config_dir.join("config.json"), data.to_string()).ok();
+        let obj = json::object! {
+            version: VERSION,
+            username: &self.username,
+            node_mode: node_str,
+            language: lang_str,
+        };
+        std::fs::write(self.config_dir.join("config.json"), obj.to_string()).ok();
     }
 
-    fn t(&self, en: &str, fr: &str) -> &str {
+    fn label(&self) -> String {
+        match self.lang {
+            Lang::FR => "Français".into(),
+            Lang::EN => "English".into(),
+        }
+    }
+
+    fn tr(&self, en: &str, fr: &str) -> &str {
         match self.lang { Lang::FR => fr, Lang::EN => en }
     }
 }
@@ -146,7 +141,6 @@ struct App {
     install_error: Option<String>,
     dash_tab: usize,
     dash_item: usize,
-    uninstall_confirm: bool,
 }
 
 impl App {
@@ -157,7 +151,7 @@ impl App {
             state: InstallState::Welcome,
             config,
             menu_idx: 0,
-            menu_actions: vec![],
+            menu_actions: Vec::new(),
             installing: false,
             install_pct: 0.0,
             install_status: String::new(),
@@ -165,7 +159,6 @@ impl App {
             install_error: None,
             dash_tab: 0,
             dash_item: 0,
-            uninstall_confirm: false,
         }
     }
 
@@ -177,28 +170,30 @@ impl App {
         self.binary_path().exists()
     }
 
-    fn log(&mut self, msg: &str) {
+    fn push_log(&mut self, msg: &str) {
         self.install_log.push(msg.to_string());
         if self.install_log.len() > 8 { self.install_log.remove(0); }
     }
 
-    fn set_status(&mut self, msg: &str, pct: f32) {
-        self.install_status = msg.to_string();
-        self.install_pct = pct;
-        self.log(msg);
-    }
-
     fn run_install(&mut self) {
-        let install_dir = &self.config.install_dir;
+        // Clone what we need so we don't borrow self during set_status calls
+        let install_dir = self.config.install_dir.clone();
+        let install_dest = self.binary_path();
+        let lang = self.config.lang;
+        let node_mode = self.config.node;
+        let username = self.config.username.clone();
+
         let url = format!(
             "https://github.com/lvs0/Polygone/releases/download/v{}/polygone",
             VERSION
         );
 
-        self.set_status(self.config.t("Downloading Polygone...", "Téléchargement de Polygone..."), 0.15);
+        // Step 1: Downloading
+        self.install_status = Self::step_msg(lang, 1, "Downloading Polygone...", "Téléchargement de Polygone...");
+        self.install_pct = 0.15;
+        self.push_log(&self.install_status);
 
-        std::fs::create_dir_all(install_dir).ok();
-        let dest = self.binary_path();
+        std::fs::create_dir_all(&install_dir).ok();
 
         // Try download first
         let dl = Command::new("curl")
@@ -208,38 +203,63 @@ impl App {
 
         match dl {
             Ok(out) if out.status.success() => {
-                self.set_status(self.config.t("Installing...", "Installation..."), 0.6);
-                if std::fs::copy("/tmp/polygone", &dest).is_ok() {
+                self.install_status = Self::step_msg(lang, 2, "Installing...", "Installation...");
+                self.install_pct = 0.60;
+                self.push_log(&self.install_status);
+                if std::fs::copy("/tmp/polygone", &install_dest).is_ok() {
                     #[cfg(unix)] {
                         use std::os::unix::fs::PermissionsExt;
-                        std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755)).ok();
+                        std::fs::set_permissions(&install_dest, std::fs::Permissions::from_mode(0o755)).ok();
                     }
-                    self.set_status(self.config.t("Configuring...", "Configuration..."), 0.85);
-                    self.config.save();
-                    self.set_status(self.config.t("Done!", "Terminé!"), 1.0);
+                    self.install_status = Self::step_msg(lang, 3, "Configuring...", "Configuration...");
+                    self.install_pct = 0.85;
+                    self.push_log(&self.install_status);
+                    // Save config now
+                    {
+                        std::fs::create_dir_all(&self.config.config_dir).ok();
+                        let node_str = match node_mode {
+                            NodeChoice::None => "none",
+                            NodeChoice::Passive => "passive",
+                            NodeChoice::Active => "active",
+                        };
+                        let lang_str = match lang { Lang::FR => "fr", Lang::EN => "en" };
+                        let obj = json::object! {
+                            version: VERSION,
+                            username: &username,
+                            node_mode: node_str,
+                            language: lang_str,
+                        };
+                        std::fs::write(self.config.config_dir.join("config.json"), obj.to_string()).ok();
+                    }
+                    self.install_status = Self::step_msg(lang, 4, "Done!", "Terminé!");
+                    self.install_pct = 1.0;
+                    self.push_log("Done!");
                     self.state = InstallState::Configure;
                 } else {
-                    self.install_error = Some(self.config.t("Copy failed", "Échec de la copie").to_string());
+                    self.install_error = Some(Self::step_msg(lang, 0, "Copy failed", "Échec de la copie").to_string());
                 }
             }
             _ => {
                 // Build from source
-                self.set_status(self.config.t("Building from source...", "Compilation depuis les sources..."), 0.2);
+                self.install_status = Self::step_msg(lang, 1, "Building from source...", "Compilation depuis les sources...");
+                self.install_pct = 0.20;
+                self.push_log(&self.install_status);
+
                 let build_dir = dirs::home_dir()
                     .unwrap_or_else(|| PathBuf::from("."))
                     .join("polygone-src");
 
                 if !build_dir.exists() {
-                    self.log(&format!("Cloning..."));
+                    self.push_log("Cloning Polygone repository...");
                     let _ = Command::new("git")
                         .args(["clone", "https://github.com/lvs0/Polygone.git"])
                         .arg(&build_dir)
                         .output();
                 }
 
-                self.set_status(self.config.t("Compiling (may take a while)...", "Compilation (peut prendre du temps)..."), 0.5);
-                self.log("cargo build --release");
-
+                self.install_status = Self::step_msg(lang, 2, "Compiling (may take a while)...", "Compilation (peut prendre du temps)...");
+                self.install_pct = 0.50;
+                self.push_log("cargo build --release");
                 let build = Command::new("cargo")
                     .current_dir(&build_dir)
                     .args(["build", "--release", "--bin", "polygone"])
@@ -247,36 +267,66 @@ impl App {
 
                 match build {
                     Ok(out) if out.status.success() => {
-                        self.set_status(self.config.t("Installing compiled binary...", "Installation du binaire compilé..."), 0.85);
+                        self.install_status = Self::step_msg(lang, 3, "Installing compiled binary...", "Installation du binaire compilé...");
+                        self.install_pct = 0.85;
+                        self.push_log(&self.install_status);
                         let src = build_dir.join("target/release/polygone");
-                        if std::fs::copy(&src, &dest).is_ok() {
+                        if std::fs::copy(&src, &install_dest).is_ok() {
                             #[cfg(unix)] {
                                 use std::os::unix::fs::PermissionsExt;
-                                std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755)).ok();
+                                std::fs::set_permissions(&install_dest, std::fs::Permissions::from_mode(0o755)).ok();
                             }
-                            self.config.save();
-                            self.set_status(self.config.t("Done!", "Terminé!"), 1.0);
+                            // Save config
+                            {
+                                std::fs::create_dir_all(&self.config.config_dir).ok();
+                                let node_str = match node_mode {
+                                    NodeChoice::None => "none",
+                                    NodeChoice::Passive => "passive",
+                                    NodeChoice::Active => "active",
+                                };
+                                let lang_str = match lang { Lang::FR => "fr", Lang::EN => "en" };
+                                let obj = json::object! {
+                                    version: VERSION,
+                                    username: &username,
+                                    node_mode: node_str,
+                                    language: lang_str,
+                                };
+                                std::fs::write(self.config.config_dir.join("config.json"), obj.to_string()).ok();
+                            }
+                            self.install_status = Self::step_msg(lang, 4, "Done!", "Terminé!");
+                            self.install_pct = 1.0;
+                            self.push_log("Done!");
                             self.state = InstallState::Configure;
                         } else {
-                            self.install_error = Some(self.config.t("Copy failed", "Échec de la copie").to_string());
+                            self.install_error = Some(Self::step_msg(lang, 0, "Copy failed", "Échec de la copie").to_string());
                         }
                     }
                     _ => {
-                        self.install_error = Some(self.config.t("Build failed. Install Rust: curl https://sh.rustup.rs | sh", "Compilation échouée. Installe Rust: curl https://sh.rustup.rs | sh").to_string());
+                        let err = Self::step_msg(lang, 0,
+                            "Build failed. Install Rust: curl https://sh.rustup.rs | sh",
+                            "Compilation échouée. Installe Rust: curl https://sh.rustup.rs | sh");
+                        self.install_error = Some(err);
                     }
                 }
             }
         }
     }
 
+    fn step_msg(lang: Lang, step: u8, en: &str, fr: &str) -> String {
+        let base = match lang { Lang::FR => fr, Lang::EN => en };
+        if step == 0 { base.to_string() }
+        else { format!("[{}] {}", step, base) }
+    }
+
     fn do_uninstall(&mut self) {
-        let bin_path = self.binary_path();
-        if bin_path.exists() {
-            std::fs::remove_file(&bin_path).ok();
+        if let Ok(metadata) = std::fs::metadata(&self.binary_path()) {
+            if metadata.permissions().readonly() {
+                #[cfg(unix)] { let _ = Command::new("chmod").arg("u+w").arg(&self.binary_path()).output(); }
+            }
         }
-        // Remove config
+        std::fs::remove_file(&self.binary_path()).ok();
         std::fs::remove_file(self.config.config_dir.join("config.json")).ok();
-        self.log("Uninstalled Polygone");
+        self.push_log("Uninstalled Polygone");
         self.state = InstallState::Done;
     }
 
@@ -300,20 +350,6 @@ impl App {
         Rect::new(x, y, w.min(size.width), h.min(size.height))
     }
 
-    fn nav_raw(&self) -> Vec<Line> {
-        vec![Line::from(vec![
-            Span::raw("  "),
-            Span::styled("↑↓", Style::new().fg(C_COBALT)),
-            Span::raw(" navigate  "),
-            Span::styled("ENTER", Style::new().fg(C_GREEN)),
-            Span::raw(" select  "),
-            Span::styled("ESC", Style::new().fg(C_DIM)),
-            Span::raw(" back  "),
-            Span::styled("q", Style::new().fg(C_DIM)),
-            Span::raw(" quit"),
-        ])]
-    }
-
     fn block(&self, title: &str) -> Block {
         Block::new()
             .title(format!("  {}  ", title))
@@ -324,64 +360,60 @@ impl App {
             .style(Style::new().bg(C_SURFACE))
     }
 
-    // ── Welcome ──────────────────────────────────────────────────────────────
+    // ── Logo ────────────────────────────────────────────────────────────────
+    fn draw_logo_at(&self, f: &mut Frame, area: Rect) {
+        let lines = vec![
+            Line::from(""),
+            Line::from(vec![Span::raw("       ⬡                         ⬡")]),
+            Line::from(vec![Span::raw("     ⬡   ⬡                   ⬡   ⬡")]),
+            Line::from(vec![Span::raw("   ⬡       ⬡               ⬡       ⬡")]),
+            Line::from(vec![Span::raw("  ⬡    P O L Y G O N E    ⬡")]),
+            Line::from(vec![Span::raw("   ⬡       ⬡               ⬡       ⬡")]),
+            Line::from(vec![Span::raw("     ⬡   ⬡                   ⬡   ⬡")]),
+            Line::from(vec![Span::raw("       ⬡                         ⬡")]),
+        ];
+        let p = Paragraph::new(lines)
+            .alignment(Alignment::Center)
+            .style(Style::new().fg(C_COBALT));
+        f.render_widget(p, area);
+    }
+
+    // ── Welcome ─────────────────────────────────────────────────────────────
     fn draw_welcome(&self, f: &mut Frame, size: Rect) {
         let box_w = 56u16.min(size.width.saturating_sub(6));
         let box_h = 18u16.min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
         f.render_widget(self.block(""), rect);
 
-        // Logo area (top half)
-        let logo_rect = Rect::new(rect.x + 2, rect.y + 1, rect.width - 4, 7);
-        let logo_lines = vec![
-            Line::from(""),
-            Line::from(Span::raw("       ⬡                         ⬡")),
-            Line::from(Span::raw("     ⬡   ⬡                   ⬡   ⬡")),
-            Line::from(Span::raw("   ⬡       ⬡               ⬡       ⬡")),
-            Line::from(Span::raw("  ⬡    P O L Y G O N E    ⬡")),
-            Line::from(Span::raw("   ⬡       ⬡               ⬡       ⬡")),
-            Line::from(Span::raw("     ⬡   ⬡                   ⬡   ⬡")),
-            Line::from(Span::raw("       ⬡                         ⬡")),
-        ];
-        let logo_p = Paragraph::new(logo_lines)
-            .alignment(Alignment::Center)
-            .style(Style::new().fg(C_COBALT));
-        f.render_widget(logo_p, logo_rect);
+        let logo_rect = Rect::new(rect.x + 2, rect.y + 1, rect.width - 4, 8);
+        self.draw_logo_at(f, logo_rect);
 
-        // Welcome text
-        let inner_y = rect.y + 8;
-        let text_rect = Rect::new(rect.x, inner_y, rect.width, rect.height - 8);
-        let t = self.config.t;
+        let inner_y = rect.y + 9;
+        let text_rect = Rect::new(rect.x, inner_y, rect.width, rect.height - 9);
         let lines = vec![
-            Line::from(vec![
-                Span::raw("  "),
-                Span::styled("Welcome to ", Style::new().fg(C_TEXT)),
-                Span::styled("Polygone", Style::new().fg(C_COBALT).bold()),
-            ]),
+            Line::from(vec![Span::raw("  "), Span::styled("Welcome to ", Style::new().fg(C_TEXT)), Span::styled("Polygone", Style::new().fg(C_COBALT).bold())]),
             Line::from(Span::raw("  Privacy that leaves no trace.")),
             Line::from(""),
             Line::from(vec![
                 Span::raw("  "),
                 Span::styled("ENTER", Style::new().fg(C_GREEN).bold()),
                 Span::raw(" "),
-                Span::raw(t("Install Polygone", "Installer Polygone")),
+                Span::raw(self.config.tr("Install Polygone", "Installer Polygone")),
                 Span::raw("  ·  "),
                 Span::styled("q", Style::new().fg(C_DIM)),
                 Span::raw(" quit"),
             ]),
         ];
-        let p = Paragraph::new(lines)
-            .alignment(Alignment::Center)
-            .style(Style::new().fg(C_TEXT));
+        let p = Paragraph::new(lines).alignment(Alignment::Center).style(Style::new().fg(C_TEXT));
         f.render_widget(p, text_rect);
     }
 
-    // ── Already installed ────────────────────────────────────────────────────
+    // ── Already installed ───────────────────────────────────────────────────
     fn draw_already_installed(&self, f: &mut Frame, size: Rect) {
         let box_w = 52u16.min(size.width.saturating_sub(6));
         let box_h = (4 + self.menu_actions.len() as u16 * 3).min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
-        f.render_widget(self.block(self.config.t("Polygone is already installed", "Polygone est déjà installé")), rect);
+        f.render_widget(self.block(self.config.tr("Polygone is already installed", "Polygone est déjà installé")), rect);
         let inner = rect.inner(Margin::new(2, 1));
 
         let items: Vec<ListItem> = self.menu_actions.iter().enumerate().map(|(i, action)| {
@@ -389,10 +421,10 @@ impl App {
             let icon = if sel { "▶" } else { " " };
             let style = if sel { Style::new().fg(C_GREEN).bold() } else { Style::new().fg(C_TEXT) };
             let label = match action {
-                MenuAction::Update => self.config.t("Update to latest version", "Mettre à jour"),
-                MenuAction::Reinstall => self.config.t("Reinstall Polygone", "Réinstaller Polygone"),
-                MenuAction::Uninstall => self.config.t("Uninstall Polygone", "Désinstaller Polygone"),
-                MenuAction::Launch => self.config.t("Launch Polygone", "Lancer Polygone"),
+                MenuAction::Update => self.config.tr("Update to latest version", "Mettre à jour"),
+                MenuAction::Reinstall => self.config.tr("Reinstall Polygone", "Réinstaller Polygone"),
+                MenuAction::Uninstall => self.config.tr("Uninstall Polygone", "Désinstaller Polygone"),
+                MenuAction::Launch => self.config.tr("Launch Polygone", "Lancer Polygone"),
                 MenuAction::None => "",
             };
             ListItem::new(vec![
@@ -404,18 +436,24 @@ impl App {
         let list = List::new(items).style(Style::new().fg(C_TEXT));
         f.render_widget(list, inner);
 
-        let nav = Paragraph::new(self.nav_raw())
-            .alignment(Alignment::Center)
-            .style(Style::new().fg(C_DIM));
+        let nav = Paragraph::new(vec![Line::from(vec![
+            Span::raw("  "),
+            Span::styled("↑↓", Style::new().fg(C_COBALT)),
+            Span::raw(" navigate  "),
+            Span::styled("ENTER", Style::new().fg(C_GREEN)),
+            Span::raw(" select  "),
+            Span::styled("ESC", Style::new().fg(C_DIM)),
+            Span::raw(" back"),
+        ])]).alignment(Alignment::Center).style(Style::new().fg(C_DIM));
         f.render_widget(nav, inner);
     }
 
     // ── Installing ──────────────────────────────────────────────────────────
     fn draw_installing(&self, f: &mut Frame, size: Rect) {
-        let box_w = 58u16.min(size.width.saturating_sub(6));
+        let box_w = 60u16.min(size.width.saturating_sub(6));
         let box_h = 22u16.min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
-        f.render_widget(self.block(self.config.t("Installing Polygone", "Installation de Polygone")), rect);
+        f.render_widget(self.block(self.config.tr("Installing Polygone", "Installation de Polygone")), rect);
         let inner = rect.inner(Margin::new(2, 1));
 
         let pct = (self.install_pct * 100.0) as u16;
@@ -438,7 +476,7 @@ impl App {
             log_lines,
             vec![Line::from("")],
             vec![status_line],
-            error_line.into_iter().collect(),
+            if let Some(ref e) = error_line { vec![e.clone()] } else { vec![] },
         ].concat();
 
         let p = Paragraph::new(all).style(Style::new().fg(C_TEXT));
@@ -450,11 +488,12 @@ impl App {
         let box_w = 52u16.min(size.width.saturating_sub(6));
         let box_h = 22u16.min(size.height.saturating_sub(6));
         let rect = self.centered(box_w, box_h, size);
-        f.render_widget(self.block(self.config.t("Configure Polygone", "Configurer Polygone")), rect);
+        f.render_widget(self.block(self.config.tr("Configure Polygone", "Configurer Polygone")), rect);
         let inner = rect.inner(Margin::new(2, 1));
 
-        let t = self.config.t;
-        let lang_label = match self.config.lang { Lang::FR => "Français", Lang::EN => "English" };
+        let t = self.config.tr;
+        let lang_label = self.config.label();
+        let user_label = if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() };
         let node_label = match self.config.node {
             NodeChoice::None => t("Disabled", "Désactivé"),
             NodeChoice::Passive => t("Passive — invisible", "Passif — invisible"),
@@ -466,10 +505,14 @@ impl App {
             Line::from(vec![Span::styled("  ✓ Polygone installed!", Style::new().fg(C_GREEN).bold())]),
             Line::from(Span::raw("")),
             Line::from(vec![Span::raw("  Language:  "), Span::styled(lang_label, Style::new().fg(C_COBALT))]),
-            Line::from(vec![Span::raw("  Username:   "), Span::raw(if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() })]),
+            Line::from(vec![Span::raw("  Username:   "), Span::raw(&user_label)]),
             Line::from(vec![Span::raw("  Node:       "), Span::raw(node_label)]),
             Line::from(Span::raw("")),
-            Line::from(vec![Span::raw("  "), Span::styled("ENTER", Style::new().fg(C_GREEN).bold()), Span::raw(format!("  {}", t("Launch dashboard", "Ouvrir le dashboard")))]),
+            Line::from(vec![
+                Span::raw("  "),
+                Span::styled("ENTER", Style::new().fg(C_GREEN).bold()),
+                Span::raw(format!("  {}", t("Launch dashboard", "Ouvrir le dashboard"))),
+            ]),
             Line::from(Span::raw("")),
         ];
 
@@ -477,11 +520,11 @@ impl App {
         f.render_widget(p, inner);
     }
 
-    // ── Dashboard ────────────────────────────────────────────────────────────
+    // ── Dashboard ───────────────────────────────────────────────────────────
     fn draw_dashboard(&self, f: &mut Frame, size: Rect) {
+        let header_h = 3u16;
         let tab_h = 3u16;
         let footer_h = 2u16;
-        let header_h = 3u16;
 
         // Header
         let header_rect = Rect::new(0, 0, size.width, header_h);
@@ -490,11 +533,10 @@ impl App {
             .border_style(Style::new().fg(C_BORDER))
             .style(Style::new().bg(C_SURFACE));
         f.render_widget(hblock, header_rect);
-
         let user_label = if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() };
         let header_lines = vec![Line::from(vec![
             Span::styled("⬡ Polygone", Style::new().fg(C_COBALT).bold()),
-            Span::raw(format!("  v{}  ·  {}", VERSION, user_label.escape_default())),
+            Span::raw(format!("  v{}  ·  {}", VERSION, user_label)),
         ])];
         f.render_widget(Paragraph::new(header_lines).style(Style::new().fg(C_TEXT)), header_rect);
 
@@ -508,7 +550,7 @@ impl App {
             Line::from(vec![
                 Span::raw("   "),
                 Span::styled(prefix, style),
-                Span::styled(tab, style),
+                Span::styled(*tab, style),
             ])
         }).collect();
         f.render_widget(Paragraph::new(tab_lines).style(Style::new().fg(C_TEXT)), tab_rect);
@@ -533,7 +575,6 @@ impl App {
             .border_style(Style::new().fg(C_BORDER))
             .style(Style::new().bg(C_SURFACE));
         f.render_widget(fblock, footer_rect);
-
         let node_status = match self.config.node {
             NodeChoice::None => "Node: off",
             NodeChoice::Passive => "Node: passive",
@@ -543,28 +584,28 @@ impl App {
             Span::styled(node_status, Style::new().fg(C_COBALT)),
             Span::raw("  ·  Polygone v"),
             Span::raw(VERSION),
-            Span::raw("  ·  Hope"),
         ])];
         f.render_widget(Paragraph::new(footer_lines).style(Style::new().fg(C_DIM)), footer_rect);
     }
 
     fn draw_tab_home(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
-        let t = self.config.t;
+        let t = self.config.tr;
+        let node_status = match self.config.node {
+            NodeChoice::None => t("Disabled", "Désactivé"),
+            NodeChoice::Passive => t("Passive (invisible)", "Passif (invisible)"),
+            NodeChoice::Active => t("Active (sharing power)", "Actif (puissance partagée)"),
+        };
         let lines = vec![
             Line::from(""),
             Line::from(vec![Span::styled("  ⬡ POLYGONE", Style::new().fg(C_COBALT).bold()), Span::raw("  —  Privacy that leaves no trace.")]),
             Line::from(""),
             Line::from(vec![Span::raw("  Status: "), Span::styled("Running", Style::new().fg(C_GREEN))]),
             Line::from(vec![Span::raw("  User:   "), Span::raw(if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() })]),
-            Line::from(vec![Span::raw("  Node:   "), Span::raw(match self.config.node {
-                NodeChoice::None => t("Disabled", "Désactivé"),
-                NodeChoice::Passive => t("Passive (invisible)", "Passif (invisible)"),
-                NodeChoice::Active => t("Active (sharing power)", "Actif (puissance partagée)"),
-            })]),
+            Line::from(vec![Span::raw("  Node:   "), Span::raw(node_status)]),
             Line::from(Span::raw("")),
             Line::from(Span::raw("  Quick actions:")),
-            Line::from(Span::raw("")),
+            Line::from(""),
             Line::from(vec![Span::styled(if self.dash_item == 0 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(t("Run self-test", "Test crypto"))]),
             Line::from(vec![Span::styled(if self.dash_item == 1 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(t("Generate keys", "Générer clés"))]),
             Line::from(vec![Span::styled(if self.dash_item == 2 { "  ▶ " } else { "    " }, Style::new().fg(C_GREEN)), Span::raw(t("Send a message", "Envoyer un message"))]),
@@ -577,12 +618,12 @@ impl App {
     fn draw_tab_services(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
         let services = [
-            ("polygone",       "Core network",           true),
-            ("polygone-drive", "Encrypted storage",     false),
-            ("polygone-hide",  "Privacy tunnel",         false),
-            ("polygone-petals","LLM inference",         false),
+            ("polygone",       "Core network",            true),
+            ("polygone-drive", "Encrypted storage",       false),
+            ("polygone-hide",  "Privacy tunnel",          false),
+            ("polygone-petals","Distributed LLM inference",false),
         ];
-        let lines: Vec<Line> = vec![Line::from(Span::raw("  Services  "))]
+        let lines: Vec<Line> = vec![Line::from(Span::raw("  Services "))]
             .into_iter()
             .chain(services.iter().enumerate().flat_map(|(i, (name, desc, on))| {
                 let icon = if *on { "●" } else { "○" };
@@ -592,7 +633,7 @@ impl App {
                         if self.dash_item == i { Span::styled("  ▶ ", Style::new().fg(C_GREEN)) } else { Span::raw("    ") },
                         Span::styled(icon, Style::new().fg(col)),
                         Span::raw("  "),
-                        Span::raw(name),
+                        Span::raw(*name),
                         Span::raw("  —  "),
                         Span::raw(*desc),
                     ]),
@@ -605,13 +646,17 @@ impl App {
 
     fn draw_tab_nodes(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
-        let t = self.config.t;
-        let node_lines = match self.config.node {
+        let t = self.config.tr;
+        let node_lines: Vec<Line> = match self.config.node {
             NodeChoice::None => vec![
                 Line::from(Span::raw("  Node is disabled.")),
                 Line::from(Span::raw("")),
-                Line::from(vec![Span::raw("  "), Span::styled("Enable passive node?", Style::new().fg(C_COBALT))]),
-                Line::from(Span::raw("  Passive: share bandwidth only. Invisible. Pausable.")),
+                Line::from(vec![Span::raw("  The node system is "), Span::styled("intelligent and invisible.", Style::new().fg(C_COBALT))]),
+                Line::from(Span::raw("  Share bandwidth without slowing your computer.")),
+                Line::from(Span::raw("  Can be paused or disabled at any time.")),
+                Line::from(Span::raw("")),
+                Line::from(vec![Span::raw("  "), Span::styled("Enable passive node?", Style::new().fg(C_GREEN))]),
+                Line::from(Span::raw("  Passive = share bandwidth only, invisible, always pausable.")),
                 Line::from(Span::raw("")),
             ],
             NodeChoice::Passive | NodeChoice::Active => vec![
@@ -621,7 +666,7 @@ impl App {
                     _ => "",
                 }, Style::new().fg(C_GREEN))]),
                 Line::from(Span::raw("")),
-                Line::from(Span::raw("  The node is intelligent and invisible.")),
+                Line::from(Span::raw("  The node is "), Span::styled("intelligent and invisible.", Style::new().fg(C_COBALT))),
                 Line::from(Span::raw("  It shares bandwidth in the background.")),
                 Line::from(Span::raw("  You can pause it anytime.")),
                 Line::from(Span::raw("")),
@@ -639,10 +684,10 @@ impl App {
 
     fn draw_tab_settings(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
-        let t = self.config.t;
-        let settings = [
+        let t = self.config.tr;
+        let settings: Vec<(&str, String)> = vec![
             (t("Username", "Nom d'utilisateur"), if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() }),
-            (t("Language", "Langue"), match self.config.lang { Lang::FR => "Français", Lang::EN => "English" }),
+            (t("Language", "Langue"), self.config.label()),
             (t("Node mode", "Mode noeud"), match self.config.node {
                 NodeChoice::None => t("Disabled", "Désactivé"),
                 NodeChoice::Passive => t("Passive", "Passif"),
@@ -657,7 +702,7 @@ impl App {
                 vec![
                     Line::from(vec![
                         if self.dash_item == i { Span::styled("  ▶ ", Style::new().fg(C_GREEN)) } else { Span::raw("    ") },
-                        Span::raw(key),
+                        Span::raw(*key),
                         Span::raw(": "),
                         Span::styled(val, Style::new().fg(C_COBALT)),
                     ]),
@@ -669,7 +714,7 @@ impl App {
         f.render_widget(p, inner);
     }
 
-    // ── Done ────────────────────────────────────────────────────────────────
+    // ── Done ───────────────────────────────────────────────────────────────
     fn draw_done(&self, f: &mut Frame, size: Rect) {
         let box_w = 46u16.min(size.width.saturating_sub(6));
         let box_h = 12u16.min(size.height.saturating_sub(6));
@@ -680,7 +725,7 @@ impl App {
             .border_style(Style::new().fg(C_BORDER))
             .style(Style::new().bg(C_SURFACE));
         f.render_widget(block, rect);
-        let inner = rect.inner(2);
+        let inner = rect.inner(Margin::new(2, 2));
         let lines = vec![
             Line::from(""),
             Line::from(vec![Span::styled("  ⬡  Goodbye.", Style::new().fg(C_COBALT).bold())]),
@@ -692,12 +737,11 @@ impl App {
         f.render_widget(p, inner);
     }
 
-    // ── Event handling ───────────────────────────────────────────────────────
+    // ── Event handling ─────────────────────────────────────────────────────
     fn handle_key(&mut self, key: crossterm::event::KeyEvent) {
         if key.kind != KeyEventKind::Press && key.kind != KeyEventKind::Repeat { return; }
 
         match self.state {
-            // ── Welcome ──
             InstallState::Welcome => {
                 if key.code == KeyCode::Enter || key.code == KeyCode::Char(' ') {
                     if self.is_installed() {
@@ -712,7 +756,6 @@ impl App {
                 }
             }
 
-            // ── Already installed menu ──
             InstallState::AlreadyInstalled => {
                 if key.code == KeyCode::Up || key.code == KeyCode::Char('k') {
                     self.menu_idx = self.menu_idx.saturating_sub(1);
@@ -720,7 +763,7 @@ impl App {
                     self.menu_idx = (self.menu_idx + 1).min(self.menu_actions.len().saturating_sub(1));
                 } else if key.code == KeyCode::Enter {
                     match self.menu_actions.get(self.menu_idx) {
-                        Some(MenuAction::Update | MenuAction::Reinstall) => {
+                        Some(MenuAction::Update) | Some(MenuAction::Reinstall) => {
                             self.state = InstallState::Installing;
                         }
                         Some(MenuAction::Uninstall) => {
@@ -736,24 +779,21 @@ impl App {
                 }
             }
 
-            // ── Installing (runs automatically) ──
             InstallState::Installing => {
                 if self.install_error.is_some() && key.code == KeyCode::Enter {
                     self.state = InstallState::Done;
                 }
             }
 
-            // ── Configure ──
             InstallState::Configure => {
                 if key.code == KeyCode::Enter {
                     self.state = InstallState::Dashboard;
                 }
             }
 
-            // ── Dashboard ──
             InstallState::Dashboard => {
-                let tab_count = 4;
-                let item_counts = [3, 4, 3, 4];
+                let tab_count = 4usize;
+                let item_counts = [3usize, 4, 3, 4];
 
                 if key.code == KeyCode::Left || key.code == KeyCode::Char('h') {
                     self.dash_tab = (self.dash_tab + tab_count - 1) % tab_count;
@@ -766,21 +806,17 @@ impl App {
                 } else if key.code == KeyCode::Down || key.code == KeyCode::Char('j') {
                     let max = *item_counts.get(self.dash_tab).unwrap_or(&1);
                     self.dash_item = (self.dash_item + 1).min(max.saturating_sub(1));
-                } else if key.code == KeyCode::Enter {
-                    // Action on selected item
                 } else if key.code == KeyCode::Esc || key.code == KeyCode::Char('q') {
                     self.state = InstallState::Done;
                 }
             }
 
-            // ── Done ──
             InstallState::Done => {}
         }
     }
 
-    // ── Run loop ─────────────────────────────────────────────────────────────
+    // ── Run loop ────────────────────────────────────────────────────────────
     fn run(&mut self, terminal: &mut DefaultTerminal) -> anyhow::Result<()> {
-        // Run install asynchronously-like (blocking call, but that's ok for now)
         loop {
             terminal.draw(|f| self.draw(f))?;
 
