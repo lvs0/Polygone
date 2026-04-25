@@ -1,5 +1,8 @@
 //! Reusable TUI widgets for POLYGONE v2 — inspired by dashboard mockups.
 
+use std::collections::HashSet;
+
+
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
@@ -307,10 +310,12 @@ pub fn render_favorites_grid(frame: &mut Frame, area: Rect, app: &App) {
 
 // ── Service list widget ──────────────────────────────────────────────────────
 
-/// Render the left-side service list (8 items).
-pub fn render_service_list(frame: &mut Frame, area: Rect, services: &[&str], selected: usize) {
+/// Render the left-side service list (8 items) with favorites toggle.
+pub fn render_service_list(frame: &mut Frame, area: Rect, services: &[&str], selected: usize, favorites: &HashSet<String>) {
     let lines: Vec<Line> = services.iter().enumerate().map(|(i, name)| {
         let marker = if i == selected { "▶" } else { " " };
+        let is_favorite = favorites.contains(*name);
+        let favorite_marker = if is_favorite { "★" } else { "  " };
         let style = if i == selected {
             Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
         } else {
@@ -318,6 +323,8 @@ pub fn render_service_list(frame: &mut Frame, area: Rect, services: &[&str], sel
         };
         Line::from(vec![
             Span::styled(format!("{marker} "), style),
+            Span::styled(favorite_marker, Style::default().fg(Color::Yellow)),
+            Span::styled(" ", style),
             Span::styled(*name, style),
         ])
     }).collect();

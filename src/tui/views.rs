@@ -470,7 +470,7 @@ fn render_selftest(frame: &mut Frame, area: Rect, _app: &App) {
 
 // ── Services ─────────────────────────────────────────────────────────────────
 
-fn render_services(frame: &mut Frame, area: Rect, _app: &App) {
+fn render_services(frame: &mut Frame, area: Rect, app: &App) {
     // Left: service list | Right: "Add to Favorites" button
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -488,7 +488,7 @@ fn render_services(frame: &mut Frame, area: Rect, _app: &App) {
         "Polygone-Server",
     ];
 
-    render_service_list(frame, chunks[0], &services, 0);
+    render_service_list(frame, chunks[0], &services, 0, &app.favorites);
 
     // Right: empty area with centered "Add to Favorites" button
     let right_lines = vec![

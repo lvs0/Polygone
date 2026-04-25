@@ -1,5 +1,6 @@
 //! Main TUI application loop.
 
+use std::collections::HashSet;
 use std::io;
 use std::time::Duration;
 
@@ -14,6 +15,7 @@ use ratatui::{
 };
 
 use super::views::{View, render_view};
+use super::favorites::{load_favorites, save_favorites};
 
 /// Global application state.
 pub struct App {
@@ -27,6 +29,10 @@ pub struct App {
     pub tick: u64,
     /// Whether the pause modal is shown (Dashboard sub-action).
     pub show_pause_modal: bool,
+    /// Favorites state (Polygone services).
+    pub favorites: HashSet<String>,
+    /// Currently selected service index (for favorites toggle).
+    pub selected_service: usize,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -68,6 +74,8 @@ impl App {
             ],
             tick: 0,
             show_pause_modal: false,
+            favorites: load_favorites(),
+            selected_service: 0,
         }
     }
 
@@ -91,9 +99,28 @@ impl App {
                 return;
             }
             // View navigation
-            KeyCode::Char('p') => {
-                if self.current_view == View::Dashboard {
-                    self.show_pause_modal = !self.show_pause_modal;
+            KeyCode::Char('f') => {
+                if self.current_view == View::Services {
+                    let services = [
+                        "Polygone",
+                        "Polygone-Brain",
+                        "Polygone-CLI",
+                        "Polygone-Drive",
+                        "Polygone-Hide",
+                        "Polygone-Petals",
+                        "Polygone-Shell",
+                        "Polygone-Server",
+                    ];
+                    if let Some(selected) = services.get(self.selected_service) {
+                        if self.favorites.contains(*selected) {
+                            self.favorites.remove(*selected);
+                            self.push_msg(MessageKind::Info, format!("Removed {} from favorites", selected));
+                        } else {
+                            self.favorites.insert(selected.to_string());
+                            self.push_msg(MessageKind::Info, format!("Added {} to favorites", selected));
+                        }
+                        save_favorites(&self.favorites);
+                    }
                 }
             }
             KeyCode::Char('1') => { self.current_view = View::Dashboard; self.show_pause_modal = false; }

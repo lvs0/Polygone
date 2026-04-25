@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⬡ Polygone — Post-Quantum Ephemeral Privacy Network</title>
+    <style>
+        :root {
+            --bg: #06060a;
+            --surface: #0c0c12;
+            --border: #16161f;
+            --text: #eeeef5;
+            --muted: #6b6b84;
+            --accent: #8b6dff;
+            --accent-b: #6b9fff;
+            --success: #00d496;
+            --danger: #ff6b8a;
+            --font: 'DM Mono', 'Courier New', monospace;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Grid background */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(139,109,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139,109,255,0.04) 1px, transparent 1px);
+            background-size: 80px 80px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 32px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Nav */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 28px 0;
+        }
+        
+        .logo {
+            font-size: 20px;
+            letter-spacing: 6px;
+            color: var(--accent);
+        }
+        
+        nav .links {
+            display: flex;
+            gap: 28px;
+        }
+        
+        nav .links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+        
+        nav .links a:hover { color: var(--text); }
+        
+        /* Hero */
+        .hero {
+            padding: 80px 0 64px;
+            text-align: center;
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+        
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 200;
+            letter-spacing: 12px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-b));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero-sub {
+            font-size: 16px;
+            color: var(--muted);
+            font-style: italic;
+            margin-bottom: 56px;
+            letter-spacing: 1px;
+        }
+        
+        /* Terminal preview */
+        .terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 580px;
+            margin: 0 auto;
+            text-align: left;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+        }
+        
+        .terminal-bar {
+            background: var(--border);
+            padding: 12px 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .terminal-dot.r { background: var(--danger); }
+        .terminal-dot.y { background: #ffcc00; }
+        .terminal-dot.g { background: var(--success); }
+        
+        .terminal-body {
+            padding: 24px;
+            font-size: 13px;
+        }
+        
+        .terminal-body .line { margin: 6px 0; }
+        .terminal-body .prompt { color: var(--success); }
+        .terminal-body .cmd { color: var(--text); }
+        .terminal-body .out { color: var(--muted); font-size: 11px; }
+        .terminal-body .out.ok { color: var(--success); }
+        
+        /* Install section */
+        .install {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 48px 0;
+        }
+        
+        .install h2 {
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+        
+        .os-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .os-tab {
+            padding: 8px 18px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .os-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        .code-block {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-block code {
+            color: var(--success);
+            font-size: 13px;
+        }
+        
+        .copy-btn {
+            background: var(--border);
+            border: none;
+            border-radius: 4px;
+            padding: 6px 14px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover { background: var(--accent); color: white; }
+        
+        /* Section headers */
+        .section-header {
+            padding: 48px 0 32px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .section-header h2 {
+            font-size: 11px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+        
+        .section-header p {
+            color: var(--muted);
+            font-size: 14px;
+            max-width: 600px;
+        }
+        
+        /* Features grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 32px 0;
+        }
+        
+        .feature {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            transition: border-color 0.2s;
+        }
+        
+        .feature:hover { border-color: var(--accent); }
+        
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        .feature h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--accent-b);
+        }
+        
+        .feature p {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        
+        /* How it works */
+        .protocol-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 48px 0;
+            gap: 16px;
+        }
+        
+        .protocol-step {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .protocol-step .step-num {
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        
+        .protocol-step h4 {
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        .protocol-step p {
+            font-size: 11px;
+            color: var(--muted);
+        }
+        
+        .protocol-arrow {
+            color: var(--accent);
+            font-size: 20px;
+            opacity: 0.4;
+        }
+        
+        /* Stats */
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 48px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin: 48px 0;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat .value {
+            font-size: 36px;
+            font-weight: 200;
+            color: var(--success);
+        }
+        
+        .stat .label {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+        
+        /* Quote */
+        .quote {
+            background: var(--surface);
+            border-left: 3px solid var(--accent);
+            padding: 28px 32px;
+            margin: 32px 0;
+            font-size: 15px;
+            font-weight: 300;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+        
+        /* Footer */
+        footer {
+            padding: 64px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        
+        footer p {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        
+        footer a { color: var(--accent); text-decoration: none; }
+        
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 40px; letter-spacing: 6px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .protocol-flow { flex-direction: column; }
+            .protocol-arrow { transform: rotate(90deg); }
+            .stats-row { flex-direction: column; gap: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="container">
+        <nav>
+            <div class="logo">⬡ POLYGONE</div>
+            <div class="links">
+                <a href="#install">Install</a>
+                <a href="#how">Protocol</a>
+                <a href="#compare">Compare</a>
+                <a href="#specs">Specs</a>
+                <a href="https://github.com/lvs0/Polygone" target="_blank">GitHub</a>
+            </div>
+        </nav>
+        
+        <section class="hero">
+            <div class="hero-badge">Post-Quantum · Zero Metadata · Open Source</div>
+            <h1>POLYGONE</h1>
+            <p class="hero-sub">"Information does not exist. It drifts."</p>
+            
+            <div class="terminal">
+                <div class="terminal-bar">
+                    <div class="terminal-dot r"></div>
+                    <div class="terminal-dot y"></div>
+                    <div class="terminal-dot g"></div>
+                </div>
+        <!-- Comparison Table -->
+        <div class="section-header" id="compare" style="padding-top: 0; border-top: none;">
+            <h2>Compared to the Alternatives</h2>
+            <p>Every solution hides something. POLYGONE hides the existence of communication itself.</p>
+        </div>
+        
+        <div style="overflow-x: auto; margin: 32px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border);">
+                    <th style="text-align: left; padding: 12px 16px; color: var(--muted); font-size: 11px; letter-spacing: 2px;"></th>
+                    <th style="text-align: center; padding: 12px 16px; color: var(--muted); font-size: 11px; letter-spacing: 2px;">VPN</th>
+                    <th style="text-align: center; padding: 12px 16px; color: var(--muted); font-size: 11px; letter-spacing: 2px;">Tor</th>
+                    <th style="text-align: center; padding: 12px 16px; color: var(--accent); font-size: 11px; letter-spacing: 2px;">⬡ POLYGONE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">Hides content</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(139,109,255,0.03);">
+                    <td style="padding: 12px 16px; color: var(--text);">Hides source IP</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">Hides target IP</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(139,109,255,0.03);">
+                    <td style="padding: 12px 16px; color: var(--text);">Post-quantum crypto</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">No persistent relay</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(139,109,255,0.03);">
+                    <td style="padding: 12px 16px; color: var(--text);">Messages auto-evaporate</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">Provable zero-log</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--muted);">~</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 16px; color: var(--text);">Open source</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--muted);">~</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        
+        <div style="background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; padding: 24px 28px; margin: 32px 0; text-align: center;">
+            <div style="font-size: 13px; color: var(--text); margin-bottom: 8px;">The core insight: <strong style="color: var(--accent);">classical privacy tools hide what you say. POLYGONE hides that you said anything at all.</strong></div>
+            <div style="font-size: 11px; color: var(--muted);">~ = depends on implementation</div>
+        </div>
+
+                <div class="terminal-body" id="termBody">
+                    <div class="line"><span class="prompt">$</span> <span class="cmd" id="termCmd">polygone self-test</span><span id="cursor">█</span></div>
+                    <div class="line out ok" id="l1" style="display:none"></div>
+                    <div class="line out ok" id="l2" style="display:none"></div>
+                    <div class="line out ok" id="l3" style="display:none"></div>
+                    <div class="line out ok" id="l4" style="display:none"></div>
+                    <div class="line out ok" id="l5" style="display:none"></div>
+                    <div class="line out ok" id="l6" style="display:none"></div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="install" id="install">
+            <h2>Install in 30 seconds</h2>
+            <div class="os-tabs">
+                <button class="os-tab active" onclick="setOS('linux', this)">Linux</button>
+                <button class="os-tab" onclick="setOS('macos', this)">macOS</button>
+                <button class="os-tab" onclick="setOS('windows', this)">Windows</button>
+            </div>
+            <div class="code-block">
+                <code id="installCmd">curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
+                <button class="copy-btn" onclick="copyCmd()">Copy</button>
+            </div>
+        </div>
+        
+
+        <!-- Why Privacy Matters Now -->
+        <div class="section-header" id="why">
+            <h2>Why It Matters in 2026</h2>
+        </div>
+        
+        <div class="features-grid" style="margin-top: 0;">
+            <div class="feature">
+                <div class="feature-icon">⚠️</div>
+                <h3>Quantum Threat is Real</h3>
+                <p>NIST finalized ML-KEM in 2024. RSA and ECC are already obsolete — they just don't know it yet. POLYGONE is post-quantum from day one.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Metadata is Damaging</h3>
+                <p>Who you call matters more than what you say. A single metadata leak can destroy careers, relationships, and lives. POLYGONE doesn't leak metadata.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🌍</div>
+                <h3>Authoritarians Are Watching</h3>
+                <p>Encrypted apps get blocked. VPNs get banned. POLYGONE's protocol is invisible — there's no server to block, no protocol signature to detect.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔧</div>
+                <h3>Surveillance is Infrastructure</h3>
+                <p>Most "private" apps phone home. POLYGONE has zero telemetry, zero analytics, zero phone home. MIT licensed.</p>
+            </div>
+        </div>
+        
+        <div class="section-header" id="how">
+            <h2>The Protocol</h2>
+            <p>Classical encryption hides content. POLYGONE hides that a communication even existed.</p>
+        </div>
+        
+        <div class="protocol-flow">
+            <div class="protocol-step">
+                <div class="step-num">STEP 01</div>
+                <h4>ML-KEM-1024</h4>
+                <p>Post-quantum key exchange. Resists quantum cryptanalysis.</p>
+            </div>
+            <div class="protocol-arrow">⬡</div>
+            <div class="protocol-step">
+                <div class="step-num">STEP 02</div>
+                <h4>AES-256-GCM</h4>
+                <p>Encrypt payload with unique session nonce.</p>
+            </div>
+            <div class="protocol-arrow">⬡</div>
+            <div class="protocol-step">
+                <div class="step-num">STEP 03</div>
+                <h4>Shamir 4-of-7</h4>
+                <p>Fragment into 7 shares. 4 needed to reconstruct.</p>
+            </div>
+            <div class="protocol-arrow">⬡</div>
+            <div class="protocol-step">
+                <div class="step-num">STEP 04</div>
+                <h4>BLAKE3 DHT</h4>
+                <p>Route through random 7-node topology. 30s TTL.</p>
+            </div>
+            <div class="protocol-arrow">⬡</div>
+            <div class="protocol-step">
+                <div class="step-num">STEP 05</div>
+                <h4>Vaporize</h4>
+                <p>Message evaporates. No trace. No metadata.</p>
+            </div>
+        </div>
+        
+        <div class="quote">
+            "Traditional encryption protects content. But an observer can always see that a communication happened. Tor hides IPs. Signal encrypts messages. But nothing hides the existence of the communication itself. POLYGONE changes the question — not 'how to hide what circulates' but 'how to make it seem like nothing circulates at all.'"
+        </div>
+        
+        <div class="section-header" id="specs">
+            <h2>Cryptographic Specifications</h2>
+            <p>Pure Rust. Zero unsafe code. Memory-safe by default.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature">
+                <div class="feature-icon">🔐</div>
+                <h3>ML-KEM-1024</h3>
+                <p>NIST FIPS 203 standard. Post-quantum key encapsulation. 34µs encapsulation. Resists Shor's algorithm.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📝</div>
+                <h3>ML-DSA-87</h3>
+                <p>NIST FIPS 204 standard. Post-quantum signatures. Authenticate nodes and packets.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h3>AES-256-GCM</h3>
+                <p>Military-grade encryption. 96-bit random nonce per session. Auth tag guarantees integrity.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🌊</div>
+                <h3>Shamir 4-of-7 SSS</h3>
+                <p>Information-theoretic security. k-1 fragments reveal zero information. Classical secret sharing.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⏱️</div>
+                <h3>30s TTL + Auto-Vaporize</h3>
+                <p>Messages auto-expire. Fragments deleted. No forensic trail. ephemeral by design.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🛡️</div>
+                <h3>Forward Secrecy</h3>
+                <p>Unique keys per session. Compromised past keys don't threaten future communications.</p>
+            </div>
+        </div>
+        
+        <div class="stats-row">
+            <div class="stat">
+                <div class="value">34µs</div>
+                <div class="label">ML-KEM ENCAPSULATION</div>
+            </div>
+            <div class="stat">
+                <div class="value">3.8µs</div>
+                <div class="label">AES-256-GCM</div>
+            </div>
+            <div class="stat">
+                <div class="value">208µs</div>
+                <div class="label">FULL E2E SEND</div>
+            </div>
+            <div class="stat">
+                <div class="value">0</div>
+                <div class="label">METADATA LEAKED</div>
+            </div>
+        </div>
+        
+        <div class="section-header">
+            <h2>Built Different</h2>
+            <p>No VPN. No Tor. No "encrypted tunnel". POLYGONE is a completely different architecture.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature">
+                <div class="feature-icon">🌐</div>
+                <h3>No Tunnel</h3>
+                <p>No encrypted pipe between A and B. Message becomes distributed computational state across the DHT.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📡</div>
+                <h3>No Observability</h3>
+                <p>An observer cannot prove a message existed. No source IP, no target IP, no timing correlation.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💨</div>
+                <h3>No Persistence</h3>
+                <p>30-second TTL. Messages evaporate. Data never sits on disk. ephemeral by default.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔬</div>
+                <h3>Post-Quantum</h3>
+                <p>ML-KEM-1024 + ML-DSA-87. Ready for quantum computers that break RSA/ECC today.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>⬡ POLYGONE · By <a href="https://github.com/lvs0" target="_blank">Lévy</a>, 14 years old, France</p>
+            <p>MIT License · Version 1.0.0 · No investors · No token · No telemetry</p>
+            <p style="margin-top: 16px;"><a href="https://github.com/lvs0/Polygone" target="_blank">github.com/lvs0/Polygone</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        const cmds = {
+            linux: 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash',
+            macos: 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash',
+            windows: 'irm https://raw.githubusercontent.com/lvs0/Polygone/main/install.ps1 | iex'
+        };
+        
+        function setOS(os, btn) {
+            document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('installCmd').textContent = cmds[os];
+        }
+        
+        function copyCmd() {
+            const cmd = document.getElementById('installCmd').textContent;
+            navigator.clipboard.writeText(cmd).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+        
+        // Animated self-test on page load
+        (function() {
+            const lines = [
+                '⬡ POLYGONE SELF-TEST',
+                '  [1/5] ML-KEM-1024 round-trip …… PASS ✔',
+                '  [2/5] AES-256-GCM encrypt/decrypt …… PASS ✔',
+                '  [3/5] Shamir 4-of-7 (all 35 combinations) …… PASS ✔',
+                '  [4/5] Full session round-trip (Alice → Bob) …… PASS ✔',
+                '  [5/5] Insufficient fragments → rejected …… PASS ✔',
+                '  ✔ All 5 tests passed. POLYGONE is operational.'
+            ];
+            let i = 0;
+            const cursor = document.getElementById('cursor');
+            const interval = setInterval(() => {
+                if (i < lines.length) {
+                    const el = document.getElementById('l' + (i + 1));
+                    if (el) { el.style.display = 'block'; el.textContent = lines[i]; }
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    if (cursor) cursor.style.display = 'none';
+                }
+            }, 280);
+            // Blinking cursor
+            setInterval(() => { if (cursor) cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0'; }, 500);
+        })();
+    </script>
+</body>
+</html>

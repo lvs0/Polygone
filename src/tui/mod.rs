@@ -6,5 +6,6 @@
 pub mod app;
 pub mod views;
 pub mod widgets;
+pub mod favorites;
 
 pub use app::{App, run_tui};
