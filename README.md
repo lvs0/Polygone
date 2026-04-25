@@ -2,7 +2,9 @@
 
 > *"Information does not exist. It drifts."*
 
-**A post-quantum ephemeral privacy network where messages become distributed mathematical waves — then evaporate.**
+**A prototype implementation of Fisher-Yates topology derivation + Shamir secret sharing + ML-KEM-1024, demonstrating the cryptographic stack for a future distributed privacy network.**
+
+⚠️ **v1.0.0 is a local prototype.** Real P2P networking with the anonymity properties described below is targeted for v2.0.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-purple.svg)](https://github.com/lvs0/Polygone/blob/main/LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-100%25-b71200.svg)](https://www.rust-lang.org/)
@@ -41,9 +43,11 @@ cd Polygone && cargo build --release
 # polygone = { git = "https://github.com/lvs0/Polygone" }
 ```
 
-**API:** `polygone send <recipient_pubkey> <message>` — sends an ephemeral message.
+**API:** `polygone send <recipient_pubkey> <message>` — sends an ephemeral message (local mode in v1.0.0).
 
 **Rust library:** Full crypto stack exposed via `lib.rs` for integration into other Rust projects.
+
+> ⚠️ **Status note:** v1.0.0 operates in **local/simulated mode**. The cryptographic primitives are fully implemented and tested (self-test: 5/5 PASS). The distributed P2P network with real nodes is targeted for v2.0. Do not interpret the comparison table below as a claim about the current shipped implementation — it describes the design intent.
 
 ---
 
@@ -51,14 +55,16 @@ cd Polygone && cargo build --release
 
 Classical encryption protects **content** — but an observer can always prove a communication happened.
 
-| Solution | Hides Content | Hides Existence |
-|----------|:-------------:|:---------------:|
-| TLS/SSL | ✓ | ✗ |
-| Signal | ✓ | ✗ |
-| Tor | Partial | ✗ |
-| **POLYGONE** | ✓ | **✓** |
+| Solution | Hides Content | Hides Existence | Status |
+|----------|:-------------:|:---------------:|:------:|
+| TLS/SSL | ✓ | ✗ | Shipped |
+| Signal | ✓ | ✗ | Shipped |
+| Tor | Partial | ✗ | Shipped |
+| **POLYGONE** | ✓ | **✓** | **v2.0 target** |
 
 POLYGONE doesn't build a tunnel between A and B. It turns a message into a distributed computational state across nodes selected via Fisher-Yates shuffle — then makes it evaporate.
+
+> ⚠️ **Honesty note**: v1.0.0 is a local prototype. "Hides existence" is the **design goal for v2.0** when real P2P networking is implemented.
 
 ---
 
@@ -86,7 +92,7 @@ polygone help
 ## How It Works
 
 ```
-Sender                Network                 Receiver
+Sender              Local Process          Receiver
   │                      │                       │
   │  1. ML-KEM-1024      │                       │
   │     Key Exchange     │                       │
@@ -96,20 +102,21 @@ Sender                Network                 Receiver
   │     Payload Encrypt  │                       │
   │─────────────────────►│                       │
   │                      │                       │
-  │  3. Shamir 4-of-7     │                       │
-  │     Fragment          │                       │
+  │  3. Shamir 4-of-7    │                       │
+  │     Fragment         │                       │
   │─────────────────────►│───────────────────────►│
   │                      │                       │
-  │  4. Fisher-Yates      │                       │
-  │     7 selected nodes  │                       │
-  │     (local, v2.0)    │                       │
+  │  4. Fisher-Yates     │                       │
+  │     7 selected nodes │                       │
+  │     (v1.0: local sim, v2.0: P2P)            │
   │                      │                       │
-  │  5. Vaporize          │                       │
+  │  5. Vaporize         │                       │
   │     Fragments DELETE │                       │
   ✗                      ✗                       ✗
 ```
 
-**No tunnel. No observer can prove a message existed.**
+**v1.0.0**: Local prototype demonstrating the crypto stack. No real network traffic.
+**v2.0 target**: Distributed P2P network where no observer can prove a message existed.
 
 ---
 
@@ -146,39 +153,44 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 
 ## Security Properties
 
-```rust
-// POLYGONE is built around these guarantees:
+> ⚠️ These are **design goals** and **cryptographic guarantees at the primitive level**. v1.0.0 implements these primitives locally. The distributed P2P network (v2.0) is required before these properties hold at the network level.
 
-1. POST-QUANTUM
-   → ML-KEM-1024 key exchange
+```rust
+// POLYGONE cryptographic design (v1.0.0 implemented primitives):
+
+1. POST-QUANTUM (✓ implemented)
+   → ML-KEM-1024 key exchange (FIPS 203)
    → Resists quantum computers that break RSA/ECC
 
-2. ZERO METADATA
+2. ZERO METADATA (design goal for v2.0 — NOT yet active)
    → No source IP, no target IP, no timing correlation
    → Message becomes distributed state, not traffic
    
-   _Note: In v1.0.0 this is the cryptographic design goal. The network operates in local/simulated mode (P2P networking is targeted for v2.0)._
+   ⚠️ In v1.0.0: local/simulated mode. No real network traffic exists.
 
-3. INFORMATION-THEORETIC
+3. INFORMATION-THEORETIC (✓ Shamir implemented)
    → Shamir k-1 fragments = 0 information leaked
    → Even with infinite compute, observer learns nothing
 
-4. FORWARD SECRECY
+4. FORWARD SECRECY (✓ implemented)
    → Unique keys per session
    → Compromised keys don't threaten future comms
 
-5. EPHEMERAL BY DEFAULT
-   → 30-second TTL, auto-expire
+5. EPHEMERAL BY DEFAULT (✓ design intent)
+   → 30-second TTL (local), auto-expire
    → Fragments deleted, no forensic trail
+   → ⚠️ TTL behavior is local in v1.0.0; network TTL is v2.0
 
-6. MEMORY SAFETY
+6. MEMORY SAFETY (✓ implemented)
    → Zero unsafe code (#![forbid(unsafe_code)])
    → ZeroizeOnDrop, no heap leaks
 ```
 
 ---
 
-## Architecture
+## Architecture (v2.0 target)
+
+> ⚠️ This diagram represents the **target v2.0 architecture**, not v1.0.0. In v1.0.0, all operations occur locally in a single process.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -187,7 +199,7 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 │                                                          │
 │  ┌──────────────┐     ┌──────────────┐                  │
 │  │   Sender     │────▶│   7 Nodes    │                  │
-│  │  ML-KEM-1024  │     │  (random)     │                  │
+│  │  ML-KEM-1024  │     │  (Fisher-Yates)                 │
 │  │  AES-256-GCM │     │  BLAKE3 DHT   │                  │
 │  │  Shamir 4-7  │     │  30s TTL      │                  │
 │  └──────────────┘     └──────┬───────┘                  │
@@ -206,16 +218,16 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 
 ## Comparison
 
-| Property | Traditional VPN | Tor | POLYGONE |
-|----------|:---------------:|:---:|:--------:|
-| Hides content | ✓ | ✓ | ✓ |
-| Hides source IP | ✓ | ✓ | ✓ |
-| Hides destination | ✓ | Partial | ✓ |
-| Hides existence | ✗ | ✗ | **✓** |
-| Post-quantum | ✗ | ✗ | **✓** |
-| Forward secrecy | ✓ | ✓ | ✓ |
-| No telemetry | Rare | ✗ | **✓** |
-| 100% Rust | Rare | ✗ | **✓** |
+| Property | Traditional VPN | Tor | POLYGONE v1.0.0 (prototype) | POLYGONE v2.0 (target) |
+|----------|:---------------:|:---:|:-----------------------------:|:---------------------:|
+| Hides content | ✓ | ✓ | ✓ (AES-256-GCM) | ✓ |
+| Hides source IP | ✓ | ✓ | ✗ (local only) | ✓ |
+| Hides destination | ✓ | Partial | ✗ (local only) | ✓ |
+| Hides existence | ✗ | ✗ | ✗ (simulated network) | **✓** (design goal) |
+| Post-quantum KEM | ✗ | ✗ | ✓ (ML-KEM-1024) | ✓ |
+| Forward secrecy | ✓ | ✓ | ✓ (session keys) | ✓ |
+| No telemetry | Rare | ✗ | ✓ (no network in v1) | ✓ |
+| 100% Rust | Rare | ✗ | ✓ | ✓ |
 
 ---
 
