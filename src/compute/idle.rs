@@ -3,7 +3,7 @@
 //! Monitors CPU, RAM, and user activity (keyboard/mouse).
 //! Lending is paused when the user is active, resumed when idle.
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 /// Collected system metrics at a point in time.
 #[derive(Debug, Clone)]

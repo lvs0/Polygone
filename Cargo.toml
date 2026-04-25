@@ -7,6 +7,9 @@ description = "Post-quantum ephemeral privacy network — ML-KEM-1024 · Shamir 
 license = "MIT"
 repository = "https://github.com/lvs0/Polygone"
 rust-version = "1.75"
+readme = "README.md"
+keywords = ["post-quantum", "privacy", "network", "ml-kem", "shamir"]
+categories = ["cryptography", "network", "security"]
 
 [lib]
 name = "polygone"
@@ -15,6 +18,10 @@ path = "src/lib.rs"
 [[bin]]
 name = "polygone"
 path = "src/main.rs"
+
+[features]
+default = []
+server = []
 
 [profile.release]
 opt-level = 3
@@ -48,3 +55,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 dirs              = "5"
 ratatui           = "0.30"
 crossterm         = "0.27"
+
+[dev-dependencies]
+criterion = "0.5"

@@ -8,7 +8,7 @@ use ratatui::{
     Frame,
 };
 
-use super::app::{App, MessageKind};
+use super::app::App;
 
 // ── Header ────────────────────────────────────────────────────────────────────
 

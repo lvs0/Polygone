@@ -178,7 +178,7 @@ fn render_dashboard(frame: &mut Frame, area: Rect, app: &App) {
 
 // ── Keygen ────────────────────────────────────────────────────────────────────
 
-fn render_keygen(frame: &mut Frame, area: Rect, app: &App) {
+fn render_keygen(frame: &mut Frame, area: Rect, _app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
