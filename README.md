@@ -197,8 +197,7 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 # Linux / macOS
 curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
 
-# Windows (PowerShell)
-irm https://polygone.network/install.ps1 | iex
+# Windows → use WSL or build from source (see below)
 ```
 
 Or build from source:
