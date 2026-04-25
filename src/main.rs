@@ -1,15 +1,18 @@
 //! polygone — CLI entry point.
 //!
 //! Commands:
-
-#![allow(missing_docs)]
 //!   polygone keygen            → Generate ML-KEM-1024 + Ed25519 keypair, save to disk
 //!   polygone send              → Encrypt and fragment a message
 //!   polygone receive           → Reconstruct and decrypt a message
 //!   polygone node start|stop   → Relay node management
 //!   polygone status            → Show node and session status
 //!   polygone self-test         → Run crypto self-test suite
+//!   polygone install           → Launch the TUI installer
 //!   polygone tui               → Launch the TUI dashboard
+
+#![allow(missing_docs)]
+
+use std::io::{self, Read};
 
 #![forbid(unsafe_code)]
 
@@ -111,6 +114,9 @@ enum Commands {
         action: ComputeAction,
     },
 
+    /// Launch the guided TUI installer (download or build + setup)
+    Install,
+
     /// Launch the interactive TUI dashboard
     Tui {
         /// Which view to open first (dashboard|keygen|send|receive|node|selftest|services|params|help)
@@ -181,6 +187,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Status                           => cmd_status().await,
         Commands::SelfTest                         => cmd_selftest().await,
         Commands::Compute { action }               => cmd_compute(action).await,
+        Commands::Install                          => cmd_install().await,
         Commands::Tui { view }                     => cmd_tui(view),
     }
 }
@@ -553,6 +560,35 @@ async fn cmd_status() -> anyhow::Result<()> {
         }
     }
 
+    Ok(())
+}
+
+// ── install ────────────────────────────────────────────────────────────────────
+
+async fn cmd_install() -> anyhow::Result<()> {
+    use std::process::Command;
+
+    // Try to run the polygone-install binary alongside current exe
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let install_bin = parent.join("polygone-install");
+            if install_bin.exists() {
+                let status = Command::new(&install_bin).status()?;
+                if !status.success() {
+                    anyhow::bail!("Installer exited with error");
+                }
+                return Ok(());
+            }
+        }
+    }
+
+    // Fallback: print instructions
+    println!("Run the TUI installer directly:");
+    println!();
+    println!("  polygone-install");
+    println!();
+    println!("Or build it first:");
+    println!("  cargo build --bin polygone-install");
     Ok(())
 }
 
