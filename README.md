@@ -30,7 +30,7 @@ POLYGONE doesn't build a tunnel between A and B. It turns a message into a distr
 
 ```bash
 # Install (30 seconds)
-curl -fsSL https://polygone.network/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
 
 # Verify installation
 polygone self-test
@@ -195,7 +195,7 @@ Measured on AMD Ryzen 5 5600X. Run `polygone self-test` to verify on your hardwa
 
 ```bash
 # Linux / macOS
-curl -fsSL https://polygone.network/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
 
 # Windows (PowerShell)
 irm https://polygone.network/install.ps1 | iex

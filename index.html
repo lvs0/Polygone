@@ -432,7 +432,7 @@
                 <button class="os-tab" onclick="setOS('windows', this)">Windows</button>
             </div>
             <div class="code-block">
-                <code id="installCmd">curl -fsSL https://polygone.network/install.sh | bash</code>
+                <code id="installCmd">curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
                 <button class="copy-btn" onclick="copyCmd()">Copy</button>
             </div>
         </div>
@@ -572,8 +572,8 @@
     
     <script>
         const cmds = {
-            linux: 'curl -fsSL https://polygone.network/install.sh | bash',
-            macos: 'curl -fsSL https://polygone.network/install.sh | bash',
+            linux: 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash',
+            macos: 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash',
             windows: 'irm https://polygone.network/install.ps1 | iex'
         };
         
