@@ -3,10 +3,10 @@
 
 use std::path::PathBuf;
 use std::process::Command;
-use std::time::Duration;
+// use std::time::Duration; // unused for now
 
 use crossterm::event::{self, Event, KeyCode};
-use ratatui::layout::{Alignment, Rect};
+use ratatui::layout::{Alignment, Margin, Rect};
 use ratatui::{
     style::{Color, Style},
     text::{Line, Span},
@@ -116,7 +116,7 @@ impl App {
 
     fn build_from_source(&mut self, install_dir: &PathBuf) {
         let build_dir = dirs::home_dir()
-            .unwrap_or_else(|| PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("."))
             .join("polygone-src");
 
         if !build_dir.exists() {
@@ -208,7 +208,7 @@ impl App {
     }
 
     fn draw_welcome(&self, f: &mut Frame, rect: Rect) {
-        let inner = rect.inner(2);
+        let inner = rect.inner(Margin::new(2, 2));
 
         let lines = vec![
             Line::from(""),
@@ -244,7 +244,7 @@ impl App {
     }
 
     fn draw_install(&self, f: &mut Frame, rect: Rect) {
-        let inner = rect.inner(2);
+        let inner = rect.inner(Margin::new(2, 2));
 
         // Progress bar
         let pct = (self.progress * 100.0) as u16;
@@ -299,7 +299,7 @@ impl App {
     }
 
     fn draw_done(&self, f: &mut Frame, rect: Rect) {
-        let inner = rect.inner(2);
+        let inner = rect.inner(Margin::new(2, 2));
 
         let lines = vec![
             Line::from(""),

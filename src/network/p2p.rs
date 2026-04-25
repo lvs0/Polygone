@@ -9,12 +9,12 @@ use libp2p::{
     kad::{
         store::MemoryStore, Behaviour as Kademlia, Config as KademliaConfig, Mode,
     },
-    noise, tcp, yamux, PeerId, StreamProtocol, Swarm, SwarmBuilder, dns,
+    dns, tcp, PeerId, StreamProtocol, Swarm, SwarmBuilder,
 };
+use libp2p::swarm::NetworkBehaviour;
 use std::time::Duration;
 use std::path::Path;
 use std::fs;
-use libp2p::swarm::NetworkBehaviour;
 
 // ─── Identity ────────────────────────────────────────────────────────────────
 
@@ -51,18 +51,18 @@ pub struct PolygoneBehaviour {
 pub async fn build_swarm(
     keypair: Keypair,
 ) -> anyhow::Result<Swarm<PolygoneBehaviour>> {
-    // TCP transport with async I/O
+    // TCP transport
     let tcp_transport = tcp::Transport::new(tcp::Config::default());
 
-    // DNS-backed transport
-    let transport = dns::Transport::new(tcp_transport, dns::Config::system());
+    // DNS transport (wraps TCP, resolves domain names automatically)
+    let dns_transport = dns::tokio::Transport::system(tcp_transport)?;
 
     let local_peer_id = PeerId::from(keypair.public());
 
     // ─── Kademlia DHT ───────────────────────────────────────────────────────
     let store = MemoryStore::new(local_peer_id);
     let mut kad_config = KademliaConfig::default();
-    kad_config.set_protocol_names(vec![StreamProtocol::new("/polygone/kad/1.1.0")]);
+    kad_config.set_protocols(vec![StreamProtocol::new("/polygone/kad/1.1.0")]);
     kad_config.set_record_ttl(Some(Duration::from_secs(30)));
     kad_config.set_provider_record_ttl(Some(Duration::from_secs(30)));
     let mut kademlia = Kademlia::with_config(local_peer_id, store, kad_config);
@@ -79,8 +79,10 @@ pub async fn build_swarm(
     };
 
     // ─── Build swarm ─────────────────────────────────────────────────────────
-    let swarm = SwarmBuilder::new(transport, behaviour, local_peer_id)
-        .idle_timeout(std::time::Duration::from_secs(60))
+    let swarm = SwarmBuilder::with_existing_identity(keypair)?
+        .with_transport(dns_transport)?
+        .with_behaviour(behaviour)?
+        .with_swarm_config(|cfg| cfg.with_idle_timeout(Duration::from_secs(60)))
         .build();
 
     Ok(swarm)
