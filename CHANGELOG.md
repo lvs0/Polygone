@@ -2,6 +2,49 @@
 
 All notable changes to POLYGONE are documented here.
 
+## [Unreleased] — 2026-04-25
+
+### New in April 25, 2026 — Ecosystem Polish
+
+**Landing page (index.html):**
+- Cinematic terminal aesthetic with self-test animation preview
+- Protocol flow: ML-KEM → AES → Shamir → DHT → Vaporize
+- OS tabs (Linux/macOS/Windows) with copy buttons
+- Stats row: 34µs / 3.8µs / 208µs / 0 metadata leaked
+- 6 crypto feature cards, comparison table (VPN/Tor/POLYGONE)
+
+**Installer (install.sh):**
+- Smart installer: downloads pre-built binary OR builds from source
+- GitHub Releases support (download v1.0.0 binary directly)
+- Fallback to `cargo build --release` if no pre-built available
+- Self-test run after install to confirm operation
+
+**Documentation:**
+- Complete README rewrite with comparison table
+- ASCII architecture diagram
+- Security properties in rust comments
+- Full command reference
+- MIT License badge, Rust badge, version badge
+
+**CI/CD:**
+- GitHub Actions workflow: auto-build on `git tag v*`
+- Binary uploaded to GitHub Releases automatically
+
+### Bug Fixes
+
+- `cargo fix`: removed unused `Duration` import in compute/idle.rs
+- `cargo fix`: removed unused `MessageKind` in tui/views.rs
+- `cargo fix`: removed unused `app` variable in tui/widgets.rs
+- Cargo.toml cleaned (features section, optional deps)
+
+### Known Issues
+
+- `polygone-server` bin has broken libp2p 0.54→0.56 API — disabled from main build
+  - Run `cargo build --bin polygone-server --features server` to attempt fix
+  - Requires: add `libp2p = "0.56"` to Cargo.toml + fix SwarmBuilder API
+
+---
+
 ## [1.0.0] — 2026-04-17
 
 ### New in v1.0
@@ -29,12 +72,7 @@ All notable changes to POLYGONE are documented here.
 - `ZeroizeOnDrop` on all key material (KEM keys, session keys, shared secret)
 - Key files written with `chmod 600`, directory with `chmod 700`
 
-**Project structure fixed:**
-- All source in `src/` with proper module hierarchy
-- `Cargo.toml` paths corrected (`src/lib.rs`, `src/main.rs`)
-- 100% of TODOs from previous skeleton resolved
-
-### Bug fixes from v0.1 skeleton
+### Bug Fixes from v0.1 skeleton
 
 - **CRITICAL**: `Cargo.toml` referenced `src/lib.rs` but files were at root → project did not compile
 - `keygen`: keys were generated but never written to disk
@@ -44,10 +82,9 @@ All notable changes to POLYGONE are documented here.
 - No TUI implementation existed
 - Module tree `src/crypto/`, `src/network/`, `src/protocol/` did not exist
 
+---
+
 ## [0.1.0] — 2026-04-15 (skeleton)
 
 - Initial commit with architecture sketch
 - CLI structure with clap v4
-- `send --peer-pk demo` local demo working
-- Crypto primitives designed but not in correct module layout
-- No TUI, no key persistence, no receive, no real send
