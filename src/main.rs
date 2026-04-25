@@ -117,6 +117,9 @@ enum Commands {
     /// Launch the guided TUI installer (download or build + setup)
     Install,
 
+    /// Launch the Polygone TUI dashboard
+    Dashboard,
+
     /// Launch the interactive TUI dashboard
     Tui {
         /// Which view to open first (dashboard|keygen|send|receive|node|selftest|services|params|help)
@@ -188,6 +191,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::SelfTest                         => cmd_selftest().await,
         Commands::Compute { action }               => cmd_compute(action).await,
         Commands::Install                          => cmd_install().await,
+        Commands::Dashboard                        => cmd_dashboard().await,
         Commands::Tui { view }                     => cmd_tui(view),
     }
 }
@@ -590,6 +594,34 @@ async fn cmd_install() -> anyhow::Result<()> {
     println!("Or build it first:");
     println!("  cargo build --bin polygone-install");
     Ok(())
+}
+
+// ── dashboard ────────────────────────────────────────────────────────────────────
+
+async fn cmd_dashboard() -> anyhow::Result<()> {
+    // Launch the full-screen dashboard (same binary as install, step=Dashboard)
+    use std::process::Command;
+
+
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let install_bin = parent.join("polygone-install");
+            if install_bin.exists() {
+                // Run it directly — the dashboard is the "done" state of install
+                let status = Command::new(&install_bin).status()?;
+                if !status.success() {
+                    anyhow::bail!("Dashboard exited with error");
+                }
+                return Ok(());
+            }
+        }
+    }
+
+
+    // Fallback: run the existing TUI
+    println!("Launching Polygone dashboard...");
+    crate::tui::run_tui(Default::default())
+        .map_err(|e| anyhow::anyhow!("TUI error: {}", e))
 }
 
 // ── self-test ─────────────────────────────────────────────────────────────────
