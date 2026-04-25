@@ -2,7 +2,8 @@ use clap::Parser;
 use tracing_subscriber::{fmt, EnvFilter};
 use std::path::PathBuf;
 use std::fs;
-use libp2p::{identity::Keypair, futures::StreamExt, swarm::SwarmEvent, PeerId};
+use libp2p::{identity::Keypair, swarm::SwarmEvent, PeerId};
+use futures::StreamExt;
 use anyhow::Result;
 
 use polygone::network::p2p::{build_swarm, load_or_generate_identity};

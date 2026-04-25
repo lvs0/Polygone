@@ -3,6 +3,9 @@
 pub mod node;
 pub mod topology;
 
+#[cfg(feature = "server")]
+pub mod p2p;
+
 pub use node::EphemeralNode;
 pub use topology::{Topology, TopologyParams};
 
