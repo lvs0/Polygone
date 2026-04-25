@@ -250,14 +250,12 @@ impl App {
         let pct = (self.progress * 100.0) as u16;
         let bar_w = (inner.width as f32 * self.progress) as u16;
 
+        let pad_len = (inner.width as usize).saturating_sub(8_usize.saturating_add(bar_w as usize));
+        let bar_pad = " ".repeat(pad_len);
         let bar_line = Line::from(vec![
             Span::raw("  ["),
             Span::styled("=".repeat(bar_w as usize), Style::new().fg(C_COBALT)),
-            Span::raw(&*format!(
-                "{: >width$}",
-                "",
-                width = (inner.width as usize - 8 - bar_w as usize).max(0)
-            )),
+            Span::raw(bar_pad),
             Span::raw("] "),
             Span::raw(format!("{}%", pct)),
         ]);
