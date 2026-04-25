@@ -20,6 +20,10 @@ name = "polygone"
 path = "src/main.rs"
 
 [[bin]]
+name = "polygone-install"
+path = "src/bin/polygone-install.rs"
+
+[[bin]]
 name = "polygone-server"
 path = "src/bin/polygone-server.rs"
 required-features = ["server"]
