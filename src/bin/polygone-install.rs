@@ -15,6 +15,7 @@ use ratatui::{
 };
 
 const VERSION: &str = "1.0.0";
+#[allow(dead_code)]
 const C_BG: Color = Color::Rgb(10, 10, 15);
 const C_SURFACE: Color = Color::Rgb(17, 17, 24);
 const C_BORDER: Color = Color::Rgb(30, 30, 46);
@@ -36,7 +37,6 @@ struct App {
     status: String,
     log: Vec<String>,
     error: Option<String>,
-    done: bool,
 }
 
 impl App {
@@ -47,7 +47,6 @@ impl App {
             status: String::new(),
             log: Vec::new(),
             error: None,
-            done: false,
         }
     }
 
@@ -339,7 +338,11 @@ impl App {
             if let Event::Key(key) = event::read()? {
                 match self.step {
                     Step::Welcome => {
-                        if key.code == KeyCode::Enter || key.code == KeyCode::Char(' ') {
+                        // Any key to continue
+                        if matches!(key.kind, event::KeyEventKind::Press | event::KeyEventKind::Repeat)
+                            || key.code == KeyCode::Enter
+                            || key.code == KeyCode::Char(' ')
+                        {
                             self.install();
                         } else if key.code == KeyCode::Char('q') || key.code == KeyCode::Esc {
                             break;
