@@ -13,7 +13,7 @@ use ratatui::{
 use super::app::App;
 use super::widgets::{
     render_balance_card, render_favorites_grid, render_header,
-    render_messages, render_node_grid, render_pause_modal,
+    render_messages, render_pause_modal,
     render_quick_actions, render_service_list, render_statusbar,
     render_tabs, section_block,
 };

@@ -206,7 +206,7 @@ pub fn render_pause_modal(frame: &mut Frame, area: Rect) {
     for chunk in durations.chunks(3) {
         let mut line_spans = vec![Span::raw("  ")];
         for d in chunk {
-            let btn = format!("[{d}]");
+            let _btn = format!("[{d}]");
             line_spans.push(Span::styled(
                 format!(" {:>10} ", d),
                 Style::default()
@@ -239,7 +239,7 @@ pub fn render_pause_modal(frame: &mut Frame, area: Rect) {
 // ── Favorites view ────────────────────────────────────────────────────────────
 
 /// Render the 3-column favorites layout (Serveur | Drive | Storage).
-pub fn render_favorites_grid(frame: &mut Frame, area: Rect, app: &App) {
+pub fn render_favorites_grid(frame: &mut Frame, area: Rect, _app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
