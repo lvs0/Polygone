@@ -17,8 +17,9 @@ use crate::keys;
 
 // ── View enum ─────────────────────────────────────────────────────────────────
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub enum View {
+    #[default]
     Dashboard,
     Keygen,
     Send,
@@ -29,6 +30,7 @@ pub enum View {
     Params,
     Help,
 }
+
 
 impl View {
     fn tab_index(self) -> usize {

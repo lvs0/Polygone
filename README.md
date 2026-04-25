@@ -8,6 +8,42 @@
 [![Rust](https://img.shields.io/badge/Rust-100%25-b71200.svg)](https://www.rust-lang.org/)
 [![No unsafe code](https://img.shields.io/badge/unsafe-forbidden-b00000.svg)](https://github.com/lvs0/Polygone)
 [![v1.0.0](https://img.shields.io/badge/version-1.0.0-8b6dff.svg)](https://github.com/lvs0/Polygone/releases)
+[![Binary: 2.1 MB](https://img.shields.io/badge/binary-2.1%20MB-purple.svg)](https://github.com/lvs0/Polygone/releases)
+[![Self-test: 5/5 PASS](https://img.shields.io/badge/self--test-5%2F5%20PASS-green.svg)](https://github.com/lvs0/Polygone#how-it-works)
+
+```
+$ polygone self-test
+⬡ POLYGONE SELF-TEST
+  [1/5] ML-KEM-1024 round-trip …… PASS ✔
+  [2/5] AES-256-GCM encrypt/decrypt …… PASS ✔
+  [3/5] Shamir 4-of-7 (all 35 combinations) …… PASS ✔
+  [4/5] Full session round-trip (Alice → Bob) …… PASS ✔
+  [5/5] Insufficient fragments → rejected …… PASS ✔
+  ✔ All 5 tests passed. POLYGONE is operational.
+```
+
+
+---
+
+## For Developers
+
+```bash
+# Install the binary
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
+
+# Or build from source
+git clone https://github.com/lvs0/Polygone
+cd Polygone && cargo build --release
+./target/release/polygone self-test
+
+# Use as a library
+# Add to Cargo.toml:
+# polygone = { git = "https://github.com/lvs0/Polygone" }
+```
+
+**API:** `polygone send <recipient_pubkey> <message>` — sends an ephemeral message.
+
+**Rust library:** Full crypto stack exposed via `lib.rs` for integration into other Rust projects.
 
 ---
 

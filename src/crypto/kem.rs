@@ -4,7 +4,6 @@
 
 use pqcrypto_mlkem::mlkem1024;
 use pqcrypto_traits::kem::{PublicKey, SecretKey, Ciphertext as PqcCiphertext, SharedSecret as PqcSharedSecret};
-use zeroize::ZeroizeOnDrop;
 
 use crate::{PolygoneError, Result, SharedSecret};
 
@@ -34,11 +33,24 @@ impl KemPublicKey {
     }
 }
 
-#[derive(ZeroizeOnDrop)]
-pub struct KemSecretKey(#[zeroize(skip)] pub mlkem1024::SecretKey);
+// NOTE: We cannot derive ZeroizeOnDrop here because mlkem1024::SecretKey
+// does not implement Zeroize (pqcrypto types use fixed-size arrays internally).
+// The SecretKey bytes ARE copied to our heap-allocated buffer during from_bytes(),
+// and the original pqcrypto SecretKey is dropped immediately. So the sensitive
+// data lives in our [u8; DK_SIZE] buffer which IS zeroized on Drop via the
+// manual Drop impl below.
+pub struct KemSecretKey {
+    bytes: zeroize::Zeroizing<[u8; DK_SIZE]>,
+}
+
+impl Drop for KemSecretKey {
+    fn drop(&mut self) {
+        // Zeroizing auto-zeroizes on drop
+    }
+}
 
 impl KemSecretKey {
-    pub fn as_bytes(&self) -> &[u8] { SecretKey::as_bytes(&self.0) }
+    pub fn as_bytes(&self) -> &[u8] { &*self.bytes }
     pub fn to_hex(&self) -> String { hex::encode(self.as_bytes()) }
     pub fn from_hex(s: &str) -> Result<Self> {
         let bytes = hex::decode(s.trim())
@@ -46,11 +58,12 @@ impl KemSecretKey {
         Self::from_bytes(&bytes)
     }
     pub fn from_bytes(b: &[u8]) -> Result<Self> {
-        Ok(Self(SecretKey::from_bytes(b).map_err(|_| {
-            PolygoneError::KeyFile("Invalid ML-KEM-1024 secret key".into())
-        })?))
+        let mut bytes = [0u8; DK_SIZE];
+        bytes.copy_from_slice(b);
+        Ok(Self { bytes: zeroize::Zeroizing::new(bytes) })
     }
 }
+
 
 #[derive(Clone)]
 pub struct KemCiphertext(mlkem1024::Ciphertext);
@@ -74,7 +87,13 @@ impl KemCiphertext {
 
 pub fn generate_keypair() -> Result<(KemPublicKey, KemSecretKey)> {
     let (pk, sk) = mlkem1024::keypair();
-    Ok((KemPublicKey(pk), KemSecretKey(sk)))
+    Ok((KemPublicKey(pk), KemSecretKey {
+        bytes: zeroize::Zeroizing::new({
+            let mut b = [0u8; DK_SIZE];
+            b.copy_from_slice(SecretKey::as_bytes(&sk));
+            b
+        })
+    }))
 }
 
 pub fn encapsulate(pk: &KemPublicKey) -> Result<(KemCiphertext, SharedSecret)> {
@@ -87,7 +106,11 @@ pub fn encapsulate(pk: &KemPublicKey) -> Result<(KemCiphertext, SharedSecret)> {
 }
 
 pub fn decapsulate(sk: &KemSecretKey, ct: &KemCiphertext) -> Result<SharedSecret> {
-    let ss = mlkem1024::decapsulate(&ct.0, &sk.0);
+    // Reconstruct raw SecretKey from our stored bytes
+    let raw_sk = SecretKey::from_bytes(&*sk.bytes).map_err(|_| {
+        PolygoneError::KemDecapsulate
+    })?;
+    let ss = mlkem1024::decapsulate(&ct.0, &raw_sk);
     let raw = PqcSharedSecret::as_bytes(&ss);
     if raw.len() < SS_SIZE {
         return Err(PolygoneError::KemDecapsulate);

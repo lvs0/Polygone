@@ -11,9 +11,6 @@
 //!   polygone tui               → Launch the TUI dashboard
 
 #![allow(missing_docs)]
-
-use std::io::{self, Read};
-
 #![forbid(unsafe_code)]
 
 use std::io::{self, Read};
@@ -620,7 +617,7 @@ async fn cmd_dashboard() -> anyhow::Result<()> {
 
     // Fallback: run the existing TUI
     println!("Launching Polygone dashboard...");
-    crate::tui::run_tui(Default::default())
+    run_tui(Default::default())
         .map_err(|e| anyhow::anyhow!("TUI error: {}", e))
 }
 

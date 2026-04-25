@@ -83,11 +83,25 @@ impl Topology {
             nodes.push(NodeId(id_bytes));
         }
 
-        // Simple round-robin fragment assignment:
-        // fragment 0 → node 0, fragment 1 → node 1, ..., fragment n-1 → node n-1
-        // This is deterministic and distributes load evenly.
+        // Deterministic random fragment assignment derived from topo_seed.
+        // Both Alice and Bob derive the SAME assignment (good — protocol needs it),
+        // but it's unpredictable to an outside observer (good — privacy).
+        // We expand the topo_seed with a different BLAKE3 domain to get random
+        // node indices, then do a Fisher-Yates shuffle of n elements in-place.
+        let mut xof = blake3::Hasher::new_derive_key("polygone-fragment-assign-v1")
+            .update(topo_seed)
+            .finalize_xof();
+        let mut shuffle_idx: Vec<u8> = (0..n as u8).collect();
+        for i in (1..n).rev() {
+            // Pick a random byte to swap element i with a lower index
+            let mut buf = [0u8; 1];
+            xof.fill(&mut buf);
+            let j = buf[0] as usize % (i + 1);
+            shuffle_idx.swap(i, j);
+        }
+        // Now shuffled_indices[i] = which node fragment i goes to
         let fragment_assignment: Vec<(u8, usize)> = (0..n)
-            .map(|i| (i as u8, i % n))
+            .map(|i| (i as u8, shuffle_idx[i] as usize))
             .collect();
 
         Ok(Self { params, nodes, fragment_assignment })

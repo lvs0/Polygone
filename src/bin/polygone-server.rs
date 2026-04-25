@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
     let mut swarm = build_swarm(local_key).await?;
 
     let listen_addr: libp2p::Multiaddr = cli.listen.parse().expect("Invalid listen address");
-    swarm.listen_on(listen_addr)?;
+    swarm.listen_on(listen_addr.clone())?;
     tracing::info!("Listening on {listen_addr}");
 
     if let Some(boot) = &cli.bootstrap {

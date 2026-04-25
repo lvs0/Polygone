@@ -395,6 +395,7 @@
             <div class="links">
                 <a href="#install">Install</a>
                 <a href="#how">Protocol</a>
+                <a href="#compare">Compare</a>
                 <a href="#specs">Specs</a>
                 <a href="https://github.com/lvs0/Polygone" target="_blank">GitHub</a>
             </div>
@@ -411,15 +412,88 @@
                     <div class="terminal-dot y"></div>
                     <div class="terminal-dot g"></div>
                 </div>
-                <div class="terminal-body">
-                    <div class="line"><span class="prompt">$</span> <span class="cmd">polygone self-test</span></div>
-                    <div class="line out ok">⬡ POLYGONE SELF-TEST</div>
-                    <div class="line out ok">  [1/5] ML-KEM-1024 round-trip … PASS ✔</div>
-                    <div class="line out ok">  [2/5] AES-256-GCM encrypt/decrypt … PASS ✔</div>
-                    <div class="line out ok">  [3/5] Shamir 4-of-7 (all 35 combinations) … PASS ✔</div>
-                    <div class="line out ok">  [4/5] Full session round-trip (Alice → Bob) … PASS ✔</div>
-                    <div class="line out ok">  [5/5] Insufficient fragments → rejected … PASS ✔</div>
-                    <div class="line out ok">  ✔ All 5 tests passed. POLYGONE is operational.</div>
+        <!-- Comparison Table -->
+        <div class="section-header" id="compare" style="padding-top: 0; border-top: none;">
+            <h2>Compared to the Alternatives</h2>
+            <p>Every solution hides something. POLYGONE hides the existence of communication itself.</p>
+        </div>
+        
+        <div style="overflow-x: auto; margin: 32px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border);">
+                    <th style="text-align: left; padding: 12px 16px; color: var(--muted); font-size: 11px; letter-spacing: 2px;"></th>
+                    <th style="text-align: center; padding: 12px 16px; color: var(--muted); font-size: 11px; letter-spacing: 2px;">VPN</th>
+                    <th style="text-align: center; padding: 12px 16px; color: var(--muted); font-size: 11px; letter-spacing: 2px;">Tor</th>
+                    <th style="text-align: center; padding: 12px 16px; color: var(--accent); font-size: 11px; letter-spacing: 2px;">⬡ POLYGONE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">Hides content</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(139,109,255,0.03);">
+                    <td style="padding: 12px 16px; color: var(--text);">Hides source IP</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">Hides target IP</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(139,109,255,0.03);">
+                    <td style="padding: 12px 16px; color: var(--text);">Post-quantum crypto</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">No persistent relay</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border); background: rgba(139,109,255,0.03);">
+                    <td style="padding: 12px 16px; color: var(--text);">Messages auto-evaporate</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 16px; color: var(--text);">Provable zero-log</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--danger);">✗</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--muted);">~</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 16px; color: var(--text);">Open source</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--muted);">~</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                    <td style="text-align: center; padding: 12px 16px; color: var(--success);">✓</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        
+        <div style="background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; padding: 24px 28px; margin: 32px 0; text-align: center;">
+            <div style="font-size: 13px; color: var(--text); margin-bottom: 8px;">The core insight: <strong style="color: var(--accent);">classical privacy tools hide what you say. POLYGONE hides that you said anything at all.</strong></div>
+            <div style="font-size: 11px; color: var(--muted);">~ = depends on implementation</div>
+        </div>
+
+                <div class="terminal-body" id="termBody">
+                    <div class="line"><span class="prompt">$</span> <span class="cmd" id="termCmd">polygone self-test</span><span id="cursor">█</span></div>
+                    <div class="line out ok" id="l1" style="display:none"></div>
+                    <div class="line out ok" id="l2" style="display:none"></div>
+                    <div class="line out ok" id="l3" style="display:none"></div>
+                    <div class="line out ok" id="l4" style="display:none"></div>
+                    <div class="line out ok" id="l5" style="display:none"></div>
+                    <div class="line out ok" id="l6" style="display:none"></div>
                 </div>
             </div>
         </section>
@@ -434,6 +508,35 @@
             <div class="code-block">
                 <code id="installCmd">curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
                 <button class="copy-btn" onclick="copyCmd()">Copy</button>
+            </div>
+        </div>
+        
+
+        <!-- Why Privacy Matters Now -->
+        <div class="section-header" id="why">
+            <h2>Why It Matters in 2026</h2>
+        </div>
+        
+        <div class="features-grid" style="margin-top: 0;">
+            <div class="feature">
+                <div class="feature-icon">⚠️</div>
+                <h3>Quantum Threat is Real</h3>
+                <p>NIST finalized ML-KEM in 2024. RSA and ECC are already obsolete — they just don't know it yet. POLYGONE is post-quantum from day one.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Metadata is Damaging</h3>
+                <p>Who you call matters more than what you say. A single metadata leak can destroy careers, relationships, and lives. POLYGONE doesn't leak metadata.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🌍</div>
+                <h3>Authoritarians Are Watching</h3>
+                <p>Encrypted apps get blocked. VPNs get banned. POLYGONE's protocol is invisible — there's no server to block, no protocol signature to detect.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔧</div>
+                <h3>Surveillance is Infrastructure</h3>
+                <p>Most "private" apps phone home. POLYGONE has zero telemetry, zero analytics, zero phone home. MIT licensed.</p>
             </div>
         </div>
         
@@ -574,7 +677,7 @@
         const cmds = {
             linux: 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash',
             macos: 'curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash',
-             iex'| iex'
+            windows: 'irm https://raw.githubusercontent.com/lvs0/Polygone/main/install.ps1 | iex'
         };
         
         function setOS(os, btn) {
@@ -591,6 +694,33 @@
                 setTimeout(() => btn.textContent = 'Copy', 2000);
             });
         }
+        
+        // Animated self-test on page load
+        (function() {
+            const lines = [
+                '⬡ POLYGONE SELF-TEST',
+                '  [1/5] ML-KEM-1024 round-trip …… PASS ✔',
+                '  [2/5] AES-256-GCM encrypt/decrypt …… PASS ✔',
+                '  [3/5] Shamir 4-of-7 (all 35 combinations) …… PASS ✔',
+                '  [4/5] Full session round-trip (Alice → Bob) …… PASS ✔',
+                '  [5/5] Insufficient fragments → rejected …… PASS ✔',
+                '  ✔ All 5 tests passed. POLYGONE is operational.'
+            ];
+            let i = 0;
+            const cursor = document.getElementById('cursor');
+            const interval = setInterval(() => {
+                if (i < lines.length) {
+                    const el = document.getElementById('l' + (i + 1));
+                    if (el) { el.style.display = 'block'; el.textContent = lines[i]; }
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    if (cursor) cursor.style.display = 'none';
+                }
+            }, 280);
+            // Blinking cursor
+            setInterval(() => { if (cursor) cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0'; }, 500);
+        })();
     </script>
 </body>
 </html>
