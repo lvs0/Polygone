@@ -39,3 +39,11 @@ pub use error::{PolygoneError, Result};
 
 /// Crate version.
 pub const VERSION: &str = "1.0.0";
+
+// ─── Re-exports for server feature ────────────────────────────────────────────
+
+#[cfg(feature = "server")]
+pub extern crate libp2p;
+
+#[cfg(feature = "server")]
+pub use base64;
