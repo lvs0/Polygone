@@ -402,9 +402,10 @@
         </nav>
         
         <section class="hero">
-            <div class="hero-badge">Post-Quantum · Zero Metadata · Open Source</div>
+            <div class="hero-badge">Post-Quantum · v1.0.0 Local Prototype · Open Source</div>
             <h1>POLYGONE</h1>
             <p class="hero-sub">"Information does not exist. It drifts."</p>
+            <p style="color: var(--muted); font-size: 12px; margin-top: 8px;">⚠️ v1.0.0 is a local prototype. Real P2P networking targets v2.0.</p>
             
             <div class="terminal">
                 <div class="terminal-bar">
@@ -567,30 +568,30 @@
             <div class="protocol-step">
                 <div class="step-num">STEP 04</div>
                 <h4>BLAKE3 DHT</h4>
-                <p>Route through random 7-node topology. 30s TTL.</p>
+                <p>Route through random 7-node topology. ⚠️ Local TTL in v1.0, distributed in v2.0.</p>
             </div>
             <div class="protocol-arrow">⬡</div>
             <div class="protocol-step">
                 <div class="step-num">STEP 05</div>
                 <h4>Vaporize</h4>
-                <p>Message evaporates. No trace. No metadata.</p>
+                <p>Message evaporates. No trace. ⚠️ v2.0 target — local prototype in v1.0.0.</p>
             </div>
         </div>
         
         <div class="quote">
-            "Traditional encryption protects content. But an observer can always see that a communication happened. Tor hides IPs. Signal encrypts messages. But nothing hides the existence of the communication itself. POLYGONE changes the question — not 'how to hide what circulates' but 'how to make it seem like nothing circulates at all.'"
+            "Traditional encryption protects content. But an observer can always see that a communication happened. Tor hides IPs. Signal encrypts messages. POLYGONE aims to hide the existence of the communication itself — this is the v2.0 design goal. v1.0.0 is a local prototype demonstrating the cryptographic stack."
         </div>
         
         <div class="section-header" id="specs">
             <h2>Cryptographic Specifications</h2>
-            <p>Pure Rust. Zero unsafe code. Memory-safe by default.</p>
+            <p>Memory-safe API over post-quantum crypto. ⚠️ pqcrypto libs use unsafe internals (libcrux).</p>
         </div>
         
         <div class="features-grid">
             <div class="feature">
                 <div class="feature-icon">🔐</div>
                 <h3>ML-KEM-1024</h3>
-                <p>NIST FIPS 203 standard. Post-quantum key encapsulation. 34µs encapsulation. Resists Shor's algorithm.</p>
+                <p>NIST FIPS 203 standard. Post-quantum key encapsulation. Resists quantum cryptanalysis.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">📝</div>
@@ -600,7 +601,7 @@
             <div class="feature">
                 <div class="feature-icon">🔒</div>
                 <h3>AES-256-GCM</h3>
-                <p>Military-grade encryption. 96-bit random nonce per session. Auth tag guarantees integrity.</p>
+                <p>Standard AES-256-GCM. 96-bit random nonce per session. Auth tag verifies integrity.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🌊</div>
@@ -610,7 +611,7 @@
             <div class="feature">
                 <div class="feature-icon">⏱️</div>
                 <h3>30s TTL + Auto-Vaporize</h3>
-                <p>Messages auto-expire. Fragments deleted. No forensic trail. ephemeral by design.</p>
+                <p>Messages auto-expire. ⚠️ Local TTL in v1.0. No forensic trail — design goal.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🛡️</div>
