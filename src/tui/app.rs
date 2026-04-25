@@ -25,6 +25,8 @@ pub struct App {
     pub messages: Vec<(MessageKind, String)>,
     /// Tick counter (incremented each ~100ms for animations).
     pub tick: u64,
+    /// Whether the pause modal is shown (Dashboard sub-action).
+    pub show_pause_modal: bool,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -65,6 +67,7 @@ impl App {
                 (MessageKind::Info, "Welcome to POLYGONE v1.0.0 — post-quantum ephemeral network".into()),
             ],
             tick: 0,
+            show_pause_modal: false,
         }
     }
 
@@ -88,15 +91,20 @@ impl App {
                 return;
             }
             // View navigation
-            KeyCode::Char('1') => self.current_view = View::Dashboard,
-            KeyCode::Char('2') => self.current_view = View::Keygen,
-            KeyCode::Char('3') => self.current_view = View::Send,
-            KeyCode::Char('4') => self.current_view = View::Receive,
-            KeyCode::Char('5') => self.current_view = View::Node,
-            KeyCode::Char('6') => self.current_view = View::SelfTest,
-            KeyCode::Char('7') => self.current_view = View::Services,
-            KeyCode::Char('8') => self.current_view = View::Params,
-            KeyCode::Char('?') | KeyCode::Char('h') => self.current_view = View::Help,
+            KeyCode::Char('p') => {
+                if self.current_view == View::Dashboard {
+                    self.show_pause_modal = !self.show_pause_modal;
+                }
+            }
+            KeyCode::Char('1') => { self.current_view = View::Dashboard; self.show_pause_modal = false; }
+            KeyCode::Char('2') => { self.current_view = View::Favoris; self.show_pause_modal = false; }
+            KeyCode::Char('3') => { self.current_view = View::Services; self.show_pause_modal = false; }
+            KeyCode::Char('4') => { self.current_view = View::Params; self.show_pause_modal = false; }
+            KeyCode::Char('5') => { self.current_view = View::Keygen; self.show_pause_modal = false; }
+            KeyCode::Char('6') => { self.current_view = View::Send; self.show_pause_modal = false; }
+            KeyCode::Char('7') => { self.current_view = View::Receive; self.show_pause_modal = false; }
+            KeyCode::Char('8') => { self.current_view = View::Node; self.show_pause_modal = false; }
+            KeyCode::Char('9') => { self.current_view = View::SelfTest; self.show_pause_modal = false; }
             _ => {}
         }
     }
