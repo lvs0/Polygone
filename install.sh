@@ -90,6 +90,9 @@ post_install() {
     echo ""
     echo -e "${GREEN}  ⬡ POLYGONE is ready.${NC}"
     echo ""
+    echo -e "  Try the local demo:"
+    echo -e "  ${CYAN}polygone send --peer-pk demo --message \"Hello!\"${NC}"
+    echo ""
 }
 
 # ─── Main ─────────────────────────────────────────────────────────

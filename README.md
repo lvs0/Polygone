@@ -77,10 +77,22 @@ curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bas
 # Verify installation
 polygone self-test
 
-# Generate keys
-polygone keygen
+# ── Try it now — local demo ────────────────────────────────
+polygone send --peer-pk demo --message "Hello, Polygone!"
+# Output: Alice → Bob full round-trip, encrypted + fragmented locally
+#
+# What just happened:
+#  1. Bob generated a fresh keypair
+#  2. Alice encapsulated a session secret with Bob's public key
+#  3. Both derived the same 7-node topology (deterministic, from shared secret)
+#  4. Alice's message was AES-256-GCM encrypted
+#  5. Ciphertext split into 7 Shamir fragments (threshold: 4)
+#  6. Bob collected fragments and reconstructed the message
+#  7. Session dissolved, keying material zeroed
+#
+#  NOTE: This is a LOCAL demo. Real P2P networking is v2.0.
 
-# Start a node
+# Start a node (v1.0: local hold, v2.0: real P2P participation)
 polygone node start
 
 # Get help
