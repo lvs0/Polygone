@@ -11,17 +11,17 @@ use std::process::Command;
 
 use crossterm::event::{self, Event, KeyEventKind, KeyCode};
 use ratatui::{
-    layout::{Alignment, Constraint, Direction, Layout, Margin, Rect},
+    layout::{Alignment, Margin, Rect},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Clear, Gauge, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Wrap},
     DefaultTerminal, Frame,
 };
+use serde_json::{json, Value};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // ─── Colors ─────────────────────────────────────────────────────────────────
-const C_VOID:    Color = Color::Rgb(10, 10, 15);
 const C_SURFACE: Color = Color::Rgb(17, 17, 24);
 const C_BORDER:  Color = Color::Rgb(30, 30, 46);
 const C_COBALT:  Color = Color::Rgb(26, 107, 255);
@@ -29,7 +29,7 @@ const C_GREEN:   Color = Color::Rgb(40, 200, 64);
 const C_RED:     Color = Color::Rgb(255, 59, 48);
 const C_YELLOW:  Color = Color::Rgb(255, 204, 0);
 const C_TEXT:    Color = Color::Rgb(200, 200, 232);
-const C_DIM:    Color = Color::Rgb(74, 74, 106);
+const C_DIM:     Color = Color::Rgb(74, 74, 106);
 
 // ─── Install state ────────────────────────────────────────────────────────────
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -51,7 +51,7 @@ enum Lang { EN, FR }
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum MenuAction { None, Update, Reinstall, Uninstall, Launch }
 
-// ─── Step data ───────────────────────────────────────────────────────────────
+// ─── Config ─────────────────────────────────────────────────────────────────
 struct Config {
     lang: Lang,
     username: String,
@@ -78,10 +78,9 @@ impl Config {
     }
 
     fn load(&mut self) {
-        use json::JsonValue;
         let cfg_file = self.config_dir.join("config.json");
         if let Ok(data) = std::fs::read_to_string(&cfg_file) {
-            if let Ok(v) = data.parse::<JsonValue>() {
+            if let Ok(v) = data.parse::<Value>() {
                 if let Some(u) = v.get("username").and_then(|x| x.as_str()) {
                     self.username = u.to_string();
                 }
@@ -107,24 +106,21 @@ impl Config {
             NodeChoice::Active => "active",
         };
         let lang_str = match self.lang { Lang::FR => "fr", Lang::EN => "en" };
-        let obj = json::object! {
-            version: VERSION,
-            username: &self.username,
-            node_mode: node_str,
-            language: lang_str,
-        };
-        std::fs::write(self.config_dir.join("config.json"), obj.to_string()).ok();
+        let obj = json!({
+            "version": VERSION,
+            "username": &self.username,
+            "node_mode": node_str,
+            "language": lang_str,
+        });
+        std::fs::write(self.config_dir.join("config.json"), serde_json::to_string_pretty(&obj).unwrap_or_default()).ok();
     }
 
-    fn label(&self) -> String {
-        match self.lang {
-            Lang::FR => "Français".into(),
-            Lang::EN => "English".into(),
-        }
-    }
-
-    fn tr(&self, en: &str, fr: &str) -> &str {
+    fn tr(&self, en: &str, fr: &str) -> &'static str {
         match self.lang { Lang::FR => fr, Lang::EN => en }
+    }
+
+    fn label(&self) -> &'static str {
+        match self.lang { Lang::FR => "Français", Lang::EN => "English" }
     }
 }
 
@@ -176,12 +172,12 @@ impl App {
     }
 
     fn run_install(&mut self) {
-        // Clone what we need so we don't borrow self during set_status calls
         let install_dir = self.config.install_dir.clone();
         let install_dest = self.binary_path();
         let lang = self.config.lang;
         let node_mode = self.config.node;
         let username = self.config.username.clone();
+        let config_dir = self.config.config_dir.clone();
 
         let url = format!(
             "https://github.com/lvs0/Polygone/releases/download/v{}/polygone",
@@ -189,7 +185,7 @@ impl App {
         );
 
         // Step 1: Downloading
-        self.install_status = Self::step_msg(lang, 1, "Downloading Polygone...", "Téléchargement de Polygone...");
+        self.install_status = format!("[1/4] {}", Self::step_msg(lang, "Downloading Polygone...", "Téléchargement de Polygone..."));
         self.install_pct = 0.15;
         self.push_log(&self.install_status);
 
@@ -203,7 +199,7 @@ impl App {
 
         match dl {
             Ok(out) if out.status.success() => {
-                self.install_status = Self::step_msg(lang, 2, "Installing...", "Installation...");
+                self.install_status = format!("[2/4] {}", Self::step_msg(lang, "Installing...", "Installation..."));
                 self.install_pct = 0.60;
                 self.push_log(&self.install_status);
                 if std::fs::copy("/tmp/polygone", &install_dest).is_ok() {
@@ -211,37 +207,36 @@ impl App {
                         use std::os::unix::fs::PermissionsExt;
                         std::fs::set_permissions(&install_dest, std::fs::Permissions::from_mode(0o755)).ok();
                     }
-                    self.install_status = Self::step_msg(lang, 3, "Configuring...", "Configuration...");
+                    self.install_status = format!("[3/4] {}", Self::step_msg(lang, "Configuring...", "Configuration..."));
                     self.install_pct = 0.85;
                     self.push_log(&self.install_status);
-                    // Save config now
-                    {
-                        std::fs::create_dir_all(&self.config.config_dir).ok();
-                        let node_str = match node_mode {
-                            NodeChoice::None => "none",
-                            NodeChoice::Passive => "passive",
-                            NodeChoice::Active => "active",
-                        };
-                        let lang_str = match lang { Lang::FR => "fr", Lang::EN => "en" };
-                        let obj = json::object! {
-                            version: VERSION,
-                            username: &username,
-                            node_mode: node_str,
-                            language: lang_str,
-                        };
-                        std::fs::write(self.config.config_dir.join("config.json"), obj.to_string()).ok();
-                    }
-                    self.install_status = Self::step_msg(lang, 4, "Done!", "Terminé!");
+
+                    // Save config
+                    std::fs::create_dir_all(&config_dir).ok();
+                    let node_str = match node_mode {
+                        NodeChoice::None => "none",
+                        NodeChoice::Passive => "passive",
+                        NodeChoice::Active => "active",
+                    };
+                    let lang_str = match lang { Lang::FR => "fr", Lang::EN => "en" };
+                    let obj = json!({
+                        "version": VERSION,
+                        "username": username,
+                        "node_mode": node_str,
+                        "language": lang_str,
+                    });
+                    std::fs::write(config_dir.join("config.json"), serde_json::to_string_pretty(&obj).unwrap_or_default()).ok();
+
+                    self.install_status = format!("[4/4] {}", Self::step_msg(lang, "Done!", "Terminé!"));
                     self.install_pct = 1.0;
                     self.push_log("Done!");
                     self.state = InstallState::Configure;
                 } else {
-                    self.install_error = Some(Self::step_msg(lang, 0, "Copy failed", "Échec de la copie").to_string());
+                    self.install_error = Some(Self::step_msg(lang, "Copy failed", "Échec de la copie"));
                 }
             }
             _ => {
-                // Build from source
-                self.install_status = Self::step_msg(lang, 1, "Building from source...", "Compilation depuis les sources...");
+                self.install_status = format!("[1/4] {}", Self::step_msg(lang, "Building from source...", "Compilation depuis les sources..."));
                 self.install_pct = 0.20;
                 self.push_log(&self.install_status);
 
@@ -257,7 +252,7 @@ impl App {
                         .output();
                 }
 
-                self.install_status = Self::step_msg(lang, 2, "Compiling (may take a while)...", "Compilation (peut prendre du temps)...");
+                self.install_status = format!("[2/4] {}", Self::step_msg(lang, "Compiling (may take a while)...", "Compilation (peut prendre du temps)..."));
                 self.install_pct = 0.50;
                 self.push_log("cargo build --release");
                 let build = Command::new("cargo")
@@ -267,7 +262,7 @@ impl App {
 
                 match build {
                     Ok(out) if out.status.success() => {
-                        self.install_status = Self::step_msg(lang, 3, "Installing compiled binary...", "Installation du binaire compilé...");
+                        self.install_status = format!("[3/4] {}", Self::step_msg(lang, "Installing compiled binary...", "Installation du binaire compilé..."));
                         self.install_pct = 0.85;
                         self.push_log(&self.install_status);
                         let src = build_dir.join("target/release/polygone");
@@ -277,45 +272,41 @@ impl App {
                                 std::fs::set_permissions(&install_dest, std::fs::Permissions::from_mode(0o755)).ok();
                             }
                             // Save config
-                            {
-                                std::fs::create_dir_all(&self.config.config_dir).ok();
-                                let node_str = match node_mode {
-                                    NodeChoice::None => "none",
-                                    NodeChoice::Passive => "passive",
-                                    NodeChoice::Active => "active",
-                                };
-                                let lang_str = match lang { Lang::FR => "fr", Lang::EN => "en" };
-                                let obj = json::object! {
-                                    version: VERSION,
-                                    username: &username,
-                                    node_mode: node_str,
-                                    language: lang_str,
-                                };
-                                std::fs::write(self.config.config_dir.join("config.json"), obj.to_string()).ok();
-                            }
-                            self.install_status = Self::step_msg(lang, 4, "Done!", "Terminé!");
+                            std::fs::create_dir_all(&config_dir).ok();
+                            let node_str = match node_mode {
+                                NodeChoice::None => "none",
+                                NodeChoice::Passive => "passive",
+                                NodeChoice::Active => "active",
+                            };
+                            let lang_str = match lang { Lang::FR => "fr", Lang::EN => "en" };
+                            let obj = json!({
+                                "version": VERSION,
+                                "username": username,
+                                "node_mode": node_str,
+                                "language": lang_str,
+                            });
+                            std::fs::write(config_dir.join("config.json"), serde_json::to_string_pretty(&obj).unwrap_or_default()).ok();
+
+                            self.install_status = format!("[4/4] {}", Self::step_msg(lang, "Done!", "Terminé!"));
                             self.install_pct = 1.0;
                             self.push_log("Done!");
                             self.state = InstallState::Configure;
                         } else {
-                            self.install_error = Some(Self::step_msg(lang, 0, "Copy failed", "Échec de la copie").to_string());
+                            self.install_error = Some(Self::step_msg(lang, "Copy failed", "Échec de la copie"));
                         }
                     }
                     _ => {
-                        let err = Self::step_msg(lang, 0,
+                        self.install_error = Some(Self::step_msg(lang,
                             "Build failed. Install Rust: curl https://sh.rustup.rs | sh",
-                            "Compilation échouée. Installe Rust: curl https://sh.rustup.rs | sh");
-                        self.install_error = Some(err);
+                            "Compilation échouée. Installe Rust: curl https://sh.rustup.rs | sh"));
                     }
                 }
             }
         }
     }
 
-    fn step_msg(lang: Lang, step: u8, en: &str, fr: &str) -> String {
-        let base = match lang { Lang::FR => fr, Lang::EN => en };
-        if step == 0 { base.to_string() }
-        else { format!("[{}] {}", step, base) }
+    fn step_msg(lang: Lang, en: &str, fr: &str) -> &'static str {
+        match lang { Lang::FR => fr, Lang::EN => en }
     }
 
     fn do_uninstall(&mut self) {
@@ -372,9 +363,7 @@ impl App {
             Line::from(vec![Span::raw("     ⬡   ⬡                   ⬡   ⬡")]),
             Line::from(vec![Span::raw("       ⬡                         ⬡")]),
         ];
-        let p = Paragraph::new(lines)
-            .alignment(Alignment::Center)
-            .style(Style::new().fg(C_COBALT));
+        let p = Paragraph::new(lines).alignment(Alignment::Center).style(Style::new().fg(C_COBALT));
         f.render_widget(p, area);
     }
 
@@ -420,7 +409,7 @@ impl App {
             let sel = self.menu_idx == i;
             let icon = if sel { "▶" } else { " " };
             let style = if sel { Style::new().fg(C_GREEN).bold() } else { Style::new().fg(C_TEXT) };
-            let label = match action {
+            let label: &'static str = match action {
                 MenuAction::Update => self.config.tr("Update to latest version", "Mettre à jour"),
                 MenuAction::Reinstall => self.config.tr("Reinstall Polygone", "Réinstaller Polygone"),
                 MenuAction::Uninstall => self.config.tr("Uninstall Polygone", "Désinstaller Polygone"),
@@ -494,7 +483,7 @@ impl App {
         let t = self.config.tr;
         let lang_label = self.config.label();
         let user_label = if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() };
-        let node_label = match self.config.node {
+        let node_label: &'static str = match self.config.node {
             NodeChoice::None => t("Disabled", "Désactivé"),
             NodeChoice::Passive => t("Passive — invisible", "Passif — invisible"),
             NodeChoice::Active => t("Active — shared power", "Actif — puissance partagée"),
@@ -575,7 +564,7 @@ impl App {
             .border_style(Style::new().fg(C_BORDER))
             .style(Style::new().bg(C_SURFACE));
         f.render_widget(fblock, footer_rect);
-        let node_status = match self.config.node {
+        let node_status: &'static str = match self.config.node {
             NodeChoice::None => "Node: off",
             NodeChoice::Passive => "Node: passive",
             NodeChoice::Active => "Node: active",
@@ -591,7 +580,7 @@ impl App {
     fn draw_tab_home(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
         let t = self.config.tr;
-        let node_status = match self.config.node {
+        let node_status: &'static str = match self.config.node {
             NodeChoice::None => t("Disabled", "Désactivé"),
             NodeChoice::Passive => t("Passive (invisible)", "Passif (invisible)"),
             NodeChoice::Active => t("Active (sharing power)", "Actif (puissance partagée)"),
@@ -618,9 +607,9 @@ impl App {
     fn draw_tab_services(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
         let services = [
-            ("polygone",       "Core network",            true),
-            ("polygone-drive", "Encrypted storage",       false),
-            ("polygone-hide",  "Privacy tunnel",          false),
+            ("polygone",       "Core network",             true),
+            ("polygone-drive", "Encrypted storage",        false),
+            ("polygone-hide",  "Privacy tunnel",           false),
             ("polygone-petals","Distributed LLM inference",false),
         ];
         let lines: Vec<Line> = vec![Line::from(Span::raw("  Services "))]
@@ -666,7 +655,7 @@ impl App {
                     _ => "",
                 }, Style::new().fg(C_GREEN))]),
                 Line::from(Span::raw("")),
-                Line::from(Span::raw("  The node is "), Span::styled("intelligent and invisible.", Style::new().fg(C_COBALT))),
+                Line::from(vec![Span::raw("  The node is "), Span::styled("intelligent and invisible.", Style::new().fg(C_COBALT))]),
                 Line::from(Span::raw("  It shares bandwidth in the background.")),
                 Line::from(Span::raw("  You can pause it anytime.")),
                 Line::from(Span::raw("")),
@@ -685,13 +674,13 @@ impl App {
     fn draw_tab_settings(&self, f: &mut Frame, rect: Rect) {
         let inner = rect.inner(Margin::new(1, 1));
         let t = self.config.tr;
-        let settings: Vec<(&str, String)> = vec![
+        let settings: Vec<(&'static str, String)> = vec![
             (t("Username", "Nom d'utilisateur"), if self.config.username.is_empty() { "anonymous".to_string() } else { self.config.username.clone() }),
-            (t("Language", "Langue"), self.config.label()),
+            (t("Language", "Langue"), self.config.label().to_string()),
             (t("Node mode", "Mode noeud"), match self.config.node {
-                NodeChoice::None => t("Disabled", "Désactivé"),
-                NodeChoice::Passive => t("Passive", "Passif"),
-                NodeChoice::Active => t("Active", "Actif"),
+                NodeChoice::None => t("Disabled", "Désactivé").to_string(),
+                NodeChoice::Passive => t("Passive", "Passif").to_string(),
+                NodeChoice::Active => t("Active", "Actif").to_string(),
             }),
             ("Version", VERSION.to_string()),
         ];
