@@ -69,7 +69,7 @@ use tracing::{debug, error, info, warn};
 use crate::{
     network::{NodeId, Topology},
     protocol::{SessionId, TransitState},
-    PolygoneError, PolyResult,
+    error::{PolygoneError, PolyResult},
 };
 
 // ── Re-exports ──────────────────────────────────────────────────────────────
@@ -400,7 +400,7 @@ type RequestId = u64;
 
 impl P2pNode {
     /// Create a new P2P node with the given configuration
-    pub async fn new(config: P2pConfig) -> crate::PolyResult<(Self, mpsc::Receiver<NetworkEvent>)> {
+    pub async fn new(config: P2pConfig) -> PolyResult<(Self, mpsc::Receiver<NetworkEvent>)> {
         let (event_tx, event_rx) = mpsc::channel(100);
         
         // Load or generate identity
@@ -436,7 +436,7 @@ impl P2pNode {
     }
 
     /// Start listening on the configured addresses
-    pub async fn start_listening(&mut self) -> crate::PolyResult<Vec<Multiaddr>> {
+    pub async fn start_listening(&mut self) -> PolyResult<Vec<Multiaddr>> {
         let mut bound_addrs = Vec::new();
         
         for addr in &self.config.listen_addrs {
@@ -461,7 +461,7 @@ impl P2pNode {
     }
 
     /// Connect to bootstrap nodes
-    pub async fn bootstrap(&mut self) -> crate::PolyResult<()> {
+    pub async fn bootstrap(&mut self) -> PolyResult<()> {
         for addr in &self.config.bootstrap_nodes {
             info!("Dialing bootstrap node: {}", addr);
             if let Err(e) = self.swarm.dial(addr.clone()) {
@@ -476,7 +476,7 @@ impl P2pNode {
     }
 
     /// Subscribe to a gossip topic
-    pub fn subscribe_topic(&mut self, topic_name: &str) -> crate::PolyResult<()> {
+    pub fn subscribe_topic(&mut self, topic_name: &str) -> PolyResult<()> {
         let topic = IdentTopic::new(topic_name);
         self.swarm.behaviour_mut().gossipsub.subscribe(&topic)?;
         self.subscribed_topics.push(topic);
@@ -485,7 +485,7 @@ impl P2pNode {
     }
 
     /// Publish a gossip message
-    pub fn publish_gossip(&mut self, topic: &str, message: GossipMessage) -> crate::PolyResult<()> {
+    pub fn publish_gossip(&mut self, topic: &str, message: GossipMessage) -> PolyResult<()> {
         let topic = IdentTopic::new(topic);
         let data = bincode::serialize(&message)
             .map_err(|e| PolygoneError::Serialization(e.to_string()))?;
@@ -495,7 +495,7 @@ impl P2pNode {
     }
 
     /// Announce a session topology to the network
-    pub fn announce_topology(&mut self, session_id: SessionId, topology: &Topology) -> crate::PolyResult<()> {
+    pub fn announce_topology(&mut self, session_id: SessionId, topology: &Topology) -> PolyResult<()> {
         let message = GossipMessage::TopologyAnnounce {
             session_id,
             nodes: topology.nodes.clone(),
@@ -514,7 +514,7 @@ impl P2pNode {
     }
 
     /// Put a record in the DHT
-    pub fn put_dht_record(&mut self, key: Vec<u8>, value: Vec<u8>) -> crate::PolyResult<kad::QueryId> {
+    pub fn put_dht_record(&mut self, key: Vec<u8>, value: Vec<u8>) -> PolyResult<kad::QueryId> {
         let record = kad::Record {
             key: kad::RecordKey::new(&key),
             value,
@@ -555,13 +555,13 @@ impl P2pNode {
         &mut self,
         channel: ResponseChannel<PolygoneResponse>,
         response: PolygoneResponse,
-    ) -> crate::PolyResult<()> {
+    ) -> PolyResult<()> {
         self.swarm.behaviour_mut().request_response.send_response(channel, response)
             .map_err(|_| PolygoneError::NetworkError("send_response failed".into()))
     }
 
     /// Run the event loop (this drives the swarm)
-    pub async fn run(mut self) -> crate::PolyResult<()> {
+    pub async fn run(mut self) -> PolyResult<()> {
         info!("P2P event loop started");
 
         loop {
@@ -577,7 +577,7 @@ impl P2pNode {
     async fn handle_swarm_event(
         &mut self,
         event: SwarmEvent<PolygoneBehaviourEvent>,
-    ) -> crate::PolyResult<()> {
+    ) -> PolyResult<()> {
         match event {
             SwarmEvent::NewListenAddr { address, .. } => {
                 info!("New listen address: {}", address);
@@ -600,7 +600,7 @@ impl P2pNode {
     }
 
     /// Handle behaviour-specific events
-    async fn handle_behaviour_event(&mut self, event: PolygoneBehaviourEvent) -> crate::PolyResult<()> {
+    async fn handle_behaviour_event(&mut self, event: PolygoneBehaviourEvent) -> PolyResult<()> {
         match event {
             PolygoneBehaviourEvent::Kademlia(kad::Event::OutboundQueryProgressed { result, id, .. }) => {
                 match result {
@@ -726,7 +726,7 @@ pub async fn build_swarm(
 // ── Bootstrap Node ─────────────────────────────────────────────────────────────
 
 /// Run a bootstrap node (dedicated DHT bootstrap)
-pub async fn run_bootstrap_node(config: P2pConfig) -> crate::PolyResult<()> {
+pub async fn run_bootstrap_node(config: P2pConfig) -> PolyResult<()> {
     let (mut node, mut event_rx) = P2pNode::new(config).await?;
     
     info!("⬡ POLYGONE BOOTSTRAP NODE");

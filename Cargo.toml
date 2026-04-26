@@ -76,11 +76,4 @@ crossterm       = "0.27"
 
 # ── P2P Network (libp2p) ────────────────────────────────────────────────────
 libp2p          = { version = "0.53", features = ["tokio", "tcp", "dns", "websocket", "noise", "yamux", "kad", "request-response", "cbor", "identify", "gossipsub", "mdns", "autonat", "relay", "dcutr", "ping"] }
-libp2p-swarm    = "0.44"
-futures         = "0.3"
-<<<<<<< Updated upstream
-=======
 
-# ── HTTP Client ─────────────────────────────────────────────────────────────
-reqwest        = { version = "0.12", features = ["json"] }
->>>>>>> Stashed changes

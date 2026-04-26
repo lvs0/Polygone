@@ -1,7 +1,7 @@
 //! Unified error type for POLYGONE.
 
 use thiserror::Error;
-use libp2p::{gossipsub, kad};
+use libp2p::{gossipsub, kad, swarm::ConnectionDenied};
 
 pub type Result<T = ()> = std::result::Result<T, PolygoneError>;
 pub type PolyResult<T = ()> = std::result::Result<T, PolygoneError>;
@@ -87,8 +87,8 @@ pub enum PolygoneError {
 }
 
 // Required by libp2p NetworkBehaviour derive macro
-impl From<libp2p_swarm::ConnectionDenied> for PolygoneError {
-    fn from(e: libp2p_swarm::ConnectionDenied) -> Self { Self::Network(e.to_string()) }
+impl From<ConnectionDenied> for PolygoneError {
+    fn from(e: ConnectionDenied) -> Self { Self::Network(e.to_string()) }
 }
 impl From<std::fmt::Error> for PolygoneError {
     fn from(_: std::fmt::Error) -> Self { Self::Network("fmt error".into()) }

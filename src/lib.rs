@@ -40,9 +40,10 @@ pub use crypto::SharedSecret;
 
 // Re-export PolygoneError from error module
 pub use error::PolygoneError;
+pub use error::PolyResult;
 
 // Re-export crypto key types
-pub use crypto::{KeyPair, PublicKey};
+pub use crypto::{KeyPair};
 
 pub use protocol::Session;
 
