@@ -4,7 +4,7 @@
 //! the shared secret — no extra communication required.
 //! The topology defines which 7 nodes exist and how fragments are assigned.
 
-use blake3::Hasher;
+use blake3::Hash;
 use serde::{Deserialize, Serialize};
 
 use super::NodeId;

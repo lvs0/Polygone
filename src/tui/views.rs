@@ -99,7 +99,8 @@ fn render_dashboard(frame: &mut Frame, area: Rect, app: &App) {
     };
 
     let spinner = ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"];
-    let spin = spinner[app.tick as usize % 8];
+    let _spin = spinner[app.tick as usize % 8];
+    let spin = "";
 
     let status_lines = vec![
         Line::from(""),

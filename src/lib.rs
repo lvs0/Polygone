@@ -32,13 +32,23 @@ pub mod network;
 pub mod protocol;
 pub mod tui;
 
-pub use crypto::{SharedSecret, KeyPair};
+/// Convenience alias for results throughout the crate.
+pub type Result<T> = std::result::Result<T, PolygoneError>;
+
+// Re-export SharedSecret from crypto module
+pub use crypto::SharedSecret;
+
+// Re-export PolygoneError from error module
+pub use error::PolygoneError;
+
+// Re-export crypto key types
+pub use crypto::{KeyPair, PublicKey};
+
 pub use protocol::Session;
-pub use error::{PolygoneError, PolyResult, Result};
 
 // Re-export key P2P types for convenience
 pub use network::{
-    P2pNode, P2pConfig, NetworkEvent, 
+    P2pNode, P2pConfig, NetworkEvent,
     PolygoneRequest, PolygoneResponse, GossipMessage, Capability,
     NodeId, Topology, TopologyParams,
 };
