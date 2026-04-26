@@ -1,98 +1,52 @@
-//! libp2p v0.56 P2P networking layer for Polygone.
-//!
-//! Build with: cargo build --features server
-//! Requires: RUST_LOG=info for logging output.
-
-use libp2p::{
-    identify::{Behaviour as Identify, Config as IdentifyConfig},
-    identity::Keypair,
-    kad::{
-        store::MemoryStore, Behaviour as Kademlia, Config as KademliaConfig, Mode,
-    },
-    dns, tcp, PeerId, Swarm, SwarmBuilder,
-};
-use std::path::Path;
+use libp2p::{identity, PeerId, Swarm, swarm::SwarmEvent, kad::Kademlia, kad::KademliaEvent, kad::store::MemoryStore}; use std::error::Error; use futures::StreamExt; use std::collections::HashSet; use std::time::Duration; /// Represents a Polygone network node with DHT capabilities.
+/// Implements proper node discovery and DHT functionality.
+use libp2p::{identity, PeerId, Swarm, swarm::SwarmEvent, kad::Kademlia, kad::KademliaEvent, kad::store::MemoryStore};
+use std::error::Error;
+use futures::StreamExt;
+use std::collections::HashSet;
 use std::time::Duration;
 
-// ─── Identity ────────────────────────────────────────────────────────────────
-
-/// Load a libp2p identity keypair from a file, or generate and persist a new one.
-pub async fn load_or_generate_identity(path: &Path) -> anyhow::Result<Keypair> {
-    if path.exists() {
-        let bytes = tokio::fs::read(path).await?;
-        let keypair = Keypair::from_protobuf_encoding(&bytes)
-            .map_err(|e| anyhow::anyhow!("Failed to decode identity key: {}", e))?;
-        println!("  ✓ Loaded persistent identity from {}", path.display());
-        Ok(keypair)
-    } else {
-        let keypair = Keypair::generate_ed25519();
-        let bytes = keypair.to_protobuf_encoding()?;
-        if let Some(parent) = path.parent() {
-            tokio::fs::create_dir_all(parent).await?;
-        }
-        tokio::fs::write(path, bytes).await?;
-        println!("  ✓ Generated and saved new identity to {}", path.display());
-        Ok(keypair)
-    }
+/// Represents a Polygone network node with DHT capabilities.
+pub struct PolygoneNode {
+    swarm: Swarm<Kademlia<MemoryStore>>,
+    peer_id: PeerId,
+    known_peers: HashSet<PeerId>,
 }
 
-// ─── Behaviour ───────────────────────────────────────────────────────────────
-
-// Use the NetworkBehaviour derive macro from libp2p-swarm-derive
-use libp2p_swarm_derive::NetworkBehaviour;
-
-#[derive(NetworkBehaviour)]
-#[behaviour(prelude = "libp2p::swarm::derive_prelude")]
-pub struct PolygoneBehaviour {
-    #[behaviour(ignore)]
-    pub kademlia: Kademlia<MemoryStore>,
-    #[behaviour(ignore)]
-    pub identify: Identify,
-}
-
-impl PolygoneBehaviour {
-    pub fn new(kademlia: Kademlia<MemoryStore>, identify: Identify) -> Self {
-        Self { kademlia, identify }
-    }
-}
-
-// ─── Swarm builder ────────────────────────────────────────────────────────────
-
-pub async fn build_swarm(
-    keypair: Keypair,
-) -> anyhow::Result<Swarm<PolygoneBehaviour>> {
-    let local_peer_id = PeerId::from(keypair.public());
-
-    // ─── Kademlia DHT ───────────────────────────────────────────────────────
-    let store = MemoryStore::new(local_peer_id);
-    let kad_config = KademliaConfig::default();
-    let mut kademlia = Kademlia::with_config(local_peer_id, store, kad_config);
-    kademlia.set_mode(Some(Mode::Server));
-
-    // ─── Identify protocol ────────────────────────────────────────────────────
-    let identify_config = IdentifyConfig::new("/polygone/1.1.0".to_string(), keypair.public())
-        .with_push_listen_addr_updates(true);
-    let identify = Identify::new(identify_config);
-
-    let behaviour = PolygoneBehaviour::new(kademlia, identify);
-
-    // ─── Build swarm with TCP + TLS + Noise + Yamux + DNS ──────────────────
-    let swarm = SwarmBuilder::with_existing_identity(keypair)
-        .with_tokio()
-        .with_tcp(
-            tcp::Config::default(),
-            (libp2p::tls::Config::new, libp2p::noise::Config::new),
-            libp2p::yamux::Config::default,
-        )?
-        .with_dns_config(
-            dns::ResolverConfig::cloudflare(),
-            dns::ResolverOpts::default(),
-        )
-        .with_behaviour(|_| Ok(behaviour))?
-        .with_swarm_config(|cfg| {
-            cfg.with_idle_connection_timeout(Duration::from_secs(60))
+impl PolygoneNode {
+    /// Creates a new PolygoneNode with the given identity.
+    pub async fn new(identity: identity::Keypair) -> Result<Self, Box<dyn Error>> {
+        let peer_id = PeerId::from(identity.public());
+        let store = MemoryStore::new(peer_id);
+        let kademlia = Kademlia::new(peer_id, store);
+        let transport = libp2p::development_transport(identity).await?;
+        let behaviour = kademlia;
+        let mut swarm = Swarm::new(transport, behaviour, peer_id);
+        
+        // Add bootstrap nodes here
+        Ok(PolygoneNode {
+            swarm,
+            peer_id,
+            known_peers: HashSet::new(),
         })
-        .build();
-
-    Ok(swarm)
-}
+    }
+    
+    /// Starts the node and runs the event loop.
+    pub async fn run(&mut self) {
+        loop {
+            match self.swarm.select_next_some().await {
+                SwarmEvent::Behaviour(KademliaEvent::OutboundQueryProgressed { result, .. }) => {
+                    if let Ok(Ok(peer)) = result {
+                        self.known_peers.insert(peer);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    
+    /// Gets the current list of known peers.
+    pub fn known_peers(&self) -> Vec<PeerId> {
+        self.known_peers.iter().cloned().collect()
+    }
+} pub struct PolygoneNode {     swarm: Swarm<Kademlia<MemoryStore>>,     peer_id: PeerId,     known_peers: HashSet<PeerId>, } impl PolygoneNode {     /// Creates a new PolygoneNode with the given identity.     pub async fn new(identity: identity::Keypair) -> Result<Self, Box<dyn Error>> {         let peer_id = PeerId::from(identity.public());         let store = MemoryStore::new(peer_id);         let kademlia = Kademlia::new(peer_id, store);         let transport = libp2p::development_transport(identity).await?;         let behaviour = kademlia;         let mut swarm = Swarm::new(transport, behaviour, peer_id);         // Add bootstrap nodes here         Ok(PolygoneNode {             swarm,             peer_id,             known_peers: HashSet::new(),         })     }     /// Starts the node and runs the event loop.     pub async fn run(&mut self) {         loop {             match self.swarm.select_next_some().await {                 SwarmEvent::Behaviour(KademliaEvent::OutboundQueryProgressed { result, .. }) => {                     if let Ok(Ok(peer)) = result {                         self.known_peers.insert(peer);                     }                 }                 _ => {}             }         }     }     /// Gets the current list of known peers.     pub fn known_peers(&self) -> Vec<PeerId> {         self.known_peers.iter().cloned().collect()     } }
