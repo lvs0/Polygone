@@ -35,11 +35,12 @@ async fn main() -> Result<()> {
         fs::create_dir_all(parent).ok();
     }
 
-    let local_key: Keypair = load_or_generate_identity(&cli.identity).await?;
+    let local_key: Keypair = load_or_generate_identity(&cli.identity)?;
     let peer_id = PeerId::from(local_key.public());
     tracing::info!("Node peer ID: {peer_id}");
 
-    let mut swarm = build_swarm(local_key).await?;
+    let config = polygone::network::p2p::P2pConfig::default();
+    let mut swarm = build_swarm(local_key, &config).await?;
 
     let listen_addr: libp2p::Multiaddr = cli.listen.parse().expect("Invalid listen address");
     swarm.listen_on(listen_addr.clone())?;

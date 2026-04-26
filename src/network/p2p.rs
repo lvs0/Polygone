@@ -700,7 +700,7 @@ pub fn load_or_generate_identity(path: &Path) -> anyhow::Result<Keypair> {
 }
 
 /// Build the libp2p swarm with all behaviours
-async fn build_swarm(
+pub async fn build_swarm(
     keypair: Keypair,
     config: &P2pConfig,
 ) -> anyhow::Result<Swarm<PolygoneBehaviour>> {
