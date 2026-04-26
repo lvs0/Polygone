@@ -1,64 +1,98 @@
-use libp2p::{PeerId, kad::KademliaEvent};
-use std::collections::HashSet;
-use std::time::Duration;
+//! Node Discovery Module for Polygone P2P Network
+//!
+//! Provides peer discovery logic using Kademlia DHT and mDNS
 
-/// Handles peer discovery for the Polygone network.
-/// Implements proper node discovery and DHT functionality.
-///
-/// # Examples
-///
-/// ```
-/// use polygone::network::discovery::PeerDiscovery;
-/// use libp2p::PeerId;
-///
-/// let bootstrap_nodes = vec![]; // Add bootstrap nodes here
-/// let mut discovery = PeerDiscovery::new(bootstrap_nodes);
-/// ```
-///
-/// Returns a new instance of PeerDiscovery.
-pub struct PeerDiscovery {
-    known_peers: HashSet<PeerId>,
+use libp2p::{
+    kad::{QueryResult, GetRecordOk, Record},
+    PeerId,
+};
+use std::collections::HashSet;
+use tracing::{debug, info, warn};
+
+/// DiscoveryResult contains discovered peer information
+#[derive(Debug, Clone)]
+pub struct DiscoveryResult {
+    /// Peer ID
+    pub peer_id: PeerId,
+    /// Observed addresses
+    pub addresses: Vec<libp2p::Multiaddr>,
+    /// Whether peer supports Drive
+    pub supports_drive: bool,
+    /// Whether peer supports Petals
+    pub supports_petals: bool,
+    /// Whether peer is a relay
+    pub is_relay: bool,
+}
+
+/// DiscoveryService handles peer discovery logic
+pub struct DiscoveryService {
+    /// Known peer IDs
+    peers: HashSet<PeerId>,
+    /// Bootstrap nodes
     bootstrap_nodes: Vec<PeerId>,
 }
 
-impl PeerDiscovery {
-    /// Creates a new PeerDiscovery instance.
-    pub fn new(bootstrap_nodes: Vec<PeerId>) -> Self {
-        PeerDiscovery {
-            known_peers: HashSet::new(),
-            bootstrap_nodes,
+impl DiscoveryService {
+    /// Create new DiscoveryService
+    pub fn new() -> Self {
+        Self {
+            peers: HashSet::new(),
+            bootstrap_nodes: Vec::new(),
         }
     }
-    
-    /// Adds a new peer to the known peers list.
-    pub fn add_peer(&mut self, peer_id: PeerId) {
-        self.known_peers.insert(peer_id);
+
+    /// Add a bootstrap node
+    pub fn add_bootstrap(&mut self, peer_id: PeerId) {
+        self.bootstrap_nodes.push(peer_id);
+        info!("Added bootstrap node: {}", peer_id);
     }
-    
-    /// Gets the current list of known peers.
-    pub fn known_peers(&self) -> Vec<PeerId> {
-        self.known_peers.iter().cloned().collect()
+
+    /// Record a discovered peer
+    pub fn record_peer(&mut self, peer_id: PeerId) {
+        if self.peers.insert(peer_id) {
+            debug!("Discovered new peer: {}", peer_id);
+        }
     }
-    
-    /// Gets the list of bootstrap nodes.
-    pub fn bootstrap_nodes(&self) -> Vec<PeerId> {
-        self.bootstrap_nodes.clone()
+
+    /// Get all known peers
+    pub fn get_peers(&self) -> Vec<PeerId> {
+        self.peers.iter().cloned().collect()
     }
-    
-    /// Gets the number of known peers.
+
+    /// Get peer count
     pub fn peer_count(&self) -> usize {
-        self.known_peers.len()
+        self.peers.len()
     }
-    
-    /// Checks if we have any peers.
+
+    /// Check if we have any peers
     pub fn has_peers(&self) -> bool {
-        !self.known_peers.is_empty()
+        !self.peers.is_empty()
+    }
+
+    /// Handle DHT query result
+    pub fn handle_dht_result(&mut self, result: &QueryResult) {
+        match result {
+            _ => {
+                debug!("DHT result: {:?}", result);
+            }
+        }
+    }
+
+    /// Get bootstrap node count
+    pub fn bootstrap_count(&self) -> usize {
+        self.bootstrap_nodes.len()
+    }
+
+    /// Clear all known peers
+    pub fn clear_peers(&mut self) {
+        self.peers.clear();
+        debug!("Cleared all discovered peers");
     }
 }
 
-impl Default for PeerDiscovery {
+impl Default for DiscoveryService {
     fn default() -> Self {
-        Self::new(Vec::new())
+        Self::new()
     }
 }
 
@@ -67,9 +101,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_peer_discovery() {
-        let mut discovery = PeerDiscovery::new(Vec::new());
-        assert_eq!(discovery.peer_count(), 0);
-        assert!(!discovery.has_peers());
+    fn test_discovery_service() {
+        let mut service = DiscoveryService::new();
+        assert_eq!(service.peer_count(), 0);
+        assert!(!service.has_peers());
     }
 }

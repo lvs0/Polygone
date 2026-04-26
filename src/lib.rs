@@ -25,7 +25,6 @@
 
 #![allow(missing_docs)]
 
-pub mod compute;
 pub mod crypto;
 pub mod error;
 pub mod keys;
@@ -35,15 +34,14 @@ pub mod tui;
 
 pub use crypto::{SharedSecret, KeyPair};
 pub use protocol::Session;
-pub use error::{PolygoneError, Result};
+pub use error::{PolygoneError, PolyResult, Result};
+
+// Re-export key P2P types for convenience
+pub use network::{
+    P2pNode, P2pConfig, NetworkEvent, 
+    PolygoneRequest, PolygoneResponse, GossipMessage, Capability,
+    NodeId, Topology, TopologyParams,
+};
 
 /// Crate version.
 pub const VERSION: &str = "1.0.0";
-
-// ─── Re-exports for server feature ────────────────────────────────────────────
-
-#[cfg(feature = "server")]
-pub extern crate libp2p;
-
-#[cfg(feature = "server")]
-pub use base64;

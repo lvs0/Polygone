@@ -1,8 +1,10 @@
 //! Unified error type for POLYGONE.
 
 use thiserror::Error;
+use libp2p::{gossipsub, kad};
 
 pub type Result<T = ()> = std::result::Result<T, PolygoneError>;
+pub type PolyResult<T = ()> = std::result::Result<T, PolygoneError>;
 
 #[derive(Debug, Error)]
 pub enum PolygoneError {
@@ -57,6 +59,24 @@ pub enum PolygoneError {
     // ── Network ──────────────────────────────────────────────────────────────
     #[error("Network error: {0}")]
     Network(String),
+    
+    #[error("P2P error: {0}")]
+    NetworkError(String),
+    
+    #[error("Bootstrap failed: {0}")]
+    BootstrapError(String),
+    
+    #[error("DHT lookup failed: {0}")]
+    DhtLookupError(String),
+    
+    #[error("Peer not found: {0}")]
+    PeerNotFound(String),
+    
+    #[error("Connection timeout")]
+    ConnectionTimeout,
+
+    #[error("Shamir error: {0}")]
+    ShamirError(String),
 
     // ── Generic ──────────────────────────────────────────────────────────────
     #[error("Invalid argument: {0}")]
@@ -64,6 +84,32 @@ pub enum PolygoneError {
 
     #[error("Not yet implemented: {0}")]
     NotImplemented(String),
+}
+
+// Required by libp2p NetworkBehaviour derive macro
+impl From<libp2p_swarm::ConnectionDenied> for PolygoneError {
+    fn from(e: libp2p_swarm::ConnectionDenied) -> Self { Self::Network(e.to_string()) }
+}
+impl From<std::fmt::Error> for PolygoneError {
+    fn from(_: std::fmt::Error) -> Self { Self::Network("fmt error".into()) }
+}
+impl From<anyhow::Error> for PolygoneError {
+    fn from(e: anyhow::Error) -> Self { Self::Network(e.to_string()) }
+}
+impl From<kad::QueryId> for PolygoneError {
+    fn from(e: kad::QueryId) -> Self { Self::DhtLookupError(format!("Query error: {:?}", e)) }
+}
+impl From<kad::NoKnownPeers> for PolygoneError {
+    fn from(_: kad::NoKnownPeers) -> Self { Self::BootstrapError("No known peers".into()) }
+}
+impl From<gossipsub::SubscriptionError> for PolygoneError {
+    fn from(e: gossipsub::SubscriptionError) -> Self { Self::Network(format!("Subscription error: {:?}", e)) }
+}
+impl From<gossipsub::PublishError> for PolygoneError {
+    fn from(e: gossipsub::PublishError) -> Self { Self::Network(format!("Publish error: {:?}", e)) }
+}
+impl From<kad::store::Error> for PolygoneError {
+    fn from(e: kad::store::Error) -> Self { Self::DhtLookupError(format!("{:?}", e)) }
 }
 
 impl PolygoneError {

@@ -4,11 +4,12 @@ pub mod session;
 
 pub use session::Session;
 
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::Instant;
 
 /// Unique session identifier (128 bits, random).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SessionId([u8; 16]);
 
 impl SessionId {

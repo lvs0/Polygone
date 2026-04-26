@@ -1,259 +1,16 @@
 //! polygone — CLI entry point.
-//! Updated to use the new DHT implementation.
-
-#![allow(missing_docs)]
-#![forbid(unsafe_code)]
-
-use std::io::{self, Read};
-use std::path::PathBuf;
-
-use clap::{Parser, Subcommand};
-use tracing_subscriber::{fmt, EnvFilter};
-
-use polygone::{
-    compute::{ComputeDaemon, ComputeConfig, daemon_is_running, write_pid, remove_pid, daemon_pid_path},
-    KeyPair, Session, VERSION,
-    crypto::kem,
-    keys,
-    tui::{run_tui, views::View},
-};
-
-// ── CLI Definition ──────────────────────────────────────────────────────────────
-
-#[derive(Parser)]
-#[command(
-    name = "polygone",
-    version = VERSION,
-    author = "Lévy <polygone@proton.me>",
-    about = "Post-quantum ephemeral transit network",
-    long_about = "\n⬡ POLYGONE — L'information n'existe pas. Elle traverse.\n\nA post-quantum ephemeral network where messages become distributed\ncomputational state. ML-KEM-1024 key exchange. AES-256-GCM encryption.\nShamir 4-of-7 fragmentation. BLAKE3 domain-separated key derivation.\n\n⚠️ v1.0.0 is a LOCAL PROTOTYPE. Real P2P networking targets v2.0.\nClassical encryption hides content. POLYGONE aims to hide the communication itself.\n\nSource: https://github.com/lvs0/Polygone\nLicense: MIT — No investors. No token. No telemetry."
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-
-    /// Verbosity: -v = info, -vv = debug, -vvv = trace
-    #[arg(short, long, action = clap::ArgAction::Count, global = true)]
-    verbose: u8,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Generate a new post-quantum keypair and save to disk
-    Keygen {
-        /// Output directory for key files (default: ~/.polygone/keys)
-        #[arg(short, long)]
-        output: Option<PathBuf>,
-
-        /// Overwrite existing keys without prompting
-        #[arg(long)]
-        force: bool,
-    },
-
-    /// Encrypt and send a message through the ephemeral network
-    Send {
-        /// Recipient's KEM public key (hex, path to .pk file, or 'demo' for local round-trip)
-        #[arg(short, long)]
-        peer_pk: String,
-
-        /// Message to send (use '-' to read from stdin)
-        #[arg(short, long)]
-        message: String,
-    },
-
-    /// Receive and decrypt a message (responder role)
-    Receive {
-        /// Path to your KEM secret key file (default: ~/.polygone/keys/kem.sk)
-        #[arg(short, long)]
-        sk: Option<PathBuf>,
-
-        /// KEM ciphertext from the initiator (hex string)
-        #[arg(short, long)]
-        ciphertext: String,
-    },
-
-    /// Relay node management
-    Node {
-        #[command(subcommand)]
-        action: NodeAction,
-    },
-
-    /// Show current status: sessions, node health, network peers
-    Status,
-
-    /// Run the full self-test suite (crypto + protocol)
-    #[command(name = "self-test")]
-    SelfTest,
-
-    /// Polygone-Compute: power lending daemon
-    Compute {
-        #[command(subcommand)]
-        action: ComputeAction,
-    },
-
-    /// Launch the guided TUI installer (download or build + setup)
-    Install,
-
-    /// Launch the Polygone TUI dashboard
-    Dashboard,
-
-    /// Launch the interactive TUI dashboard
-    Tui {
-        /// Which view to open first (dashboard|keygen|send|receive|node|selftest|services|params|help)
-        #[arg(short, long, default_value = "dashboard")]
-        view: String,
-    },
-}
-
-#[derive(Subcommand)]
-enum NodeAction {
-    /// Start the relay node daemon
-    Start {
-        /// Maximum RAM to allocate (MB)
-        #[arg(short, long, default_value = "256")]
-        ram_mb: usize,
-        /// Listen address
-        #[arg(short, long, default_value = "0.0.0.0:4001")]
-        listen: String,
-    },
-    /// Stop the running node daemon
-    Stop,
-    /// Show this node's public information
-    Info,
-}
-
-#[derive(Subcommand)]
-enum ComputeAction {
-    /// Start the power lending daemon
-    Start {
-        /// Seconds of idle before lending starts (default: 300 = 5 min)
-        #[arg(short, long)]
-        idle_threshold: Option<f64>,
-        /// Maximum RAM fraction to use (0.0–1.0, default: 0.5)
-        #[arg(short, long)]
-        max_ram: Option<f32>,
-        /// Disable Ollama integration
-        #[arg(long)]
-        no_ollama: bool,
-    },
-    /// Stop the power lending daemon
-    Stop,
-    /// Show compute daemon status
-    Status,
-}
-
-// ── Entry Point ───────────────────────────────────────────────────────────────
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
-
-    let filter = match cli.verbose {
-        0 => "warn",
-        1 => "info",
-        2 => "debug",
-        _ => "trace",
-    };
-    fmt()
-        .with_env_filter(EnvFilter::new(filter))
-        .with_target(false)
-        .init();
-
-    match cli.command {
-        Commands::Keygen { output, force }         => cmd_keygen(output, force).await,
-        Commands::Send { peer_pk, message }        => cmd_send(peer_pk, message).await,
-        Commands::Receive { sk, ciphertext }       => cmd_receive(sk, ciphertext).await,
-        Commands::Node { action }                  => cmd_node(action).await,
-        Commands::Status                           => cmd_status().await,
-        Commands::SelfTest                         => cmd_selftest().await,
-        Commands::Compute { action }               => cmd_compute(action).await,
-        Commands::Install                          => cmd_install().await,
-        Commands::Dashboard                        => cmd_dashboard().await,
-        Commands::Tui { view }                     => cmd_tui(view),
-    }
-}
-
-// ── keygen ────────────────────────────────────────────────────────────────────
-
-async fn cmd_keygen(output: Option<PathBuf>, force: bool) -> anyhow::Result<()> {
-    let dir = output.unwrap_or_else(keys::default_key_dir);
-
-    println!("⬡ POLYGONE — Generating post-quantum keypair");
-    println!();
-    println!("  Algorithm : ML-KEM-1024 (FIPS 203) + Ed25519");
-    println!("  Directory : {}", dir.display());
-    println!();
-
-    if keys::keypair_exists(&dir) && !force {
-        eprintln!("  ⚠ Keypair already exists at {}.", dir.display());
-        eprintln!("    Use --force to overwrite.");
-        std::process::exit(1);
-    }
-
-    print!("  Generating ML-KEM-1024 keypair …");
-    let kp = KeyPair::generate()?;
-    println!(" done");
-
-    print!("  Writing key files …");
-    keys::write_keypair(&kp, &dir)?;
-    println!(" done");
-
-    println!();
-    println!("  ✔ kem.pk   {} B  (share freely)", kp.kem_pk.as_bytes().len());
-    println!("  ✔ sign.pk  {} B  (share freely)", kp.sign_pk.as_bytes().len());
-    println!("  ✔ kem.sk   {} B  (KEEP PRIVATE, chmod 600)", kp.kem_sk.to_hex().len() / 2);
-    println!("  ✔ sign.sk  {} B  (KEEP PRIVATE, chmod 600)", kp.sign_sk.to_hex().len() / 2);
-    println!();
-    println!("  KEM public key (first 48 hex chars):");
-    println!("    {}…", &kp.kem_pk.to_hex()[..48]);
-    println!();
-    println!("  → Share your KEM public key with anyone who wants to send you a message.");
-    println!("  → Your secret key cannot be recovered if lost. Back it up securely.");
-
-    Ok(())
-}
-
-// ── send ──────────────────────────────────────────────────────────────────────
-
-async fn cmd_send(peer_pk_arg: String, message_arg: String) -> anyhow::Result<()> {
-    // Resolve message (stdin or direct)
-    let message = if message_arg == "-" {
-        let mut buf = String::new();
-        io::stdin().read_to_string(&mut buf)?;
-        buf.trim().to_string()
-    } else {
-        message_arg
-    };
-
-    // ── Demo mode ─────────────────────────────────────────────────────────────
-    if peer_pk_arg == "demo" {
-        return cmd_send_demo(message).await;
-    }
-
-    // ── Real mode: load peer public key ───────────────────────────────────────
-    let peer_pk = resolve_peer_pk(&peer_pk_arg)?;
-
-    println!("⬡ POLYGONE — Encrypting message");
-    println!();
-
-    // Alice generates a fresh ephemeral keypair and encapsulates
-    let (mut session, ciphertext) = Session::new_initiator(&peer_pk)?;
-
-    println!("  [1/4] ML-KEM-1024 encapsulation …");
-    println!("        Ciphertext: {} bytes", ciphertext.as_bytes().len());
-    println
 //!
 //! Commands:
+
+#![allow(missing_docs)]
 //!   polygone keygen            → Generate ML-KEM-1024 + Ed25519 keypair, save to disk
 //!   polygone send              → Encrypt and fragment a message
 //!   polygone receive           → Reconstruct and decrypt a message
 //!   polygone node start|stop   → Relay node management
 //!   polygone status            → Show node and session status
 //!   polygone self-test         → Run crypto self-test suite
-//!   polygone install           → Launch the TUI installer
 //!   polygone tui               → Launch the TUI dashboard
 
-#![allow(missing_docs)]
 #![forbid(unsafe_code)]
 
 use std::io::{self, Read};
@@ -263,10 +20,10 @@ use clap::{Parser, Subcommand};
 use tracing_subscriber::{fmt, EnvFilter};
 
 use polygone::{
-    compute::{ComputeDaemon, ComputeConfig, daemon_is_running, write_pid, remove_pid, daemon_pid_path},
     KeyPair, Session, VERSION,
-    crypto::kem,
+    crypto::{kem, shamir},
     keys,
+    network::TopologyParams,
     tui::{run_tui, views::View},
 };
 
@@ -285,8 +42,8 @@ A post-quantum ephemeral network where messages become distributed
 computational state. ML-KEM-1024 key exchange. AES-256-GCM encryption.
 Shamir 4-of-7 fragmentation. BLAKE3 domain-separated key derivation.
 
-⚠️ v1.0.0 is a LOCAL PROTOTYPE. Real P2P networking targets v2.0.
-Classical encryption hides content. POLYGONE aims to hide the communication itself.
+No server sees the message. No observer can prove a message existed.
+Classical encryption hides content. POLYGONE hides the communication itself.
 
 Source: https://github.com/lvs0/Polygone
 License: MIT — No investors. No token. No telemetry."
@@ -348,21 +105,9 @@ enum Commands {
     #[command(name = "self-test")]
     SelfTest,
 
-    /// Polygone-Compute: power lending daemon
-    Compute {
-        #[command(subcommand)]
-        action: ComputeAction,
-    },
-
-    /// Launch the guided TUI installer (download or build + setup)
-    Install,
-
-    /// Launch the Polygone TUI dashboard
-    Dashboard,
-
     /// Launch the interactive TUI dashboard
     Tui {
-        /// Which view to open first (dashboard|keygen|send|receive|node|selftest|services|params|help)
+        /// Which view to open first (dashboard|keygen|send|receive|node|selftest|help)
         #[arg(short, long, default_value = "dashboard")]
         view: String,
     },
@@ -383,26 +128,6 @@ enum NodeAction {
     Stop,
     /// Show this node's public information
     Info,
-}
-
-#[derive(Subcommand)]
-enum ComputeAction {
-    /// Start the power lending daemon
-    Start {
-        /// Seconds of idle before lending starts (default: 300 = 5 min)
-        #[arg(short, long)]
-        idle_threshold: Option<f64>,
-        /// Maximum RAM fraction to use (0.0–1.0, default: 0.5)
-        #[arg(short, long)]
-        max_ram: Option<f32>,
-        /// Disable Ollama integration
-        #[arg(long)]
-        no_ollama: bool,
-    },
-    /// Stop the power lending daemon
-    Stop,
-    /// Show compute daemon status
-    Status,
 }
 
 // ── Entry Point ───────────────────────────────────────────────────────────────
@@ -429,9 +154,6 @@ async fn main() -> anyhow::Result<()> {
         Commands::Node { action }                  => cmd_node(action).await,
         Commands::Status                           => cmd_status().await,
         Commands::SelfTest                         => cmd_selftest().await,
-        Commands::Compute { action }               => cmd_compute(action).await,
-        Commands::Install                          => cmd_install().await,
-        Commands::Dashboard                        => cmd_dashboard().await,
         Commands::Tui { view }                     => cmd_tui(view),
     }
 }
@@ -690,98 +412,6 @@ async fn cmd_node(action: NodeAction) -> anyhow::Result<()> {
     Ok(())
 }
 
-// ── compute ───────────────────────────────────────────────────────────────────
-
-async fn cmd_compute(action: ComputeAction) -> anyhow::Result<()> {
-    match action {
-        ComputeAction::Start { idle_threshold, max_ram, no_ollama } => {
-            if daemon_is_running() {
-                println!("⬡ POLYGONE-COMPUTE");
-                println!();
-                println!("  ⚠ Compute daemon is already running.");
-                println!("  Use `polygone compute stop` to stop it first.");
-                return Ok(());
-            }
-
-            let mut config = ComputeConfig::default();
-            if let Some(t) = idle_threshold {
-                config.idle_threshold_sec = t;
-            }
-            if let Some(r) = max_ram {
-                config.max_ram_fraction = r;
-            }
-            if no_ollama {
-                config.ollama_enabled = false;
-            }
-
-            // Write PID before daemon starts
-            let _ = write_pid();
-
-            let mut daemon = ComputeDaemon::new(config);
-            let stop_flag = daemon.stop_flag();
-
-            // Handle Ctrl+C gracefully
-            let flag_clone = stop_flag.clone();
-            tokio::spawn(async move {
-                tokio::signal::ctrl_c().await.ok();
-                flag_clone.store(true, std::sync::atomic::Ordering::Relaxed);
-            });
-
-            // Run the daemon
-            if let Err(e) = daemon.run() {
-                eprintln!("  ✖ Daemon error: {e}");
-            }
-            let _ = remove_pid();
-        }
-        ComputeAction::Stop => {
-            use std::fs;
-            let pid_path = daemon_pid_path();
-            if let Ok(pid_str) = fs::read_to_string(&pid_path) {
-                if let Ok(pid) = pid_str.trim().parse::<u32>() {
-                    // Send SIGTERM to the process
-                    #[cfg(unix)]
-                    {
-                        use std::process::Command;
-                        let _ = Command::new("kill").arg("-TERM").arg(pid.to_string()).output();
-                    }
-                    println!("⬡ POLYGONE-COMPUTE — Stopping daemon (PID {pid})…");
-                }
-            } else {
-                println!("⬡ POLYGONE-COMPUTE");
-                println!();
-                println!("  ⚠ No compute daemon is running.");
-            }
-        }
-        ComputeAction::Status => {
-            if daemon_is_running() {
-                use std::fs;
-                let pid_path = daemon_pid_path();
-                let pid = fs::read_to_string(&pid_path)
-                    .map(|s| s.trim().to_string())
-                    .unwrap_or_else(|_| "unknown".to_string());
-
-                println!("⬡ POLYGONE-COMPUTE STATUS");
-                println!();
-                println!("  Daemon      : running (PID {})", pid);
-                println!("  Status      : ● Lending");
-                println!("  Idle threshold: 300s (5 min)");
-                println!("  Max RAM fraction: 50%");
-                println!("  Ollama     : enabled");
-                println!();
-                println!("  Use `polygone compute stop` to stop the daemon.");
-            } else {
-                println!("⬡ POLYGONE-COMPUTE STATUS");
-                println!();
-                println!("  Daemon      : stopped");
-                println!("  Status      : ○ Not running");
-                println!();
-                println!("  Start with: polygone compute start");
-            }
-        }
-    }
-    Ok(())
-}
-
 // ── status ────────────────────────────────────────────────────────────────────
 
 async fn cmd_status() -> anyhow::Result<()> {
@@ -805,63 +435,6 @@ async fn cmd_status() -> anyhow::Result<()> {
     }
 
     Ok(())
-}
-
-// ── install ────────────────────────────────────────────────────────────────────
-
-async fn cmd_install() -> anyhow::Result<()> {
-    use std::process::Command;
-
-    // Try to run the polygone-install binary alongside current exe
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(parent) = exe.parent() {
-            let install_bin = parent.join("polygone-install");
-            if install_bin.exists() {
-                let status = Command::new(&install_bin).status()?;
-                if !status.success() {
-                    anyhow::bail!("Installer exited with error");
-                }
-                return Ok(());
-            }
-        }
-    }
-
-    // Fallback: print instructions
-    println!("Run the TUI installer directly:");
-    println!();
-    println!("  polygone-install");
-    println!();
-    println!("Or build it first:");
-    println!("  cargo build --bin polygone-install");
-    Ok(())
-}
-
-// ── dashboard ────────────────────────────────────────────────────────────────────
-
-async fn cmd_dashboard() -> anyhow::Result<()> {
-    // Launch the full-screen dashboard (same binary as install, step=Dashboard)
-    use std::process::Command;
-
-
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(parent) = exe.parent() {
-            let install_bin = parent.join("polygone-install");
-            if install_bin.exists() {
-                // Run it directly — the dashboard is the "done" state of install
-                let status = Command::new(&install_bin).status()?;
-                if !status.success() {
-                    anyhow::bail!("Dashboard exited with error");
-                }
-                return Ok(());
-            }
-        }
-    }
-
-
-    // Fallback: run the existing TUI
-    println!("Launching Polygone dashboard...");
-    run_tui(Default::default())
-        .map_err(|e| anyhow::anyhow!("TUI error: {}", e))
 }
 
 // ── self-test ─────────────────────────────────────────────────────────────────
@@ -963,8 +536,6 @@ fn cmd_tui(view: String) -> anyhow::Result<()> {
         "receive"  => View::Receive,
         "node"     => View::Node,
         "selftest" => View::SelfTest,
-        "services" => View::Services,
-        "params"   => View::Params,
         "help"     => View::Help,
         _          => View::Dashboard,
     };

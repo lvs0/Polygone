@@ -1,6 +1,5 @@
 //! Main TUI application loop.
 
-use std::collections::HashSet;
 use std::io;
 use std::time::Duration;
 
@@ -15,7 +14,6 @@ use ratatui::{
 };
 
 use super::views::{View, render_view};
-use super::favorites::{load_favorites, save_favorites};
 
 /// Global application state.
 pub struct App {
@@ -27,12 +25,6 @@ pub struct App {
     pub messages: Vec<(MessageKind, String)>,
     /// Tick counter (incremented each ~100ms for animations).
     pub tick: u64,
-    /// Whether the pause modal is shown (Dashboard sub-action).
-    pub show_pause_modal: bool,
-    /// Favorites state (Polygone services).
-    pub favorites: HashSet<String>,
-    /// Currently selected service index (for favorites toggle).
-    pub selected_service: usize,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -73,9 +65,6 @@ impl App {
                 (MessageKind::Info, "Welcome to POLYGONE v1.0.0 — post-quantum ephemeral network".into()),
             ],
             tick: 0,
-            show_pause_modal: false,
-            favorites: load_favorites(),
-            selected_service: 0,
         }
     }
 
@@ -99,39 +88,13 @@ impl App {
                 return;
             }
             // View navigation
-            KeyCode::Char('f') => {
-                if self.current_view == View::Services {
-                    let services = [
-                        "Polygone",
-                        "Polygone-Brain",
-                        "Polygone-CLI",
-                        "Polygone-Drive",
-                        "Polygone-Hide",
-                        "Polygone-Petals",
-                        "Polygone-Shell",
-                        "Polygone-Server",
-                    ];
-                    if let Some(selected) = services.get(self.selected_service) {
-                        if self.favorites.contains(*selected) {
-                            self.favorites.remove(*selected);
-                            self.push_msg(MessageKind::Info, format!("Removed {} from favorites", selected));
-                        } else {
-                            self.favorites.insert(selected.to_string());
-                            self.push_msg(MessageKind::Info, format!("Added {} to favorites", selected));
-                        }
-                        save_favorites(&self.favorites);
-                    }
-                }
-            }
-            KeyCode::Char('1') => { self.current_view = View::Dashboard; self.show_pause_modal = false; }
-            KeyCode::Char('2') => { self.current_view = View::Favoris; self.show_pause_modal = false; }
-            KeyCode::Char('3') => { self.current_view = View::Services; self.show_pause_modal = false; }
-            KeyCode::Char('4') => { self.current_view = View::Params; self.show_pause_modal = false; }
-            KeyCode::Char('5') => { self.current_view = View::Keygen; self.show_pause_modal = false; }
-            KeyCode::Char('6') => { self.current_view = View::Send; self.show_pause_modal = false; }
-            KeyCode::Char('7') => { self.current_view = View::Receive; self.show_pause_modal = false; }
-            KeyCode::Char('8') => { self.current_view = View::Node; self.show_pause_modal = false; }
-            KeyCode::Char('9') => { self.current_view = View::SelfTest; self.show_pause_modal = false; }
+            KeyCode::Char('1') => self.current_view = View::Dashboard,
+            KeyCode::Char('2') => self.current_view = View::Keygen,
+            KeyCode::Char('3') => self.current_view = View::Send,
+            KeyCode::Char('4') => self.current_view = View::Receive,
+            KeyCode::Char('5') => self.current_view = View::Node,
+            KeyCode::Char('6') => self.current_view = View::SelfTest,
+            KeyCode::Char('?') | KeyCode::Char('h') => self.current_view = View::Help,
             _ => {}
         }
     }

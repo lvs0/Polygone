@@ -1,108 +1,49 @@
 #!/bin/bash
-# ⬡ POLYGONE — Smart Installer — by Lévy, France 🇫🇷
-# Downloads pre-built binary or builds from source
-
+# ⬡ POLYGONE — Installer — by Hope 🇫🇷
 set -e
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m'
 
-VERSION="1.0.0"
-INSTALL_DIR="${HOME}/.local/bin"
-BINARY_URL="https://github.com/lvs0/Polygone/releases/download/v${VERSION}/polygone"
-
 echo -e "${CYAN}"
-echo "  ⬡ POLYGONE v${VERSION}"
-echo "  Post-quantum ephemeral privacy network"
+echo "  ⬡ POLYGONE — by Hope"
+echo "  Installing ephemeral post-quantum network..."
 echo -e "${NC}"
 
-# Create install dir
-mkdir -p "$INSTALL_DIR"
+# --- Check Rust ---
+if ! command -v cargo &>/dev/null; then
+    echo -e "${YELLOW}  [!] Rust not found. Installing...${NC}"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
+    source "$HOME/.cargo/env"
+else
+    echo -e "${GREEN}  [✓] Rust found: $(rustc --version)${NC}"
+fi
 
-# ─── Method 1: Download pre-built binary (fast) ───────────────────
-download_binary() {
-    echo -e "${CYAN}  ↓ Downloading pre-built binary...${NC}"
-    
-    if curl -fsSL --retry 3 --retry-delay 2 -o "${INSTALL_DIR}/polygone" "${BINARY_URL}"; then
-        chmod +x "${INSTALL_DIR}/polygone"
-        
-        if "${INSTALL_DIR}/polygone" --version &>/dev/null; then
-            echo -e "${GREEN}  ✓ Binary installed from GitHub Releases${NC}"
-            return 0
-        fi
-    fi
-    
-    rm -f "${INSTALL_DIR}/polygone"
-    return 1
-}
+# --- Build ---
+echo -e "${CYAN}  Building release binary...${NC}"
+cargo build --release 2>&1
 
-# ─── Method 2: Build from source (fallback) ────────────────────
-build_from_source() {
-    echo -e "${YELLOW}  ! Pre-built binary not available, building from source...${NC}"
-    
-    # Check Rust
-    if ! command -v cargo &>/dev/null; then
-        echo -e "${CYAN}  ↓ Installing Rust...${NC}"
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
-        source "${HOME}/.cargo/env" 2>/dev/null || true
-    fi
-    
-    echo -e "${CYAN}  ⚙ Building release binary...${NC}"
-    
-    if [ ! -f "Cargo.toml" ]; then
-        git clone https://github.com/lvs0/Polygone.git /tmp/polygone-build
-        cd /tmp/polygone-build
-    else
-        cd "$(dirname "$0")"
-    fi
-    
-    cargo build --release 2>/dev/null || cargo build --release
-    
-    cp target/release/polygone "${INSTALL_DIR}/polygone"
-    chmod +x "${INSTALL_DIR}/polygone"
-    
-    echo -e "${GREEN}  ✓ Built from source and installed${NC}"
-}
+# --- Install to PATH ---
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+cp target/release/polygone "$BIN_DIR/polygone"
 
-# ─── Post-install ─────────────────────────────────────────────────
-post_install() {
-    echo ""
-    echo -e "${GREEN}  ✓ POLYGONE v${VERSION} installed!${NC}"
-    echo ""
-    echo "  Location: ${INSTALL_DIR}/polygone"
-    echo ""
-    
-    # Add to PATH
-    if [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
-        echo "export PATH=\"${INSTALL_DIR}:\$PATH\"" >> "${HOME}/.bashrc"
-        export PATH="${INSTALL_DIR}:$PATH"
-        echo "  → Added ${INSTALL_DIR} to PATH"
-    fi
-    
-    # Run self-test
-    echo ""
-    echo -e "${CYAN}  Running self-test...${NC}"
-    "${INSTALL_DIR}/polygone" self-test
-    
-    echo ""
-    echo -e "${GREEN}  ⬡ POLYGONE is ready.${NC}"
-    echo ""
-    echo -e "  Try the local demo:"
-    echo -e "  ${CYAN}polygone send --peer-pk demo --message \"Hello!\"${NC}"
-    echo ""
-}
+# Add to PATH if not there
+if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$HOME/.bashrc"
+    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$HOME/.zshrc" 2>/dev/null || true
+    export PATH="$BIN_DIR:$PATH"
+fi
 
-# ─── Main ─────────────────────────────────────────────────────────
-main() {
-    if download_binary; then
-        post_install
-    else
-        build_from_source
-        post_install
-    fi
-}
-
-main "$@"
+echo ""
+echo -e "${GREEN}  ✓ Polygone installed successfully!${NC}"
+echo ""
+echo "  Run:  polygone start      → Launch the interactive shell"
+echo "  Run:  polygone help       → Full command reference"
+echo "  Run:  polygone self-test  → Verify everything works"
+echo ""
+echo -e "${CYAN}  ⬡ \"L'information n'existe pas. Elle traverse.\" — Hope${NC}"
+echo ""
