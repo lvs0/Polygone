@@ -1,0 +1,203 @@
+---
+- name: Deploy Polygone Enterprise Stack
+  hosts: all
+  become: yes
+  vars:
+    polygone_version: "2.0.0"
+    domain: "{{ polygone_domain | default('polygone.local') }}"
+    admin_email: "{{ admin_email | default('admin@{{ domain }}') }}"
+    enable_monitoring: "{{ enable_monitoring | default(true) }}"
+    enable_backup: "{{ enable_backup | default(true) }}"
+  
+  tasks:
+    - name: Ensure system is up to date
+      package:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop:
+        - curl
+        - wget
+        - unzip
+        - htop
+        - docker-compose
+        - python3
+        - python3-pip
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-compose-plugin
+      when: ansible_os_family == "Debian"
+      notify: Restart Docker
+
+    - name: Create Polygone directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: polygone
+        group: polygone
+      loop:
+        - /opt/polygone
+        - /opt/polygone/config
+        - /opt/polygone/data
+        - /opt/polygone/logs
+        - /opt/polygone/backups
+        - /opt/polygone/models
+        - /opt/polygone/ssl
+
+    - name: Generate SSL certificates
+      command: >
+        openssl req -x509 -nodes -days 365 -newkey rsa:4096 
+        -keyout /opt/polygone/ssl/polygone.key 
+        -out /opt/polygone/ssl/polygone.crt 
+        -subj "/C={{ domain }}/ST={{ domain }}/O=Polygone Enterprise/CN={{ domain }}"
+      args:
+        creates: /opt/polygone/ssl/polygone.crt
+
+    - name: Create enterprise configuration
+      template:
+        src: enterprise.json.j2
+        dest: /opt/polygone/config/enterprise.json
+        mode: '0600'
+        owner: polygone
+        group: polygone
+      vars:
+            node_id: "{{ inventory_hostname }}"
+            domain: "{{ domain }}"
+            admin_email: "{{ admin_email }}"
+            enable_monitoring: "{{ enable_monitoring }}"
+            enable_backup: "{{ enable_backup }}"
+
+    - name: Create Docker Compose configuration
+      template:
+        src: docker-compose.enterprise.j2
+        dest: /opt/polygone/docker-compose.yml
+        mode: '0600'
+        owner: polygone
+        group: polygone
+
+    - name: Create systemd service for Polygone
+      template:
+        src: polygone.service.j2
+        dest: /etc/systemd/system/polygone.service
+        mode: '0644'
+      notify: Reload systemd
+
+    - name: Create monitoring configuration
+      template:
+        src: prometheus.yml.j2
+        dest: /opt/polygone/config/prometheus.yml
+        mode: '0600'
+        owner: polygone
+        group: polygone
+      when: enable_monitoring
+
+    - name: Create backup script
+      template:
+        src: backup.sh.j2
+        dest: /opt/polygone/scripts/backup.sh
+        mode: '0755'
+        owner: polygone
+        group: polygone
+      when: enable_backup
+
+    - name: Setup log rotation
+      template:
+        src: logrotate.polygone.j2
+        dest: /etc/logrotate.d/polygone
+        mode: '0644'
+
+    - name: Create user accounts
+      user:
+        name: "{{ item.name }}"
+        state: present
+        shell: /bin/bash
+        groups: "{{ item.groups }}"
+        create_home: yes
+      loop:
+        - { name: polygone, groups: polygone, docker }
+        - { name: polygone-admin, groups: polygone, sudo, docker }
+
+    - name: Set up firewall rules
+      ufw:
+        rule: "{{ item }}"
+        state: enabled
+        policy: allow
+      loop:
+        - "allow in on any port from any to any port 4001:4003 proto udp"
+        - "allow in on any port from any to any port 4003:4004 proto tcp"
+        - "allow in on any port from any to any port 1080 proto tcp"
+        - "allow in on any port from any to any port 8000 proto tcp"
+        - "allow in on any port from any to any port 9090 proto tcp"
+
+    - name: Start Polygone services
+      systemd:
+        name: polygone
+        state: started
+        enabled: yes
+
+    - name: Wait for services to be ready
+      uri:
+        url: "http://localhost:9090/health"
+        method: GET
+        status_code: 200
+        timeout: 300
+      register: health_check
+      retries: 30
+      delay: 10
+
+    - name: Display deployment information
+      debug:
+        msg: |
+          🌸 POLYGONE ENTERPRISE DEPLOYMENT COMPLETE 🌸
+          
+          Version: {{ polygone_version }}
+          Domain: {{ domain }}
+          Admin Email: {{ admin_email }}
+          
+          Access URLs:
+            - Dashboard: https://{{ domain }}:9090
+            - API: https://{{ domain }}:4000
+            - Polygone Hide: socks5://{{ domain }}:1080
+            - Monitoring: https://{{ domain }}:9091
+          
+          Service Status: {{ health_check.status | default('Unknown') }}
+          
+          Next Steps:
+            1. Configure DNS records for {{ domain }}
+            2. Upload SSL certificates to load balancer
+            3. Configure monitoring alerts
+            4. Set up backup retention policies
+      when: health_check is defined
+
+  handlers:
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Configure monitoring alerts
+      uri:
+        url: "http://localhost:9091/api/v1/alerts"
+        method: POST
+        body_format: json
+        body:
+          alert_type: deployment_complete
+          message: "Polygone Enterprise stack deployed successfully"
+          severity: info
+          timestamp: "{{ ansible_date_time.iso8601() }}"
+      when: enable_monitoring
+      ignore_errors: yes

@@ -1,0 +1,52 @@
+Metadata-Version: 2.4
+Name: polygone-tui
+Version: 1.0.0
+Summary: Une interface terminal simplifiée pour le projet Polygone
+Home-page: https://github.com/lvs0/Polygone
+Author: Manus x Polygone
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: textual>=0.80.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: click>=8.0.0
+Dynamic: author
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# Polygone TUI ⬡
+
+Une interface terminal simplifiée et élégante pour le projet Polygone, inspirée par vos designs.
+
+## Installation Rapide
+
+Pour installer Polygone sur n'importe quel système disposant de Python, exécutez simplement :
+
+```bash
+pip install .
+```
+
+*(Ou utilisez le script d'installation universel fourni)*
+
+## Utilisation
+
+Une fois installé, tapez simplement :
+
+```bash
+polygone
+```
+
+## Fonctionnalités
+- **Tableau de bord** : Visualisez l'état de votre nœud et votre solde.
+- **Navigation intuitive** : Utilisez les chiffres (1-4) ou les flèches pour changer d'onglet.
+- **Design moderne** : Interface sombre optimisée pour le terminal.
+
+---
+*Basé sur le protocole Polygone original.*

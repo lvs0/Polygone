@@ -1,0 +1,3 @@
+use polygone::network::{p2p::PolygoneNode, discovery::PeerDiscovery}; use libp2p::{identity, PeerId}; use std::error::Error; use tokio::runtime::Runtime; #[tokio::test] async fn test_dht_functionality() -> Result<(), Box<dyn Error>> {     let local_key = identity::Keypair::generate_ed25519();     let mut node = PolygoneNode::new(local_key).await?;     let bootstrap_nodes = vec![]; // Add bootstrap nodes here     let mut discovery = PeerDiscovery::new(bootstrap_nodes);     tokio::spawn(async move {
+        node.run().await;
+    });     // Add test logic here to verify DHT functionality     Ok(()) }

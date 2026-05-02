@@ -1,0 +1,60 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          
+      - name: Install musl tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+          # Install cross-compilation toolchain
+          rustup target add ${{ matrix.target }}
+      
+      - name: Build binary
+        run: |
+          if [ "${{ matrix.target }}" = "x86_64-unknown-linux-musl" ]; then
+            cargo build --release --target=${{ matrix.target }}
+            cp target/${{ matrix.target }}/release/polygone target/release/polygone-linux-x64
+          else
+            cargo build --release --target=${{ matrix.target }}
+            cp target/${{ matrix.target }}/release/polygone target/release/polygone-linux-arm64
+          fi
+      
+      - name: Upload Linux assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/release/polygone-linux-x64
+            target/release/polygone-linux-arm64
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test
+      - run: cargo build --release && cargo test --release
+      - name: Run self-test
+        run: ./target/release/polygone self-test
