@@ -59,7 +59,7 @@ Zéro telemetry. Zéro tracking. Zéro tierce partie.
 
 ## Aide
 
-- **Discord:** https://discord.gg/polygone
+- **Discord:** https://discord.gg/ByemUdtyGF
 - **GitHub:** https://github.com/lvs0/Polygone
 
 ---
