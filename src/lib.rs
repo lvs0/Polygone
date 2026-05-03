@@ -29,7 +29,7 @@ pub mod crypto;
 pub mod error;
 pub mod keys;
 pub mod network;
-pub mod node;
+// pub mod node; // exists as network::node
 pub mod protocol;
 pub mod tui;
 
