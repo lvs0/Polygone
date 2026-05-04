@@ -387,7 +387,7 @@ async fn cmd_receive(sk_path: Option<PathBuf>, ciphertext_hex: String) -> anyhow
 // ── node ──────────────────────────────────────────────────────────────────────
 
 async fn cmd_node(action: NodeAction) -> anyhow::Result<()> {
-    use polygone::node::{NodeConfig, boost};
+    use polygone::{node::NodeConfig, boost};
 
     match action {
         NodeAction::Start { ram_mb, listen } => {

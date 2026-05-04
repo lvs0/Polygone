@@ -1,43 +1,25 @@
-# --- Build Stage ---
-FROM rust:1-slim-bookworm AS builder
+FROM alpine:3.19
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    clang \
-    pkg-config \
-    libssl-dev \
-    git \
-    cmake \
-    perl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache wget
 
-WORKDIR /usr/src/polygone
-COPY . .
-
-# Build the server binary
-RUN cargo build --release --bin polygone-server
-
-# --- Runtime Stage ---
-FROM debian:bookworm-slim
-
-# Install CA certificates and networking tools
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN addgroup -S app && adduser -S app -G app
 
 WORKDIR /app
 
-# Copy binary from build stage
-COPY --from=builder /usr/src/polygone/target/release/polygone-server /usr/local/bin/polygone-server
+COPY polygone /app/polygone
+COPY health_server /app/health_server
+COPY --from=builder /usr/src/polygone/target/release/webui /app/webui
+COPY keepalive.sh /app/keepalive.sh
+COPY entrypoint.sh /app/entrypoint.sh
 
-# Identity directory
-RUN mkdir -p /data
+RUN chmod +x /app/entrypoint.sh /app/keepalive.sh
 
-# Render expects the app to bind to $PORT
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://localhost:8080/health || exit 1
+
 EXPOSE 8080
-EXPOSE 4001
+EXPOSE 9050
 
-ENTRYPOINT ["polygone-server"]
-CMD ["--identity", "/data/identity.p2p"]
+USER app
+
+ENTRYPOINT ["/app/entrypoint.sh"]

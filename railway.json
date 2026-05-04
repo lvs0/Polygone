@@ -1,0 +1,23 @@
+{
+  "$schema": "https://railway.app/schemas/v1.json",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "deploy": {
+    "dockerfilePath": "Dockerfile"
+  },
+  "env": {
+    "NODE_PSEUDO": {
+      "description": "Node pseudonym",
+      "default": "polygone-railway"
+    },
+    "PUBLIC_URL": {
+      "description": "Public URL for this node",
+      "default": ""
+    },
+    "BOOTSTRAP_PEERS": {
+      "description": "Comma-separated bootstrap peers",
+      "default": ""
+    }
+  }
+}

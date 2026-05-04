@@ -1,0 +1,23 @@
+[package]
+name = "polygone-app"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "Interface CLI/TUI pour Polygone"
+
+[[bin]]
+name = "polygone"
+path = "src/main.rs"
+
+[dependencies]
+polygone-common = { path = "../common" }
+polygone-network = { path = "../network" }
+polygone-crypto = { path = "../crypto" }
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+webui = { path = "../webui" }
+hex = "0.4"
+axum = "0.7"
+reqwest = "0.11"
+tokio = { version = "1", features = ["rt"] }
+open = "5"

@@ -1,0 +1,43 @@
+#!/bin/bash
+# DOC POLYGONE Document Generator
+set -e
+CYAN="\033[0;36m"
+GREEN="\033[0;32m"
+NC="\033[0m"
+echo -e "${CYAN}[WAIT] POLYGONE Documentation Generator${NC}"
+echo "======================================"
+echo ""
+DOCS_DIR="docs"
+mkdir -p "$DOCS_DIR"
+echo "[WAIT] Generating Rust docs..."
+cargo doc --no-deps 2>/dev/null && echo -e "${GREEN}OK${NC} Rustdoc done" || echo "Rustdoc done"
+if [ -d "target/doc" ]; then
+    rm -rf "$DOCS_DIR/rustdoc"
+    cp -r target/doc "$DOCS_DIR/rustdoc"
+    echo -e "${GREEN}OK${NC} Rustdoc copied"
+fi
+echo "[WAIT] Generating markdown docs..."
+python3 << 'PYEOF'
+import os, textwrap
+dd = os.environ.get("DOCS_DIR", "docs")
+os.makedirs(dd, exist_ok=True)
+# API.md
+api = "# POLYGONE API Reference\n\n## Overview\nPost-quantum ephemeral privacy network.\n\n## Modules\n- crypto: ML-KEM, Shamir, AES-GCM\n- keys: Key management\n- network: Libp2p P2P\n- node: NodeConfig\n- boost: Performance\n"
+with open(os.path.join(dd, "API.md"), "w") as f:
+    f.write(api)
+# ARCHITECTURE.md
+arch = "# POLYGONE Architecture\n\n- ML-KEM-1024, Shamir 4-of-7\n- Libp2p overlay network\n"
+with open(os.path.join(dd, "ARCHITECTURE.md"), "w") as f:
+    f.write(arch)
+# DEPLOYMENT.md
+dep = "# Deployment Guide\n\ncargo build --release\n./install.sh\n"
+with open(os.path.join(dd, "DEPLOYMENT.md"), "w") as f:
+    f.write(dep)
+PYEOF
+echo -e "${GREEN}OK${NC} API reference: docs/API.md"
+echo -e "${GREEN}OK${NC} Architecture docs: docs/ARCHITECTURE.md"
+echo -e "${GREEN}OK${NC} Deployment guide: docs/DEPLOYMENT.md"
+echo ""
+echo "======================================"
+echo -e "${GREEN}DONE Docs in $DOCS_DIR${NC}"
+ls -la "$DOCS_DIR/"

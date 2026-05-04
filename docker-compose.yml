@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  node1:
+    build: .
+    container_name: polygone-node1
+    environment:
+      - NODE_PSEUDO=node1
+      - LISTEN_ADDR=/ip4/0.0.0.0/tcp/4001
+    ports:
+      - "4001:4001"
+      - "4002:4002"
+    command: ["--bootstrap", "/dns4/node2/tcp/4001/p2p/QmNode2", "--listen", "/ip4/0.0.0.0/tcp/4001"]
+
+  node2:
+    build: .
+    container_name: polygone-node2
+    environment:
+      - NODE_PSEUDO=node2
+    ports:
+      - "5001:4001"
+      - "5002:4002"
+    command: ["--bootstrap", "/dns4/node3/tcp/4001/p2p/QmNode3", "--listen", "/ip4/0.0.0.0/tcp/4001"]
+
+  node3:
+    build: .
+    container_name: polygone-node3
+    environment:
+      - NODE_PSEUDO=node3
+    ports:
+      - "6001:4001"
+      - "6002:4002"
+    command: ["--listen", "/ip4/0.0.0.0/tcp/4001"]

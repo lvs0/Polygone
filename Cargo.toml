@@ -1,81 +1,12 @@
-[package]
-name = "polygone"
-version = "1.0.0"
-edition = "2021"
-authors = ["Lévy <polygone@proton.me>"]
-description = "Post-quantum ephemeral privacy network — ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM"
-license = "MIT"
-repository = "https://github.com/lvs0/Polygone"
-keywords = ["post-quantum", "p2p", "privacy", "cryptography", "ephemeral"]
-categories = ["cryptography", "network-programming", "command-line-utilities"]
-rust-version = "1.75"
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
-
-[profile.dev]
-opt-level = 1
-
-[lib]
-name = "polygone"
-path = "src/lib.rs"
-
-[[bin]]
-name = "polygone"
-path = "src/main.rs"
-
-[dependencies]
-# ── Post-Quantum KEM ─────────────────────────────────────────────────────────
-pqcrypto-mlkem    = "0.1"
-pqcrypto-mldsa    = "0.1"
-pqcrypto-traits   = "0.3"
-
-# ── Symmetric + Hash ─────────────────────────────────────────────────────────
-aes-gcm         = { version = "0.10", features = ["aes"] }
-blake3          = "1"
-zeroize         = { version = "1", features = ["derive"] }
-subtle          = "2"
-
-# ── Signatures (Ed25519 — ML-DSA swap-ready via trait) ───────────────────────
-ed25519-dalek   = { version = "2", features = ["rand_core"] }
-
-# ── Secret Sharing ───────────────────────────────────────────────────────────
-sharks          = { version = "0.5", default-features = false }
-rand            = "0.8"
-getrandom       = "0.2"
-
-# ── Async Runtime ────────────────────────────────────────────────────────────
-tokio           = { version = "1", features = ["full"] }
-
-# ── Serialization ────────────────────────────────────────────────────────────
-serde           = { version = "1", features = ["derive"] }
-serde_json      = "1"
-toml            = "0.5"
-bincode         = "1"
-hex             = "0.4"
-
-# ── Error Handling ───────────────────────────────────────────────────────────
-thiserror       = "1"
-anyhow          = "1"
-
-# ── CLI & Logging ────────────────────────────────────────────────────────────
-clap            = { version = "4", features = ["derive"] }
-tracing          = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-# ── System ───────────────────────────────────────────────────────────────────
-dirs            = "5"
-sys-info        = "0.9"
-reqwest         = { version = "0.12", features = ["json"] }
-
-# ── TUI ─────────────────────────────────────────────────────────────────────
-ratatui         = "0.30"
-crossterm       = "0.27"
-
-# ── P2P Network (libp2p) ────────────────────────────────────────────────────
-libp2p          = { version = "0.53", features = ["tokio", "tcp", "dns", "websocket", "noise", "yamux", "kad", "request-response", "cbor", "identify", "gossipsub", "mdns", "autonat", "relay", "dcutr", "ping"] }
-
+[workspace]
+members = [
+    "crates/common",
+    "crates/crypto",
+    "crates/network",
+    "crates/app",
+    "crates/health_server",
+    "crates/webui",
+    "crates/msh",
+    "crates/gateway"
+]
+resolver = "2"

@@ -1,0 +1,24 @@
+[package]
+name = "polygone-crypto"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "Primitives cryptographiques post‑quantiques pour Polygone"
+
+[dependencies]
+polygone-common = { path = "../common" }
+
+# Post‑quantum KEM
+generic-array = "0.14"
+aes-gcm = { version = "0.10", features = ["aes"] }
+
+# Secret sharing
+sharks = { version = "0.5", default-features = false }
+
+# Hashing
+blake3 = "1"
+
+# Général
+rand = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+thiserror = "1"

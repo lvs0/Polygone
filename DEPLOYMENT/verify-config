@@ -1,0 +1,81 @@
+#!/bin/bash
+# ⬡ POLYGONE — Config Verification
+set -e
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo "⬡ POLYGONE — Configuration Verification"
+echo "========================================"
+echo ""
+
+ERRORS=0
+WARNINGS=0
+
+if command -v cargo &>/dev/null; then
+    echo -e "${GREEN}${NC} Cargo: $(rustc --version)"
+else
+    echo -e "${RED}${NC} Cargo: not found"
+    ((ERRORS++))
+fi
+
+CONFIG_DIR="$HOME/.config/polygone"
+if [ -d "$CONFIG_DIR" ]; then
+    echo -e "${GREEN}${NC} Config dir: $CONFIG_DIR"
+else
+    echo -e "${YELLOW}⚠${NC} Config dir: $CONFIG_DIR (not found — will be created)"
+    ((WARNINGS++))
+fi
+
+NODE_CONFIG="$HOME/.config/polygone/node.toml"
+if [ -f "$NODE_CONFIG" ]; then
+    echo -e "${GREEN}${NC} Node config: $NODE_CONFIG"
+else
+    echo -e "${YELLOW}⚠${NC} Node config: $NODE_CONFIG (not found — defaults will be used)"
+    ((WARNINGS++))
+fi
+
+if [ -f "../target/release/polygone" ]; then
+    echo -e "${GREEN}${NC} Binary: ../target/release/polygone"
+    ../target/release/polygone --version 2>/dev/null || true
+else
+    echo -e "${RED}${NC} Binary: ../target/release/polygone (not built)"
+    ((ERRORS++))
+fi
+
+if command -v polygone &>/dev/null; then
+    echo -e "${GREEN}${NC} Installed: $(which polygone)"
+else
+    echo -e "${YELLOW}⚠${NC} Installed: polygone not in PATH"
+    ((WARNINGS++))
+fi
+
+if [ -f "/proc/sys/net/ipv4/ip_forward" ]; then
+    IPFWD=$(cat /proc/sys/net/ipv4/ip_forward)
+    if [ "$IPFWD" = "1" ]; then
+        echo -e "${GREEN}${NC} IP forwarding: enabled"
+    else
+        echo -e "${YELLOW}⚠${NC} IP forwarding: disabled"
+        ((WARNINGS++))
+    fi
+fi
+
+for port in 4001 4002 4003; do
+    if ss -tlnp 2>/dev/null | grep -q ":$port "; then
+        echo -e "${GREEN}${NC} Port $port: in use"
+    else
+        echo -e "${YELLOW}⚠${NC} Port $port: available"
+    fi
+done
+
+echo ""
+echo "========================================"
+if [ $ERRORS -gt 0 ]; then
+    echo -e "${RED}Result: FAILED ($ERRORS errors, $WARNINGS warnings)${NC}"
+    exit 1
+else
+    echo -e "${GREEN}Result: PASSED ✓${NC}"
+    exit 0
+fi

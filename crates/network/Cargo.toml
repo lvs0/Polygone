@@ -1,0 +1,30 @@
+[package]
+name = "polygone-network"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "Réseau P2P (libp2p) pour Polygone"
+
+[dependencies]
+polygone-common = { path = "../common" }
+polygone-crypto = { path = "../crypto" }
+tokio = { version = "1", features = ["full"] }
+libp2p = { version = "=0.53.2", default-features = false, features = [
+    "tcp",
+    "noise",
+    "yamux",
+    "kad",
+    "ping",
+    "request-response",
+] }
+
+# Reason: features réduites au strict minimum pour éviter la complexité et accélérer la compilation.
+# Version gelée (=0.53.2) pour éviter les ruptures pendant la stabilisation.
+
+
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }

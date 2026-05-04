@@ -25,11 +25,12 @@
 
 #![allow(missing_docs)]
 
+pub mod boost;
 pub mod crypto;
 pub mod error;
 pub mod keys;
 pub mod network;
-// pub mod node; // exists as network::node
+pub mod node;
 pub mod protocol;
 pub mod tui;
 
@@ -54,6 +55,11 @@ pub use network::{
     PolygoneRequest, PolygoneResponse, GossipMessage, Capability,
     NodeId, Topology, TopologyParams,
 };
+
+/// Re-export boost module types.
+pub use boost::{NodePerf, apply_cpu_boost};
+/// Node configuration and management.
+pub use node::{NodeConfig};
 
 /// Crate version.
 pub const VERSION: &str = "1.0.0";

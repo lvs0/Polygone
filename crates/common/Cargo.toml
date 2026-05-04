@@ -1,0 +1,13 @@
+[package]
+name = "polygone-common"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "Types partagés pour le réseau Polygone"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+zeroize = { version = "1", features = ["derive"] }
+thiserror = "1"
+serde_json = "1"
+bincode = "1"

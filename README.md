@@ -1,5 +1,7 @@
 <div align="center">
   <h1>⬡ POLYGONE</h1>
+[![CI](https://github.com/lvs0/Polygone/actions/workflows/ci.yml/badge.svg)](https://github.com/lvs0/Polygone/actions/workflows/ci.yml)
+
   <p><strong>Post-quantum privacy ecosystem. One command install. P2P. Zero trust.</strong></p>
 </div>
 
@@ -49,6 +51,15 @@ docker run -d -p 8080:8080 \
 
 ---
 
+n## Public demo node
+
+A public demo node is available (subject to platform sleep policies):
+
+- URL: `https://polygone-demo.onrender.com` (or your own deployed instance)
+- Health: `https://polygone-demo.onrender.com/health`
+
+To deploy your own free node in 5 minutes, see [CONTRIBUTING.md — Deploy a node (free)](CONTRIBUTING.md#deploy-a-node-free).
+
 ## What is Polygone?
 
 A complete privacy ecosystem built on post-quantum cryptography:
@@ -68,7 +79,18 @@ A complete privacy ecosystem built on post-quantum cryptography:
 | `polygone-brain` | Local AI with provider fallback |
 | `polygone-petals` | Distributed LLM inference |
 | `polygone-server` | DHT relay node |
+| `gateway` | Gateway HTTP → P2P (bridge) |
 | `polygone-hide` | SOCKS5 proxy tunnel |
+
+---
+
+## Community
+
+Join us on Discord: [![Discord](https://img.shields.io/badge/Discord-Join%20Polygone-5865F2?logo=discord)](https://discord.gg/kSqe38NbJM)
+
+## Contributing & Local Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on building, testing, and running a local cluster with Docker.
 
 ---
 

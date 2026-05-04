@@ -2,3 +2,10 @@
 **/*.rs.bk
 Cargo.lock
 .vercel
+# binaires locaux générés par build
+polygone
+health_server
+webui
+node
+*.profraw *.profdata
+target/
