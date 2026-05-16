@@ -1,0 +1,133 @@
+================================================================================
+                    POLYGONE — EXECUTIVE SUMMARY
+                    Post-Quantum Privacy Infrastructure
+================================================================================
+
+THE OPPORTUNITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Privacy is a fundamental right under attack. Every day, corporations and
+governments harvest, analyze, and weaponize personal data. Legacy cryptography
+(RSA, ECC) — the foundation of internet security — will be broken by quantum
+computers within the decade. The migration from 1970s-era crypto to post-quantum
+alternatives will take 5–10 years and is mandatory under CNSA 2.0, NIS2, and
+the EU Cyber Resilience Act.
+
+The global cryptography market: $4.2B (2024), growing at 35% CAGR (Gartner).
+EU compliance spending: €2.4B in 2024. Regulatory penalties: up to €20M or 4%
+of global turnover. The window to act is NOW — before the harvest-now-decrypt-
+later attacks already underway finish collecting your most sensitive data.
+
+THE SOLUTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Polygone is a Rust-native, post-quantum cryptographic infrastructure layer —
+built on NIST-finalized algorithms (ML-KEM, ML-DSA, standardized August 2024).
+
+Core products:
+  • Polygone SDK — Enterprise cryptographic library in Rust (memory-safe,
+    SIMD-optimized, no CVE history)
+  • P3 Protocol — Privacy-preserving messaging and file transfer
+  • pgx-store — Post-quantum encrypted data store with zero-knowledge queries
+  • POLY Token — Staking, governance, and protocol fee payment
+
+Built by a 14-year-old prodigy in Rust. Zero compromise on security.
+
+THE MARKET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  $4.2B  Global cryptography market (2024)
+  35%    Projected CAGR through 2030
+  2030   Q-Day risk horizon (conservative)
+  2024   NIST finalized ML-KEM/ML-DSA — migration clock started
+
+Target segments: Financial services, Healthcare, Enterprise SaaS, Government,
+Telecommunications/IoT. Any GDPR/NIS2-covered entity.
+
+THE BUSINESS MODEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Three revenue streams:
+  1. Enterprise SDK Licensing — $50K–$500K/year per customer
+  2. Managed Privacy Cloud — Pay-per-query encrypted services
+  3. POLY Token — Staking rewards, governance, protocol fees
+
+Target: $2M ARR by end of 2026, $10M+ ARR by 2027.
+
+THE COMPETITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Legacy C crypto (OpenSSL/BoringSSL): No post-quantum support, frequent CVEs
+  • Cloud providers (AWS-LC): Limited PQ availability, vendor lock-in
+  • Academic libs (pqcrypto): Research quality, not production-ready
+
+Polygone is the ONLY production-grade, Rust-native post-quantum library.
+First-mover advantage: 2–3 year window before hyperscalers respond.
+
+THE ROADMAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Q3 2025  →  Testnet launch + SDK beta (now)
+  Q4 2025  →  Mainnet beta + first paid enterprise contracts
+  Q1 2026  →  POLY Token Generation Event + governance DAO
+  Q2 2026  →  SOC 2 Type II + managed cloud GA
+  2027+    →  ZK proof integration, geographic expansion
+
+THE TEAM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Lévy — Founder & CTO
+    - Coding since age 8. Built Polygone's core crypto stack at age 13.
+    - Active contributor to Rust open-source ecosystem.
+    - Currently studying advanced mathematics and cryptography.
+
+  OPEN: CFO/Finance Lead (seeking experienced Web3/crypto finance professional)
+  OPEN: Community Lead (seeking DeFi/protocol community manager)
+
+  Advisory board: Cryptography academics, enterprise sales veterans, legal counsel
+
+THE ASK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Raise:       $2,000,000 (Seed Round)
+  Valuation:   $10,000,000 (pre-money)
+  Token pool:  15% in round
+  Runway:      18 months to positive revenue
+  Use of funds:
+    → Engineering (3 senior Rust/crypto engineers)
+    → Security audits (Trail of Bits, NCC Group)
+    → Business development (2 enterprise sales)
+    → Token launch (legal, exchange listing)
+    → Operations (admin, compliance, accounting)
+
+  Milestones this funds:
+    → Testnet + SDK 1.0 launch (Q3 2025)
+    → First 10 paid enterprise contracts
+    → Mainnet beta + governance (Q4 2025)
+    → Token generation event (Q1 2026)
+    → SOC 2 Type II certification (Q2 2026)
+
+KEY RISKS (We are honest about these)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Regulatory: Token classification as security could limit liquidity
+  • Quantum timeline: Q-Day may be 2030 or 2045 — urgency uncertain
+  • Competition: AWS/Google can build comparable offering in 2–3 years
+  • Key person: Lévy is young — team depth is critical
+  • Technical: Implementation bugs in crypto can be catastrophic
+  • Token volatility: Crypto markets are highly volatile
+
+We mitigate through: legal structure, diverse revenue streams, early enterprise
+relationships, third-party audits, and conservative tokenomics.
+
+WHY NOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NIST finalized post-quantum standards in 2024. The migration clock is running.
+Legacy crypto takes 5–10 years to migrate. Organizations that start now —
+before quantum computers mature and before regulatory deadlines bite —
+will have a competitive advantage. Those that wait will face a chaotic, costly,
+forced migration.
+
+Polygone is the infrastructure layer for that migration.
+
+CONTACT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Website:   polygon.xyz
+  GitHub:    github.com/polygone-crypto
+  Email:    invest@polygone.xyz
+
+  This document is confidential and intended solely for the recipient.
+  Forward-looking statements are speculative and subject to risks.
+
+================================================================================

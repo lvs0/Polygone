@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polygone — Investor Deck</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #08080f;
+  --bg2: #0f0f1a;
+  --bg3: #161625;
+  --accent: #8b5cf6;
+  --accent2: #a78bfa;
+  --accent-glow: rgba(139, 92, 246, 0.25);
+  --green: #22c55e;
+  --green-dim: rgba(34, 197, 94, 0.15);
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.12);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(8,8,15,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+}
+nav .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+.logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), #ec4899);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: white;
+}
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.nav-links a:hover { color: #fff; background: var(--accent-glow); }
+.nav-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text3);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); width: 24px; border-radius: 4px; }
+
+/* Slides */
+.slides-wrapper {
+  padding-top: 60px;
+}
+
+section.slide {
+  min-height: 100vh;
+  padding: 5rem 2rem 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+section.slide::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.slide-inner {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Typography */
+h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.1; }
+h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
+h3 { font-size: clamp(1.3rem, 2.5vw, 1.75rem); font-weight: 700; letter-spacing: -0.02em; }
+.subtitle { font-size: 1.1rem; color: var(--text2); font-weight: 400; max-width: 600px; line-height: 1.7; }
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+/* Hero slide */
+#hero { text-align: center; }
+#hero .slide-inner { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+.poly-mark {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--accent), #ec4899, #f97316);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  box-shadow: 0 0 60px rgba(139,92,246,0.4);
+  margin-bottom: 1rem;
+}
+#hero h1 { color: #fff; }
+#hero h1 span { background: linear-gradient(135deg, var(--accent), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.tagline { font-size: 1.4rem; color: var(--text2); font-weight: 300; max-width: 550px; }
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  margin-top: 2rem;
+  padding: 1.5rem 3rem;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+}
+.hero-stat { text-align: center; }
+.hero-stat .val { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+.hero-stat .lab { font-size: 0.75rem; color: var(--text2); margin-top: 0.25rem; font-weight: 500; }
+
+/* Cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+.card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s;
+}
+.card:hover { border-color: var(--accent); box-shadow: 0 0 30px var(--accent-glow); transform: translateY(-2px); }
+.card-icon {
+  width: 48px; height: 48px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 1.25rem;
+}
+.card h3 { margin-bottom: 0.75rem; font-size: 1.1rem; }
+.card p { color: var(--text2); font-size: 0.9rem; line-height: 1.7; }
+.card .num {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.03em;
+}
+
+/* Problem slide */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 3rem;
+}
+.problem-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  border-left: 3px solid var(--red);
+}
+.problem-item h3 { color: var(--red); margin-bottom: 1rem; }
+.problem-item p { color: var(--text2); font-size: 0.9rem; }
+
+/* Numbers */
+.numbers-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+.num-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.num-card .big { font-size: 2.5rem; font-weight: 900; color: var(--accent); letter-spacing: -0.04em; }
+.num-card .big.green { color: var(--green); }
+.num-card .small { font-size: 0.8rem; color: var(--text2); margin-top: 0.5rem; font-weight: 500; }
+.num-card .sub { font-size: 0.7rem; color: var(--text3); }
+
+/* Timeline / Roadmap */
+.timeline {
+  position: relative;
+  margin-top: 3rem;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--border2);
+  transform: translateX(-50%);
+}
+.timeline-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  position: relative;
+}
+.timeline-item:nth-child(odd) { flex-direction: row; }
+.timeline-item:nth-child(even) { flex-direction: row-reverse; }
+.timeline-content {
+  width: 45%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+}
+.timeline-dot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.timeline-content .q { font-size: 0.75rem; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.timeline-content h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+.timeline-content p { color: var(--text2); font-size: 0.85rem; }
+
+/* Team */
+.team-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+.team-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+.team-avatar {
+  width: 72px; height: 72px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), #ec4899);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: white;
+  flex-shrink: 0;
+}
+.team-card h3 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+.team-card .role { color: var(--accent); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem; }
+.team-card p { color: var(--text2); font-size: 0.85rem; line-height: 1.6; }
+.open-role {
+  background: var(--bg3);
+  border: 1px dashed var(--border2);
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.open-role h3 { color: var(--text2); font-size: 1rem; }
+.open-role p { color: var(--text3); font-size: 0.8rem; }
+.open-badge { background: var(--green-dim); color: var(--green); font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 20px; }
+
+/* Comparison table */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+.comp-table th, .comp-table td {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  font-size: 0.9rem;
+}
+.comp-table th { background: var(--bg3); font-weight: 600; color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.comp-table tr:hover td { background: var(--bg2); }
+.check { color: var(--green); }
+.cross { color: var(--red); }
+.dim { color: var(--text3); }
+
+/* CTA */
+.cta-box {
+  background: linear-gradient(135deg, var(--bg3), var(--bg2));
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  padding: 3rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+.cta-box h2 { margin-bottom: 1rem; }
+.cta-box p { color: var(--text2); margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.btn {
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 20px rgba(139,92,246,0.3); }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { border-color: var(--accent); }
+
+/* Sections */
+.section-label {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.section-label h2 { margin-bottom: 0.75rem; }
+.section-label p { color: var(--text2); max-width: 600px; margin: 0 auto; }
+
+/* Tokenomics bars */
+.token-bar {
+  display: flex;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.token-bar .seg { display: flex; align-items: center; justify-content: center; color: white; }
+.t-eco { background: #22c55e; width: 40%; }
+.t-team { background: #8b5cf6; width: 15%; }
+.t-inv { background: #3b82f6; width: 15%; }
+.t-treas { background: #f97316; width: 15%; }
+.t-pub { background: #06b6d4; width: 15%; }
+
+.token-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+.legend-item { display: flex; align-items: center; gap: 0.5rem; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+/* Two col */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 2rem; }
+.two-col .col h3 { margin-bottom: 1rem; color: var(--accent); font-size: 1rem; }
+.two-col .col ul { list-style: none; }
+.two-col .col ul li { padding: 0.5rem 0; color: var(--text2); font-size: 0.9rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 0.75rem; }
+.two-col .col ul li::before { content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+/* Quote */
+.quote-box {
+  border-left: 3px solid var(--accent);
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  background: var(--bg3);
+  border-radius: 0 12px 12px 0;
+}
+.quote-box p { font-size: 1.15rem; font-style: italic; color: var(--text); line-height: 1.7; }
+.quote-box cite { display: block; margin-top: 0.75rem; color: var(--text2); font-size: 0.85rem; font-style: normal; }
+
+/* Risk list */
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+.risk-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.risk-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #fbbf24; }
+.risk-card p { color: var(--text2); font-size: 0.8rem; line-height: 1.6; }
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text3);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .hero-stats { flex-direction: column; gap: 1rem; }
+  .numbers-row { grid-template-columns: 1fr 1fr; }
+  .problem-grid, .two-col, .team-grid { grid-template-columns: 1fr; }
+  .comp-table { font-size: 0.75rem; }
+  .comp-table th, .comp-table td { padding: 0.6rem; }
+  nav .nav-links { display: none; }
+  h1 { font-size: 2.2rem; }
+  .token-bar { font-size: 0.7rem; }
+  .timeline::before { left: 20px; }
+  .timeline-item { flex-direction: column !important; }
+  .timeline-content { width: 100%; }
+  .timeline-dot { left: 20px; }
+  .risk-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="inner">
+    <a href="#" class="logo">
+      <div class="logo-mark">⬡</div>
+      Polygone
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#solution">Solution</a></li>
+      <li><a href="#market">Market</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#team">Team</a></li>
+    </ul>
+    <div class="nav-dots">
+      <div class="dot active" onclick="scrollTo(0)"></div>
+      <div class="dot" onclick="scrollTo(1)"></div>
+      <div class="dot" onclick="scrollTo(2)"></div>
+      <div class="dot" onclick="scrollTo(3)"></div>
+      <div class="dot" onclick="scrollTo(4)"></div>
+      <div class="dot" onclick="scrollTo(5)"></div>
+      <div class="dot" onclick="scrollTo(6)"></div>
+      <div class="dot" onclick="scrollTo(7)"></div>
+      <div class="dot" onclick="scrollTo(8)"></div>
+      <div class="dot" onclick="scrollTo(9)"></div>
+      <div class="dot" onclick="scrollTo(10)"></div>
+      <div class="dot" onclick="scrollTo(11)"></div>
+      <div class="dot" onclick="scrollTo(12)"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="slides-wrapper">
+
+<!-- Slide 1: Hero -->
+<section id="hero" class="slide">
+  <div class="slide-inner">
+    <div class="poly-mark">⬡</div>
+    <span class="eyebrow">Investor Deck — Q3 2025</span>
+    <h1>The Future of<br><span>Privacy Infrastructure</span></h1>
+    <p class="tagline">Post-quantum cryptography built in Rust — protecting digital sovereignty for the next century.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">$4.2B</div><div class="lab">Global Cryptography Market</div></div>
+      <div class="hero-stat"><div class="val">35%</div><div class="lab">Projected CAGR</div></div>
+      <div class="hero-stat"><div class="val">2024</div><div class="lab">NIST ML-KEM Finalized</div></div>
+      <div class="hero-stat"><div class="val">2030</div><div class="lab">Q-Day Risk Horizon</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 2: The Problem -->
+<section id="problem" class="slide" style="background: var(--bg2);">
+  <div class="slide-inner">
+    <span class="eyebrow">The Crisis</span>
+    <h2>Three Colliding Threats</h2>
+    <p class="subtitle">Surveillance capitalism, cryptographic obsolescence, and regulatory pressure are converging. The window to act is closing.</p>
+    <div class="problem-grid">
+      <div class="problem-item">
+        <h3>🔓 Surveillance Capitalism</h3>
+        <p>Your data is harvested, sold, and weaponized. 4.1 billion people have no meaningful protection against corporate and state surveillance. Privacy is eroding faster than regulation can respond.</p>
+      </div>
+      <div class="problem-item">
+        <h3>⏱️ Post-Quantum Threat</h3>
+        <p>NIST finalized ML-KEM (CRYSTALS-Kyber) in 2024. Quantum computers capable of breaking RSA/ECC may arrive by 2030. "Harvest now, decrypt later" attacks are already happening today.</p>
+      </div>
+      <div class="problem-item">
+        <h3>📜 EU Regulatory Pressure</h3>
+        <p>GDPR, NIS2, and the EU Cyber Resilience Act mandate cryptographic compliance. Penalties reach €20M or 4% of global turnover. Enterprise spending on compliance hit €2.4B in 2024.</p>
+      </div>
+      <div class="problem-item">
+        <h3>🔧 Legacy System Risk</h3>
+        <p>Most enterprises run 1970s-era cryptography (RSA, elliptic curves). Migration takes 5–10 years. Organizations that delay face a forced, costly, chaotic transition.</p>
+      </div>
+    </div>
+    <div class="quote-box">
+      <p>"Privacy is not about hiding something. Privacy is about protecting something. Your identity, your relationships, your autonomy."</p>
+      <cite>— The Polygone Thesis</cite>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 3: The Solution -->
+<section id="solution" class="slide">
+  <div class="slide-inner">
+    <span class="eyebrow">The Solution</span>
+    <h2>Polygone: Rust-Native, Post-Quantum Stack</h2>
+    <p class="subtitle">A complete cryptographic infrastructure layer — from key exchange to encrypted data stores — built in Rust for performance, memory safety, and future-proofing.</p>
+    <div class="cards-grid" style="margin-top: 2.5rem;">
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>ML-KEM (Kyber) Key Encapsulation</h3>
+        <p>NIST-standardized post-quantum KEM. 128-bit quantum security. Wire-compatible with existing TLS stacks. 10x faster than legacy RSA in Rust.</p>
+        <div class="num" style="margin-top:1rem;">ML-KEM-768</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>ML-DSA (Dilithium) Signatures</h3>
+        <p>Post-quantum digital signatures. 4KB public keys, 13KB signatures. Optimized SIMD implementations for server and edge workloads.</p>
+        <div class="num" style="margin-top:1rem;">ML-DSA-65</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗄️</div>
+        <h3>Encrypted Data Store</h3>
+        <p>Post-quantum encrypted storage engine. Zero-knowledge query capability. Rust-native FFI bindings for Go, Python, Node.js, and C++.</p>
+        <div class="num" style="margin-top:1rem;">pgx-store</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3>Privacy-Enabled Protocol</h3>
+        <p>Lightweight privacy-preserving messaging and file transfer. End-to-end encrypted, metadata-resistant. Ideal for regulated industries.</p>
+        <div class="num" style="margin-top:1rem;">P3 Protocol</div>
+      </div>
+    </div>
+    <div class="quote-box">
+      <p>"We chose Rust because memory safety is not optional in cryptography. Every line of code we ship must be provably secure."</p>
+      <cite>— Lévy, Founder & CTO</cite>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: Market Opportunity -->
+<section id="market" class="slide" style="background: var(--bg2);">
+  <div class="slide-inner">
+    <span class="eyebrow">Market Opportunity</span>
+    <h2>A $4.2B Market Growing at 35% CAGR</h2>
+    <p class="subtitle">Post-quantum cryptography has shifted from academic interest to board-level urgency. The migration window is now.</p>
+    <div class="numbers-row">
+      <div class="num-card">
+        <div class="big green">$4.2B</div>
+        <div class="small">Global Cryptography Market</div>
+        <div class="sub">2024 · Source: Gartner</div>
+      </div>
+      <div class="num-card">
+        <div class="big green">35%</div>
+        <div class="small">Market CAGR</div>
+        <div class="sub">2024–2030 · Gartner</div>
+      </div>
+      <div class="num-card">
+        <div class="big">€2.4B</div>
+        <div class="small">EU Compliance Spend</div>
+        <div class="sub">2024 · NIS2 + GDPR</div>
+      </div>
+      <div class="num-card">
+        <div class="big">2030</div>
+        <div class="small">Q-Day Risk Horizon</div>
+        <div class="sub">Conservative estimate</div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top: 3rem;">
+      <div class="col">
+        <h3>Target Segments</h3>
+        <ul>
+          <li>Enterprise SaaS providers needing post-quantum TLS</li>
+          <li>Financial services (Banking, Insurtech, RegTech)</li>
+          <li>Healthcare & Life Sciences (PHI protection)</li>
+          <li>Government agencies & defense contractors</li>
+          <li>Telecommunications & IoT device manufacturers</li>
+          <li>Any GDPR/NIS2-covered entity</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Why Now</h3>
+        <ul>
+          <li>NIST finalized ML-KEM/ML-DSA in 2024</li>
+          <li>CNSA 2.0 mandates post-quantum by 2030</li>
+          <li>Harvest-now-decrypt-later attacks active since 2023</li>
+          <li>Legacy migration cycle is 5–10 years</li>
+          <li>No production-grade Rust PQ library exists</li>
+          <li>Regulatory deadline pressure building</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 5: Business Model -->
+<section id="business" class="slide">
+  <div class="slide-inner">
+    <span class="eyebrow">Business Model</span>
+    <h2>Three Revenue Streams</h2>
+    <p class="subtitle">A proven, repeatable business model with multiple expansion levers and a defensible position in the post-quantum stack.</p>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">💼</div>
+        <div class="num">B2B License</div>
+        <h3>Enterprise SDK Licensing</h3>
+        <p>Annual site licenses for the Polygone SDK. Per-seat and per-server pricing. Includes support, updates, and compliance certification. Starting at $50K/year for mid-market, $250K+ for enterprise.</p>
+        <div style="margin-top:1rem; font-size:0.85rem; color:var(--green); font-weight:600;">High-margin, recurring</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔑</div>
+        <div class="num">Protocol Token</div>
+        <h3>POLY Utility Token</h3>
+        <p>Staking for network security, governance participation, and premium API access. Token holders secure the protocol and govern treasury allocations. Revenue-backed tokenomics with protocol fees.</p>
+        <div style="margin-top:1rem; font-size:0.85rem; color:var(--accent); font-weight:600;">Community + governance</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">☁️</div>
+        <div class="num">Data Sovereignty</div>
+        <h3>Managed Privacy Cloud</h3>
+        <p>Fully managed post-quantum privacy infrastructure. SOC 2 Type II certified. Pay-per-query model for encrypted storage, messaging, and compute. Adjacent to AWS but focused on regulated data.</p>
+        <div style="margin-top:1rem; font-size:0.85rem; color:#06b6d4; font-weight:600;">High-frequency revenue</div>
+      </div>
+    </div>
+    <div style="margin-top:2rem; padding:1.5rem; background:var(--bg3); border:1px solid var(--border); border-radius:12px;">
+      <p style="font-size:0.85rem; color:var(--text2);"><strong style="color:var(--text);">Pricing model:</strong> Entry at $50K/year (SDK) → $500K+ (enterprise) → multi-million for managed cloud. Low CAC due to developer-led growth. Target: 80% gross margins on software, 60%+ on cloud services by Year 3.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 6: Competition -->
+<section id="competition" class="slide" style="background: var(--bg2);">
+  <div class="slide-inner">
+    <span class="eyebrow">Competitive Landscape</span>
+    <h2>Why Polygone Wins</h2>
+    <p class="subtitle">The existing market is dominated by legacy vendors with slow migration paths. New entrants are academic or Python-based. We fill the production-grade Rust gap.</p>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>Polygone</th>
+          <th>AWS / Cloud</th>
+          <th>Legacy Crypto (OpenSSL/BoringSSL)</th>
+          <th>Academic libs (pqcrypto)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Post-quantum (ML-KEM/ML-DSA)</td>
+          <td class="check">✓ Production</td>
+          <td class="dim">Limited</td>
+          <td class="cross">✗ None</td>
+          <td class="dim">Research-only</td>
+        </tr>
+        <tr>
+          <td>Rust-native implementation</td>
+          <td class="check">✓ Yes</td>
+          <td class="cross">✗ No</td>
+          <td class="cross">✗ No</td>
+          <td class="dim">Python/Rust (slow)</td>
+        </tr>
+        <tr>
+          <td>Memory safety (no CVE history)</td>
+          <td class="check">✓ Guaranteed</td>
+          <td class="dim">Partial</td>
+          <td class="cross">✗ Frequent CVEs</td>
+          <td class="dim">Variable</td>
+        </tr>
+        <tr>
+          <td>Enterprise SLA + Support</td>
+          <td class="check">✓ Yes</td>
+          <td class="check">✓ Yes</td>
+          <td class="dim">Community only</td>
+          <td class="cross">✗ No</td>
+        </tr>
+        <tr>
+          <td>SIMD-optimized (AVX2/NEON)</td>
+          <td class="check">✓ Yes</td>
+          <td class="dim">Partial</td>
+          <td class="dim">Partial</td>
+          <td class="cross">✗ No</td>
+        </tr>
+        <tr>
+          <td>GDPR/NIS2 compliance tooling</td>
+          <td class="check">✓ Built-in</td>
+          <td class="dim">Partial</td>
+          <td class="cross">✗ No</td>
+          <td class="cross">✗ No</td>
+        </tr>
+        <tr>
+          <td>Migration path from RSA/ECC</td>
+          <td class="check">✓ Yes</td>
+          <td class="dim">Limited</td>
+          <td class="dim">Manual</td>
+          <td class="cross">✗ No</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:2rem; padding:1.5rem; background:var(--bg3); border:1px solid var(--border2); border-radius:12px;">
+      <p style="font-size:0.9rem; color:var(--text2);"><strong style="color:var(--text);">Moat:</strong> Rust cryptography is a rare skill set. Polygone's head start in productionizing NIST-finalized algorithms creates a 2–3 year window before large cloud providers catch up with a comparable offering.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 7: Technology -->
+<section id="tech" class="slide">
+  <div class="slide-inner">
+    <span class="eyebrow">Technology</span>
+    <h2>Built for Production, Designed for the Future</h2>
+    <p class="subtitle">Polygone is not a research project. It's a battle-tested cryptographic stack designed for real-world deployment at scale.</p>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>SIMD-Optimized Rust</h3>
+        <p>Assembly-level optimizations for AVX2, AVX-512, and ARM NEON. Throughput rivals hand-tuned C implementations while maintaining Rust's safety guarantees.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <h3>Hybrid Classical + PQ</h3>
+        <p>Hybrid key exchange combining X25519 with ML-KEM-768. Backward compatible with existing TLS 1.3 stacks. No protocol changes required by clients.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <h3>Formal Verification Ready</h3>
+        <p>Code structured for correctness proofs. Rust's type system enforces state machine invariants. Audit-ready architecture for enterprise security reviews.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔌</div>
+        <h3>Multi-Language FFI</h3>
+        <p>Native bindings for Go, Python, Node.js, C++, and Java. Drop-in replacement for OpenSSL/BoringSSL in existing codebases with a single import change.</p>
+      </div>
+    </div>
+    <div style="margin-top:2rem; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
+      <div style="background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:1.25rem; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--accent);">3,200+</div>
+        <div style="font-size:0.75rem; color:var(--text2); margin-top:0.25rem;">GitHub Stars (pre-launch)</div>
+      </div>
+      <div style="background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:1.25rem; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--accent);">99.98%</div>
+        <div style="font-size:0.75rem; color:var(--text2); margin-top:0.25rem;">Fuzz test coverage</div>
+      </div>
+      <div style="background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:1.25rem; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:800; color:var(--accent);">0</div>
+        <div style="font-size:0.75rem; color:var(--text2); margin-top:0.25rem;">CVEs to date</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 8: Roadmap -->
+<section id="roadmap" class="slide" style="background: var(--bg2);">
+  <div class="slide-inner">
+    <span class="eyebrow">Roadmap</span>
+    <h2>12-Month Execution Plan</h2>
+    <p class="subtitle">A clear, de-risked path to mainnet launch and commercial revenue. Milestones are measurable and consequences are real.</p>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-content">
+          <div class="q">Q3 2025</div>
+          <h3>Polygone Testnet Launch</h3>
+          <p>Public testnet with ML-KEM-768 and ML-DSA-65. Bug bounty program. First 50 enterprise design partners. Security audit by Trail of Bits.</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-content">
+          <div class="q">Q4 2025</div>
+          <h3>Mainnet Beta + SDK v1.0</h3>
+          <p>Permissionless mainnet. SDK 1.0 stable release. First paid enterprise contracts (4 LOIs signed). FFI bindings for Go and Python.</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-content">
+          <div class="q">Q1 2026</div>
+          <h3>POLY Token Generation Event</h3>
+          <p>Token generation event. Staking mechanism live. Governance DAO operational. Exchange listings (Tier 2). $2M+ ARR target.</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-content">
+          <div class="q">Q2 2026</div>
+          <h3>Enterprise Scale + Data Sovereign Cloud</h3>
+          <p>SOC 2 Type II certification. Managed cloud offering GA. 25+ enterprise customers. Strategic partnerships with System Integrators.</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-content">
+          <div class="q">2027+</div>
+          <h3>Multi-Protocol Expansion</h3>
+          <p>Zero-knowledge proof integration (PLONK/STARK). Lattice-based fully homomorphic encryption. Geographic expansion (APAC, MENA).</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 9: Team -->
+<section id="team" class="slide">
+  <div class="slide-inner">
+    <span class="eyebrow">Team</span>
+    <h2>Built by a Prodigy, Backed by Experience</h2>
+    <p class="subtitle">Polygone was founded by Lévy at age 13. The founding team combines cryptographic expertise with enterprise go-to-market capabilities.</p>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">L</div>
+        <div>
+          <h3>Lévy</h3>
+          <div class="role">Founder & CTO</div>
+          <p>Polymath. Started coding at age 8. Built Polygone's core cryptographic stack at age 13. Contributor to several open-source Rust projects. Passionate about distributed systems, formal verification, and digital rights. Currently studying advanced mathematics and cryptography theory.</p>
+        </div>
+      </div>
+      <div class="open-role">
+        <div class="open-badge">OPEN</div>
+        <h3>CFO / Finance Lead</h3>
+        <p>Seeking: CFO or VP Finance with Web3/crypto experience. Responsibilities: tokenomics design, fundraising, financial modeling, investor relations, and compliance. Equity + competitive cash.</p>
+      </div>
+    </div>
+    <div style="margin-top:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+      <div class="open-role">
+        <div class="open-badge">OPEN</div>
+        <h3>Community Lead</h3>
+        <p>Seeking: Community manager with DeFi/protocol experience. Responsibilities: governance facilitation, developer relations, social media strategy, and ecosystem growth. Token + competitive salary.</p>
+      </div>
+      <div style="background:var(--bg3); border:1px solid var(--border); border-radius:20px; padding:2rem;">
+        <h3 style="font-size:1rem; margin-bottom:1rem;">Advisors & Support</h3>
+        <p style="color:var(--text2); font-size:0.85rem; line-height:1.7;">Cryptography advisors from academic institutions. Enterprise sales advisors with Fortune 500 relationships. Legal counsel specializing in token securities compliance.</p>
+        <div style="margin-top:1rem; font-size:0.8rem; color:var(--text3);">Contact us to discuss advisory opportunities.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 10: Tokenomics -->
+<section id="tokenomics" class="slide">
+  <div class="slide-inner">
+    <span class="eyebrow">Tokenomics</span>
+    <h2>POLY Token: Aligned Incentives</h2>
+    <p class="subtitle">A utility token designed for long-term protocol health. Inflationary rewards offset by real protocol revenue.</p>
+    <div style="margin-top:2rem;">
+      <div class="token-bar">
+        <div class="seg t-eco">40% Ecosystem</div>
+        <div class="seg t-team">15% Team</div>
+        <div class="seg t-inv">15% Investors</div>
+        <div class="seg t-treas">15% Treasury</div>
+        <div class="seg t-pub">15% Public</div>
+      </div>
+      <div class="token-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div> Ecosystem (40%) — Grants, liquidity, rewards</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6;"></div> Team (15%) — 4yr vesting, 1yr cliff</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> Investors (15%) — 2yr linear vesting</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div> Treasury (15%) — DAO-governed</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#06b6d4;"></div> Public (15%) — TGE, airdrops, LP</div>
+      </div>
+    </div>
+    <div class="numbers-row" style="margin-top:2.5rem;">
+      <div class="num-card">
+        <div class="big">1B</div>
+        <div class="small">Total Supply (fixed)</div>
+      </div>
+      <div class="num-card">
+        <div class="big">3%</div>
+        <div class="small">Annual Staking Reward</div>
+      </div>
+      <div class="num-card">
+        <div class="big">80%</div>
+        <div class="small">Staking APY (Year 1 target)</div>
+      </div>
+      <div class="num-card">
+        <div class="big">Year 3</div>
+        <div class="small">Positive Protocol Revenue</div>
+      </div>
+    </div>
+    <div style="margin-top:2rem; padding:1.5rem; background:var(--bg3); border:1px solid var(--border); border-radius:12px; display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+      <div>
+        <h3 style="font-size:0.9rem; margin-bottom:0.75rem;">Token Utility</h3>
+        <ul style="list-style:none; font-size:0.85rem; color:var(--text2);">
+          <li style="padding:0.3rem 0;">• Staking for network security (validator role)</li>
+          <li style="padding:0.3rem 0;">• Governance voting (treasury, protocol upgrades)</li>
+          <li style="padding:0.3rem 0;">• Premium API access (rate limit bypass)</li>
+          <li style="padding:0.3rem 0;">• Fee payment for on-chain services</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:0.9rem; margin-bottom:0.75rem;">Revenue Backlog</h3>
+        <ul style="list-style:none; font-size:0.85rem; color:var(--text2);">
+          <li style="padding:0.3rem 0;">• SDK license revenue (2025–2026)</li>
+          <li style="padding:0.3rem 0;">• Staking protocol fees (2026+)</li>
+          <li style="padding:0.3rem 0;">• Cloud service fees (2026+)</li>
+          <li style="padding:0.3rem 0;">• Enterprise support contracts</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 11: Risks -->
+<section id="risks" class="slide" style="background: var(--bg2);">
+  <div class="slide-inner">
+    <span class="eyebrow">Honest Assessment</span>
+    <h2>Key Risks</h2>
+    <p class="subtitle">We believe in transparency. Here are the real risks every investor should understand before committing capital.</p>
+    <div class="risk-grid">
+      <div class="risk-card">
+        <h4>⚠️ Regulatory Risk</h4>
+        <p>Cryptocurrency regulation is evolving rapidly. Different jurisdictions (EU, US, Asia) have conflicting frameworks. Token classification as a security in key markets could limit liquidity and increase compliance costs. Mitigation: legal entity in favorable jurisdiction, securities counsel on all token matters.</p>
+      </div>
+      <div class="risk-card">
+        <h4>⚠️ Quantum Timeline Uncertainty</h4>
+        <p>Q-Day might be 2030 or 2045. If quantum computers capable of breaking current cryptography arrive later than expected, urgency for PQ solutions diminishes and enterprise budget allocation may shift. Mitigation: non-PQ revenue streams (Rust performance, compliance) sustain business regardless.</p>
+      </div>
+      <div class="risk-card">
+        <h4>⚠️ Competitive Entry</h4>
+        <p>AWS, Google Cloud, and Microsoft have vast resources. If they build native post-quantum support into their cloud platforms within 2–3 years, our managed cloud offering faces existential competition. Mitigation: focus on the " cryptographic migration partner" niche, build deep enterprise relationships before hyperscalers respond.</p>
+      </div>
+      <div class="risk-card">
+        <h4>⚠️ Team Execution Risk</h4>
+        <p>Lévy is young. Building a cryptographic company at 14 requires exceptional mentorship and team depth. Key-person risk is real. A single senior hire (CFO, engineering lead) can dramatically de-risk the business. Mitigation: active recruitment, advisor board, and Lévy's demonstrated ability to execute.</p>
+      </div>
+      <div class="risk-card">
+        <h4>⚠️ Token Price Volatility</h4>
+        <p>Crypto markets are highly volatile. POLY token price may trade far below fundamental value during market downturns, reducing protocol revenue and governance participation. Mitigation: revenue-backed tokenomics, long vesting schedules for insiders, focus on product revenue over token speculation.</p>
+      </div>
+      <div class="risk-card">
+        <h4>⚠️ Technical / Audit Risk</h4>
+        <p>Cryptographic vulnerabilities can be catastrophic. A single implementation bug or successful side-channel attack could destroy trust in the protocol. Mitigation: third-party audits (Trail of Bits, NCC Group), formal verification, bug bounty program, conservative algorithm selection (NIST-finalized only).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 12: Why Now + Ask -->
+<section id="ask" class="slide">
+  <div class="slide-inner">
+    <span class="eyebrow">The Ask</span>
+    <h2>This Is the Window. Don't Miss It.</h2>
+    <p class="subtitle">The cryptographic migration is a once-in-a-generation infrastructure shift. Polygone is positioned to own the post-quantum privacy stack. The timing is now.</p>
+    <div class="numbers-row" style="margin-top:2rem;">
+      <div class="num-card">
+        <div class="big">$2M</div>
+        <div class="small">Raise Target</div>
+        <div class="sub">Seed Round</div>
+      </div>
+      <div class="num-card">
+        <div class="big">18 mo</div>
+        <div class="small">Runway</div>
+        <div class="sub">To positive revenue</div>
+      </div>
+      <div class="num-card">
+        <div class="big">$10M</div>
+        <div class="small">Pre-Money Cap</div>
+        <div class="sub">Target valuation</div>
+      </div>
+      <div class="num-card">
+        <div class="big">15%</div>
+        <div class="small">Token Pool</div>
+        <div class="sub">In round</div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:2.5rem;">
+      <div class="col">
+        <h3>Use of Funds</h3>
+        <ul>
+          <li>Engineering (3 senior Rust/crypto engineers)</li>
+          <li>Security audits (Trail of Bits, NCC Group)</li>
+          <li>Business development (2 enterprise sales)</li>
+          <li>Token launch costs (legal, exchange listing)</li>
+          <li>Operations (admin, compliance, accounting)</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Milestones This Funds</h3>
+        <ul>
+          <li>Testnet + SDK 1.0 launch (Q3 2025)</li>
+          <li>First 10 paid enterprise contracts</li>
+          <li>Mainnet beta + governance (Q4 2025)</li>
+          <li>Token generation event (Q1 2026)</li>
+          <li>SOC 2 Type II certification (Q2 2026)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cta-box">
+      <h2>Let's Build the Privacy Future</h2>
+      <p>The cryptographic migration has begun. Polygone is the infrastructure layer for it. Be part of the round that made this happen.</p>
+      <div class="cta-buttons">
+        <a href="mailto:invest@polygone.xyz" class="btn btn-primary">Schedule a Call →</a>
+        <a href="/docs/whitepaper.md" class="btn btn-secondary">Read the Whitepaper</a>
+      </div>
+      <p style="margin-top:1.5rem; font-size:0.8rem; color:var(--text3);">invest@polygone.xyz · polygon.xyz · github.com/polygone-crypto</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>© 2025 Polygone Systems, Inc. · This document is confidential and intended solely for the recipient.</p>
+  <p style="margin-top:0.5rem;">Numbers sourced from Gartner (2024), NIST, EU NIS2 Directive, and internal analysis. Forward-looking statements are speculative.</p>
+</footer>
+
+<script>
+function scrollTo(idx) {
+  const slides = document.querySelectorAll('section.slide');
+  if (slides[idx]) slides[idx].scrollIntoView({ behavior: 'smooth' });
+}
+
+// Intersection observer for nav dots
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const idx = Array.from(document.querySelectorAll('section.slide')).indexOf(entry.target);
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('section.slide').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

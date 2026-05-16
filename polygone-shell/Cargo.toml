@@ -1,0 +1,25 @@
+[package]
+name = "polygone-shell"
+version = "0.1.0"
+edition = "2021"
+authors = ["l-vs (Hope)"]
+description = "Interactive TUI Dashboard for the Polygone Network"
+
+[dependencies]
+polygone = { path = "../polygone-core" }
+
+# TUI (Ratatui + Crossterm)
+ratatui = "0.26"
+crossterm = "0.27"
+
+# Network
+tokio = { version = "1", features = ["full"] }
+libp2p = { version = "0.53", features = ["tokio", "tcp", "noise", "yamux", "kad"] }
+
+# Utilities
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+chrono = "0.4"
