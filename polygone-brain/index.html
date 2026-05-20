@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POLYGONE-BRAIN — AI Diagnostic & Network Intelligence</title>
+  <meta name="description" content="The cognitive layer of the Polygone network. Ask questions, diagnose nodes, and let distributed AI understand your infrastructure.">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{--void:#0A0A0F;--surface:#111118;--border:#1E1E2E;--cobalt:#1A6BFF;--purple:#8B5CF6;--text:#C8C8E8;--text-dim:#4A4A6A;--text-bright:#F0F0FF;--ease:cubic-bezier(.25,.46,.45,.94);--font-d:'Bebas Neue',sans-serif;--font-m:'IBM Plex Mono',monospace;}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+    body{background:var(--void);color:var(--text);font-family:var(--font-m);font-size:13px;line-height:1.8;overflow-x:hidden;}a{color:inherit;text-decoration:none;}
+    nav{position:fixed;top:0;left:0;right:0;height:50px;z-index:100;background:rgba(10,10,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px;justify-content:space-between;}
+    .nav-logo{font-family:var(--font-d);font-size:18px;letter-spacing:.1em;}.nav-logo span{color:var(--cobalt);}
+    .nav-links{display:flex;gap:28px;}.nav-links a{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);transition:.3s;}.nav-links a:hover{color:var(--cobalt);}
+    #hero{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    canvas{position:absolute;inset:0;width:100%;height:100%;}
+    .hero-c{position:relative;z-index:2;text-align:center;padding:0 24px;max-width:900px;}
+    .hero-title{font-family:var(--font-d);font-size:clamp(60px,14vw,180px);color:var(--text-bright);line-height:.9;letter-spacing:.04em;}
+    .hero-sub{font-size:12px;letter-spacing:.4em;text-transform:uppercase;color:var(--cobalt);margin-top:20px;}
+    .hero-desc{font-size:13px;color:var(--text-dim);margin:16px auto 0;max-width:540px;}
+    .hero-ctas{display:flex;gap:16px;justify-content:center;margin-top:40px;flex-wrap:wrap;}
+    .btn{display:inline-block;padding:11px 26px;border:1px solid var(--cobalt);font-family:var(--font-m);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--cobalt);position:relative;overflow:hidden;transition:color .3s;}
+    .btn::before{content:'';position:absolute;inset:0;background:var(--cobalt);transform:translateX(-100%);transition:transform .3s var(--ease);}
+    .btn:hover::before{transform:translateX(0);}.btn:hover{color:var(--void);}.btn span{position:relative;z-index:1;}
+    .btn-ghost{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);transition:.3s;padding:11px 0;}.btn-ghost:hover{color:var(--text-bright);}
+    .sec{max-width:1000px;margin:0 auto;padding:100px 40px;border-top:1px solid var(--border);}
+    .sec-label{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--cobalt);margin-bottom:16px;}
+    .sec-title{font-family:var(--font-d);font-size:clamp(28px,5vw,56px);color:var(--text-bright);line-height:1;margin-bottom:40px;}
+    /* CHAT DEMO */
+    .chat{background:var(--surface);border:1px solid var(--border);}
+    .chat-bar{padding:12px 20px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--cobalt);}
+    .chat-body{padding:24px 20px;display:flex;flex-direction:column;gap:20px;}
+    .msg{display:flex;gap:12px;align-items:flex-start;}
+    .msg-avatar{width:28px;height:28px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:2px;}
+    .msg-avatar.user{border-color:var(--cobalt);color:var(--cobalt);}
+    .msg-avatar.brain{border-color:var(--purple);color:var(--purple);}
+    .msg-content{font-size:12px;line-height:1.7;}
+    .msg-content .prompt{color:var(--text-bright);}
+    .msg-content .resp{color:var(--text-dim);}
+    .msg-content .resp strong{color:var(--cobalt);}
+    /* DOCTOR */
+    .doctor{background:var(--surface);border:1px solid var(--border);padding:24px;}
+    .doctor-title{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--cobalt);margin-bottom:16px;}
+    .doctor-item{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:12px;}
+    .doctor-item .status{font-size:10px;width:60px;text-align:right;flex-shrink:0;}
+    .status.ok{color:#28C840;}
+    .status.new{color:var(--cobalt);}
+    .status.warn{color:#FF9A3C;}
+    .doctor-item .bar{flex:1;height:2px;background:var(--border);position:relative;}
+    .doctor-item .bar-fill{height:100%;background:var(--cobalt);transition:width 1s var(--ease);}
+    footer{border-top:1px solid var(--border);padding:36px 40px;max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+    .ft-l{font-size:10px;color:var(--text-dim);line-height:1.9;}.ft-l strong{color:var(--cobalt);font-weight:400;}
+    .ft-links{display:flex;gap:20px;}.ft-links a{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-dim);transition:.3s;}.ft-links a:hover{color:var(--cobalt);}
+    .rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease);}.rv.on{opacity:1;transform:none;}
+    @media(max-width:800px){.sec{padding:70px 24px;}nav{padding:0 20px;}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="https://github.com/lvs0/Polygone" class="nav-logo">POLYGONE · <span>BRAIN</span></a>
+    <div class="nav-links">
+      <a href="#doctor">Doctor</a>
+      <a href="#ask">Ask</a>
+      <a href="https://github.com/lvs0/Polygone-Brain" target="_blank">↗ GitHub</a>
+    </div>
+  </nav>
+  <section id="hero">
+    <canvas id="cnv"></canvas>
+    <div class="hero-c">
+      <h1 class="hero-title">BRAIN</h1>
+      <p class="hero-sub">Network Intelligence & Diagnostics</p>
+      <p class="hero-desc">The cognitive layer of the Polygone ecosystem. Ask questions in natural language. Diagnose your infrastructure. Let distributed AI see what you can't.</p>
+      <div class="hero-ctas">
+        <a href="#doctor" class="btn"><span>Run Doctor</span></a>
+        <a href="https://github.com/lvs0/Polygone-Brain" target="_blank" class="btn-ghost">↗ View Source</a>
+      </div>
+    </div>
+  </section>
+  <!-- DOCTOR -->
+  <section id="doctor" class="sec">
+    <div class="sec-label rv">Diagnostic</div>
+    <h2 class="sec-title rv">ONE COMMAND.<br>FULL HEALTH REPORT.</h2>
+    <div class="doctor rv">
+      <div class="doctor-title">$ polygone-brain doctor</div>
+      <div class="doctor-item"><span style="color:var(--text-dim);width:120px;font-size:11px;">Polygone-Core</span><div class="bar"><div class="bar-fill" style="width:100%"></div></div><span class="status ok">OK</span></div>
+      <div class="doctor-item"><span style="color:var(--text-dim);width:120px;font-size:11px;">Polygone-Drive</span><div class="bar"><div class="bar-fill" style="width:95%"></div></div><span class="status ok">OK</span></div>
+      <div class="doctor-item"><span style="color:var(--text-dim);width:120px;font-size:11px;">Polygone-Petals</span><div class="bar"><div class="bar-fill" style="width:80%"></div></div><span class="status ok">OK</span></div>
+      <div class="doctor-item"><span style="color:var(--text-dim);width:120px;font-size:11px;">Polygone-Hide</span><div class="bar"><div class="bar-fill" style="width:60%"></div></div><span class="status new">NEW</span></div>
+      <div class="doctor-item"><span style="color:var(--text-dim);width:120px;font-size:11px;">Karma System</span><div class="bar"><div class="bar-fill" style="width:100%"></div></div><span class="status ok">ACTIVE</span></div>
+      <div style="margin-top:16px;font-size:11px;color:var(--text-dim);">> All systems nominal. Network health: <strong style="color:#28C840;">OPTIMAL</strong></div>
+    </div>
+  </section>
+  <!-- ASK -->
+  <section id="ask" class="sec">
+    <div class="sec-label rv">AI Interface</div>
+    <h2 class="sec-title rv">ASK THE<br>NETWORK ANYTHING</h2>
+    <div class="chat rv">
+      <div class="chat-bar">⬡ Polygone-Brain — Consensus Mode</div>
+      <div class="chat-body">
+        <div class="msg">
+          <div class="msg-avatar user">YOU</div>
+          <div class="msg-content"><span class="prompt">How many relays are available for streaming right now?</span></div>
+        </div>
+        <div class="msg">
+          <div class="msg-avatar brain">AI</div>
+          <div class="msg-content"><span class="resp">Querying Polygone DHT... <strong>14 active relay nodes</strong> detected. Average shard latency: <strong>42ms</strong>. Recommended minimum quorum (4-of-7) is achievable. Streaming condition: <strong>OPTIMAL</strong>.</span></div>
+        </div>
+        <div class="msg">
+          <div class="msg-avatar user">YOU</div>
+          <div class="msg-content"><span class="prompt">Is my node contributing Karma?</span></div>
+        </div>
+        <div class="msg">
+          <div class="msg-avatar brain">AI</div>
+          <div class="msg-content"><span class="resp">Node 12D3KooWAb... has contributed <strong>+48 Karma units</strong> in the last 6 hours via idle CPU relay. <strong>3 WorkVouchers</strong> signed via ML-DSA-87. Keep idle monitoring active to continue earning.</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;font-family:var(--font-m);font-size:12px;color:var(--text-dim);">
+      <span style="color:var(--cobalt);">$</span> polygone-brain ask "How many relays are available?"
+    </div>
+  </section>
+  <footer>
+    <div class="ft-l"><strong>POLYGONE-BRAIN</strong> — MIT License — 2026<br>Part of the Polygone post-quantum ecosystem</div>
+    <div class="ft-links">
+      <a href="https://github.com/lvs0/Polygone-Brain" target="_blank">GitHub</a>
+      <a href="https://github.com/lvs0/Polygone" target="_blank">Core Protocol</a>
+    </div>
+  </footer>
+  <script>
+    const cv=document.getElementById('cnv'),ctx=cv.getContext('2d');let W,H;
+    const resize=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;};resize();addEventListener('resize',resize);
+    const pts=[];for(let i=0;i<6;i++){const r=100+i*40;for(let j=0;j<i*6+6;j++){const a=(j/(i*6+6))*Math.PI*2;pts.push({ox:W/2+Math.cos(a)*r,oy:H/2+Math.sin(a)*r,x:0,y:0,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,ring:i});}}
+    pts.forEach(p=>{p.x=p.ox;p.y=p.oy;});
+    function draw(){ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(Math.abs(p.x-p.ox)>20)p.vx*=-1;if(Math.abs(p.y-p.oy)>20)p.vy*=-1;ctx.beginPath();ctx.fillStyle=`rgba(139,92,246,${0.1+p.ring*0.03})`;ctx.arc(p.x,p.y,1.2,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
+    draw();
+    const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on');}),{threshold:.1});
+    document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+  </script>
+</body>
+</html>

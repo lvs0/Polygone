@@ -1,12 +1,23 @@
 [workspace]
+resolver = "2"
 members = [
+    "polygone-core",
+    "polygone-brain",
+    "polygone-shell",
+    "polygone-petals",
+    "crates/app",
     "crates/common",
     "crates/crypto",
-    "crates/network",
-    "crates/app",
-    "crates/health_server",
-    "crates/webui",
     "crates/msh",
-    "crates/gateway"
+    "crates/network",
 ]
-resolver = "2"
+# polygone-petals exclu temporairement : bug incompatibilité candle-core / rand 0.9
+# membres à réintégrer une fois candle mis à jour ou patché
+exclude = [
+    "target",
+]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1

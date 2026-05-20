@@ -1,0 +1,25 @@
+# Health Check Polygone — 2026-05-16T08:00:51.931652
+
+## Espace disque
+- /home : 93% (205G/222G) — ALERTE >92%
+- / : 93% (même partition /dev/sda3)
+
+## Build
+- cargo check --workspace : OK (0.64s, pas d'erreur ni warning)
+
+## Crates workspace (9/9 presentes)
+- polygone-core/        Cargo.toml OK
+- polygone-common/      Cargo.toml OK
+- polygone-crypto/      Cargo.toml OK
+- polygone-network/     Cargo.toml OK
+- polygone-brain/       Cargo.toml OK
+- polygone-shell/       Cargo.toml OK
+- polygone-petals/      Cargo.toml OK  (exclu du workspace, bug candle-core/rand)
+- polygone-app/         Cargo.toml OK
+- msh/                  Cargo.toml OK
+
+## Metriques
+- target/ : 910M (< 3G, pas de nettoyage necessaire)
+
+## Alertes
+- [CRITIQUE] /home a 93% — nettoyage urgent recommande (cron auto dimanche 23h)

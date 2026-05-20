@@ -148,3 +148,32 @@ Chaque semaine, sans attendre d'instructions :
 ---
 
 *Ce document est vivant. Mis à jour automatiquement chaque semaine.*
+
+---
+
+## 📊 MÉTRIQUES HEBDOMADAIRES — Semaine du 12 au 18 Mai 2026
+
+### Week 1 Results (Première semaine d'exécution)
+| Métrique | Valeur |
+|---|---|
+| ⭐ GitHub Stars | 1 |
+| 💬 Discord Members | 0 (serveur pas encore créé) |
+| 📝 Commits cette semaine | 4 (16 mai 2026) |
+| 🪙 Token Price | $0.020 (TGE prévu, pas encore lancé) |
+| 💰 Revenue | €0 |
+| 📦 Lignes de code ajoutées (net) | +5,319 |
+
+### Build de la semaine — Ce qui a été ship
+- ✅ Landing page complète (index.html, 5 sections, dark theme)
+- ✅ Package investor complet (deck HTML, whitepaper, tokenomics, legal guide)
+- ✅ REVOLUTION-PLAN.md — blueprint d'exécution autonome
+- ✅ CI GitHub Actions (cargo check + cargo test)
+- ✅ Scripts autonomes : outreach-daily.py, revenue-daily.py, setup-depin.sh
+- ✅ polygone-core : crate unifiée, polygone-brain, polygone-shell TUI
+
+### Outstanding — Ce qui reste à faire cette semaine
+- [ ] Discord officiel : créer le serveur, mettre en place les bots d'onboarding
+- [ ] Premier message outreach : envoyer recruitment-pitch.md à 5 personnes
+- [ ] Token launch prep : finaliser les contrats de partenariat
+- [ ] Revenue first dollar : activer les nodes DePIN (Grass + io.net)
+- [ ] Tests : lancer cargo test --workspace et valider 100% passing

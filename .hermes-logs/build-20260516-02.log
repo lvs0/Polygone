@@ -1,0 +1,28 @@
+# Polygone Health Check — 2026-05-16 02:02
+
+## Espace disque
+- df -h /home/l-vs/Polygone | tail -1 → ~/Polygone (sur /home), usage: 93%
+- df -h / | tail -1 → / sur /dev/mapper/fedora_fedora--localhost--live-home, usage: 93%
+
+⚠ /home > 92% → alerte nécessaire
+
+## Build check
+cd ~/Polygone && cargo check --workspace 2>&1 | tail -5 → ✅ OK
+
+## Métriques
+- du -sh ~/Polygone/target/ → 910M
+
+## Crate health (workspace Cargo.toml members + crates/ sous-dossiers)
+| Crate | Statut |
+|---|---|
+| polygone-core | ✅ |
+| polygone-brain | ✅ |
+| polygone-shell | ✅ |
+| crates/app (= polygone-app) | ✅ |
+| crates/common (= polygone-common) | ✅ |
+| crates/crypto (= polygone-crypto) | ✅ |
+| crates/msh | ✅ |
+| crates/network (= polygone-network) | ✅ |
+| polygone-petals | ℹ️ présent dans ~/Polygone/polygone-petals/ mais exclu du workspace (bug candle-core / rand 0.9) — normal |
+
+vérifiées via glob récursif crates/**/Cargo.toml.

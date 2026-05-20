@@ -1,0 +1,18 @@
+=== RELAY HEALTH CHECK ===
+Timestamp: auto-set by filename
+
+## Disk
+/home : 94% (222G total, 206G used, 16G free) [SEUIL >92% ATTEINT]
+~/Polygone/target : 1.3G (aucune alerte, seuil 3G)
+
+## Build
+cargo check --workspace: OK (finished in 0.69s, pas d'erreur ni de warning)
+
+## Crates workspace (8 membres actifs + 1 exclu)
+Membres actifs (8/8 presents):
+  polygone-core, polygone-brain, polygone-shell,
+  crates/app, crates/common, crates/crypto, crates/msh, crates/network
+
+Exclu intentionnel du workspace:
+  polygone-petals — raison: bug incompatibilite candle-core / rand 0.9
+  (fichier present sur disque, Cargo.toml OK, mais exclu des members)

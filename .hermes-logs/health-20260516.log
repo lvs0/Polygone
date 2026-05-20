@@ -1,0 +1,11 @@
+=== RELAY HEALTH CHECK ===
+TIMESTAMP: 2026-05-16 09:02:13
+[BUILD] : OK - finished dev profile in 0.50s
+[TESTS] : OK - 5 passed; 0 failed; 0 ignored; 0 measured; finished in 0.00s
+[WORKSPACE CRATES] : 8 membres confirme - polygone-petals exclu (intentionnel)
+[DISK /home] : 222G 205G 16G 93% > 90% WARNING
+[DISK /]      : 222G 205G 16G 93%
+[TARGET SIZE] : 1.3G < 3G OK
+[BACKUPS]     : REUSSI 0x - /home/l-vs/Telechargements/Polygone-Backups/ vide (aucun backup trouve) WARNING > 7j
+[PETALS]      : Cargo.toml OK | candle-core = "0.7" (< 0.7.3 pas de note)
+==========================================

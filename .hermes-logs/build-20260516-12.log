@@ -1,0 +1,56 @@
+warning: polygone-brain v0.1.0 (/home/l-vs/Polygone/polygone-brain) ignoring invalid dependency `polygone-petals` which is missing a lib target
+    Checking polygone-petals v0.1.0 (/home/l-vs/Polygone/polygone-petals)
+error[E0433]: cannot find `KademliaConfig` in `kad`
+  --> polygone-petals/src/network.rs:40:31
+   |
+40 |     let mut kad_config = kad::KademliaConfig::default();
+   |                               ^^^^^^^^^^^^^^ could not find `KademliaConfig` in `kad`
+
+error[E0433]: cannot find `Kademlia` in `kad`
+  --> polygone-petals/src/network.rs:42:29
+   |
+42 |     let mut kademlia = kad::Kademlia::with_config(local_peer_id, store, kad_config);
+   |                             ^^^^^^^^ could not find `Kademlia` in `kad`
+   |
+help: there is an enum variant `crate::network::PetalsBehaviourEvent::Kademlia`; try using the variant's enum
+   |
+42 -     let mut kademlia = kad::Kademlia::with_config(local_peer_id, store, kad_config);
+42 +     let mut kademlia = crate::network::PetalsBehaviourEvent::with_config(local_peer_id, store, kad_config);
+   |
+
+error[E0425]: cannot find type `Kademlia` in crate `kad`
+  --> polygone-petals/src/network.rs:31:24
+   |
+31 |     pub kademlia: kad::Kademlia<kad::store::MemoryStore>,
+   |                        ^^^^^^^^ not found in `kad`
+   |
+help: there is an enum variant `crate::network::PetalsBehaviourEvent::Kademlia`; try using the variant's enum
+   |
+31 -     pub kademlia: kad::Kademlia<kad::store::MemoryStore>,
+31 +     pub kademlia: crate::network::PetalsBehaviourEvent,
+   |
+
+warning: unused import: `candle_nn::VarBuilder`
+ --> polygone-petals/src/model.rs:2:5
+  |
+2 | use candle_nn::VarBuilder;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `candle_transformers::models::llama`
+ --> polygone-petals/src/model.rs:3:5
+  |
+3 | use candle_transformers::models::llama;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `PeerId`
+ --> polygone-petals/src/main.rs:6:63
+  |
+6 | use libp2p::{identity, swarm::SwarmEvent, futures::StreamExt, PeerId, Multiaddr};
+  |                                                               ^^^^^^
+
+Some errors have detailed explanations: E0425, E0433.
+For more information about an error, try `rustc --explain E0425`.
+warning: `polygone-petals` (bin "polygone-petals") generated 3 warnings
+error: could not compile `polygone-petals` (bin "polygone-petals") due to 3 previous errors; 3 warnings emitted

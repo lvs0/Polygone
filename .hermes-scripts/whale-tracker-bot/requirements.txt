@@ -1,0 +1,28 @@
+# Web3 and Blockchain
+web3>=6.11.0
+
+# Telegram Bot
+python-telegram-bot>=20.7
+aiohttp>=3.9.0
+
+# Database
+sqlalchemy>=2.0.23
+alembic>=1.13.0
+
+# Utilities
+python-dotenv>=1.0.0
+psycopg2-binary>=2.9.9
+
+# Async support
+asyncio-throttle>=1.0.2
+
+# Logging
+coloredlogs>=15.0.1
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Production
+gunicorn>=21.2.0

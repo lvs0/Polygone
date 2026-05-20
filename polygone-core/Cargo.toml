@@ -1,0 +1,20 @@
+[package]
+name = "polygone"
+version = "0.1.0"
+edition = "2021"
+authors = ["l-vs (Hope)"]
+description = "Polygone core: crypto, network primitives, and shared types."
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+tracing = "0.1"
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+thiserror = "1"
+
+# Dépendances des crates fondamentales (workpace members)
+polygone-common = { path = "../crates/common" }
+polygone-crypto = { path = "../crates/crypto" }
+polygone-network = { path = "../crates/network" }

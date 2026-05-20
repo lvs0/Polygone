@@ -1,0 +1,31 @@
+[package]
+name = "polygone-petals"
+version = "0.1.0"
+edition = "2021"
+authors = ["l-vs (Hope)"]
+description = "Distributed AI Inference over the Polygone ephemeral network"
+
+[dependencies]
+polygone = { path = "../polygone-core" }
+
+# Machine Learning (Candle)
+candle-core = "0.10"
+candle-transformers = "0.10"
+candle-nn = "0.10"
+tokenizers = "0.19"
+safetensors = "0.4"
+
+# Network
+tokio = { version = "1", features = ["full"] }
+libp2p = { version = "0.53", features = ["tokio", "tcp", "noise", "yamux", "kad", "request-response", "cbor", "identify"] }
+
+rand = "0.9"
+
+# Utilities
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+byteorder = "1"
