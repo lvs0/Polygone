@@ -6,7 +6,9 @@ authors = ["l-vs (Hope)"]
 
 [dependencies]
 polygone = { path = "../polygone-core" }
-polygone-petals = { path = "../polygone-petals" }
+# polygone-petals currently excluded from workspace (candle-core / rand 0.9 incompatibility).
+# Re-enable after the candle upgrade. Reference is informational for now.
+# polygone-petals = { path = "../polygone-petals" }
 tokio = { version = "1", features = ["full"] }
 anyhow = "1"
 tracing = "0.1"

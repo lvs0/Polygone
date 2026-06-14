@@ -8,7 +8,9 @@ description = "Primitives cryptographiques post-quantiques pour Polygone"
 [dependencies]
 polygone-common = { path = "../common" }
 
-# Post-quantum KEM
+# Post-quantum KEM — ML-KEM-1024 (FIPS 203, NIST 2024)
+pqcrypto-mlkem = "0.1.1"
+pqcrypto-traits = "0.3"
 generic-array = "0.14"
 aes-gcm = { version = "0.10", features = ["aes"] }
 

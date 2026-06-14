@@ -3,7 +3,7 @@ pub mod model;
 
 use clap::{Parser, Subcommand};
 use tracing_subscriber::{fmt, EnvFilter};
-use libp2p::{identity, swarm::SwarmEvent, futures::StreamExt, PeerId, Multiaddr};
+use libp2p::{identity, swarm::SwarmEvent, futures::StreamExt, Multiaddr};
 
 #[derive(Parser)]
 #[command(
@@ -84,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
                             let result = relay.run_segment(&tensor)?;
                             
                             // 3. Serialize output
-                            let (out_data, out_dims) = model::tensor_util::serialize(&result)?;
+                            let (out_data, _out_dims) = model::tensor_util::serialize(&result)?;
                             
                             // 4. Check if we are the end of the pipeline or if we need to forward
                             // (Simplified for v0.1: relay returns the result to the caller)
@@ -110,8 +110,8 @@ async fn main() -> anyhow::Result<()> {
             let mut swarm = network::build_swarm(keypair)?;
 
             // Sequential hop through relays
-            let mut current_data = data;
-            let mut current_dims = dims;
+            let current_data = data;
+            let current_dims = dims;
 
             for (i, relay_addr) in relays.iter().enumerate() {
                 println!("  [USER] Forwarding to Relay {} ({})...", i + 1, relay_addr);
@@ -122,7 +122,7 @@ async fn main() -> anyhow::Result<()> {
                 
                 // For simplified demo, we assume the relay is the first peer we talk to.
                 // In production, we'd use the derived NodeId from polygone-core.
-                let request = network::InferenceRequest {
+                let _request = network::InferenceRequest {
                     session_id: [0; 16],
                     start_layer: (i * 4) as u32,
                     end_layer: ((i + 1) * 4) as u32,

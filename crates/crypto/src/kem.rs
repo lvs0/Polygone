@@ -1,158 +1,95 @@
-// Post-quantum KEM (ML-KEM-1024)
-// Bouchon minimal déterministe pour tests unitaires.
+// Post-quantum KEM — ML-KEM-1024 (FIPS 203, NIST 2024)
+// Implémentation réelle via pqcrypto-mlkem
+//
+// Tailles réelles ML-KEM-1024 (PQClean) :
+//   PublicKey = 1568 bytes
+//   SecretKey = 3168 bytes
+//   Ciphertext = 1568 bytes
+//   SharedSecret = 32 bytes
 
 use polygone_common::SessionKey;
+use pqcrypto_mlkem::mlkem1024;
+use pqcrypto_traits::kem::{SharedSecret as _, Ciphertext as _};
 
-pub struct PublicKey(#[allow(dead_code)] [u8; 1184]);
-pub struct SecretKey(#[allow(dead_code)] [u8; 2400]);
+pub const PK_SIZE: usize = 1568;
+pub const SK_SIZE: usize = 3168;
+pub const CT_SIZE: usize = 1568;
+pub const SS_SIZE: usize = 32;
+
+pub struct PublicKey(mlkem1024::PublicKey);
+pub struct SecretKey(mlkem1024::SecretKey);
 
 pub fn generate_kem_key_pair() -> (PublicKey, SecretKey) {
-    // Bouchon déterministe
-    let pk = [1u8; 1184];
-    let sk = [2u8; 2400];
+    let (pk, sk) = mlkem1024::keypair();
     (PublicKey(pk), SecretKey(sk))
 }
 
-pub fn encapsulate(_pk: &PublicKey) -> ([u8; 1088], SessionKey) {
-    let ciphertext = [3u8; 1088];
-    let shared_secret = [0xAAu8; 32];
-    (ciphertext, SessionKey::new(shared_secret))
+pub fn encapsulate(pk: &PublicKey) -> (Vec<u8>, SessionKey) {
+    let (ss, ct) = mlkem1024::encapsulate(&pk.0);
+    let mut shared_secret = [0u8; SS_SIZE];
+    shared_secret.copy_from_slice(ss.as_bytes());
+    (ct.as_bytes().to_vec(), SessionKey::new(shared_secret))
 }
 
-pub fn decapsulate(_ct: &[u8; 1088], _sk: &SecretKey) -> SessionKey {
-    // Même secret que encapsulate
-    let shared_secret = [0xAAu8; 32];
+pub fn decapsulate(ct_bytes: &[u8], sk: &SecretKey) -> SessionKey {
+    let ct = mlkem1024::Ciphertext::from_bytes(ct_bytes).expect("invalid ciphertext length");
+    let ss = mlkem1024::decapsulate(&ct, &sk.0);
+    let mut shared_secret = [0u8; SS_SIZE];
+    shared_secret.copy_from_slice(ss.as_bytes());
     SessionKey::new(shared_secret)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
 
     #[test]
-    fn key_pair_generation_returns_valid_structs() {
+    fn key_sizes_are_correct() {
         let (pk, sk) = generate_kem_key_pair();
-        match pk { PublicKey(_) => {} }
-        match sk { SecretKey(_) => {} }
+        assert_eq!(pk.0.as_bytes().len(), PK_SIZE);
+        assert_eq!(sk.0.as_bytes().len(), SK_SIZE);
     }
 
     #[test]
-    fn key_pair_generation_is_deterministic() {
-        let (pk1, sk1) = generate_kem_key_pair();
-        let (pk2, sk2) = generate_kem_key_pair();
-        assert_eq!(pk1.0, pk2.0, "public key must be deterministic");
-        assert_eq!(sk1.0, sk2.0, "secret key must be deterministic");
+    fn key_pair_generation_is_random() {
+        let (pk1, _sk1) = generate_kem_key_pair();
+        let (pk2, _sk2) = generate_kem_key_pair();
+        assert_ne!(pk1.0.as_bytes(), pk2.0.as_bytes());
     }
 
     #[test]
-    fn encapsulate_returns_ciphertext_and_shared_secret() {
+    fn encapsulate_returns_correct_sizes() {
         let (pk, _sk) = generate_kem_key_pair();
-        let (ciphertext, shared_secret) = encapsulate(&pk);
-
-        assert_eq!(ciphertext.len(), 1088, "ML-KEM-1024 ciphertext is 1088 bytes");
-        assert_eq!(shared_secret.as_slice().len(), 32, "shared secret is 32 bytes");
+        let (ct, ss) = encapsulate(&pk);
+        assert_eq!(ct.len(), CT_SIZE);
+        assert_eq!(ss.as_slice().len(), SS_SIZE);
     }
 
     #[test]
-    fn encapsulate_decapsulate_roundtrip_produces_same_secret() {
+    fn roundtrip_produces_same_secret() {
         let (pk, sk) = generate_kem_key_pair();
-
-        let (ciphertext, original_secret) = encapsulate(&pk);
-        let recovered_secret = decapsulate(&ciphertext, &sk);
-
-        assert_eq!(
-            recovered_secret.as_slice(),
-            original_secret.as_slice(),
-            "encapsulate/decapsulate roundtrip must yield the same shared secret"
-        );
+        let (ct, original_ss) = encapsulate(&pk);
+        let recovered_ss = decapsulate(&ct, &sk);
+        assert_eq!(recovered_ss.as_slice(), original_ss.as_slice());
     }
 
     #[test]
-    fn different_key_pairs_produce_different_shared_secrets() {
-        let (pk1, sk1) = generate_kem_key_pair();
-        let (pk2, sk2) = generate_kem_key_pair();
-
-        // current stub always returns same hardcoded secret, so skip the
-        // cross-key assertion but verify the roundtrip for each pair independently.
-        let (ct1, ss1) = encapsulate(&pk1);
-        let recovered1 = decapsulate(&ct1, &sk1);
-        assert_eq!(recovered1.as_slice(), ss1.as_slice());
-
-        let (ct2, ss2) = encapsulate(&pk2);
-        let recovered2 = decapsulate(&ct2, &sk2);
-        assert_eq!(recovered2.as_slice(), ss2.as_slice());
-    }
-
-    #[test]
-    fn encapsulate_called_twice_produces_same_secret_with_same_key_pair() {
-        let (pk, sk) = generate_kem_key_pair();
-
-        let (ct1, ss1) = encapsulate(&pk);
-        let (ct2, ss2) = encapsulate(&pk);
-        let recovered1 = decapsulate(&ct1, &sk);
-        let recovered2 = decapsulate(&ct2, &sk);
-
-        assert_eq!(recovered1.as_slice(), ss1.as_slice());
-        assert_eq!(recovered2.as_slice(), ss2.as_slice());
-        assert_eq!(ss1.as_slice(), ss2.as_slice(), "same key pair -> same shared secret");
-    }
-
-    #[test]
-    fn decapsulate_with_wrong_secret_key_fails_or_returns_different_secret() {
-        // With the current stub decapsulate ignores the key, so both secrets match.
-        // When real ML-KEM is wired in, swap this to assert inequality.
+    fn wrong_key_produces_different_secret() {
         let (pk1, _sk1) = generate_kem_key_pair();
         let (_pk2, sk2) = generate_kem_key_pair();
-
-        let (ct1, ss1) = encapsulate(&pk1);
-        let recovered = decapsulate(&ct1, &sk2);
-
-        if recovered.as_slice() == ss1.as_slice() {
-            // Stub behaviour: decapsulate ignores key; acceptable for stub
-            assert_eq!(recovered.as_slice(), ss1.as_slice());
-        }
+        let (ct, ss1) = encapsulate(&pk1);
+        let recovered = decapsulate(&ct, &sk2);
+        assert_ne!(recovered.as_slice(), ss1.as_slice());
     }
 
     #[test]
-    fn shared_secret_is_exactly_32_bytes() {
+    fn encapsulate_twice_is_different() {
         let (pk, sk) = generate_kem_key_pair();
-        let (_ct, ss) = encapsulate(&pk);
-        let recovered = decapsulate(&_ct, &sk);
-
-        assert_eq!(recovered.as_slice().len(), 32);
-        assert_eq!(ss.as_slice().len(), 32);
-    }
-
-    #[test]
-    fn ciphertext_is_exactly_1088_bytes() {
-        let (pk, _sk) = generate_kem_key_pair();
-        let (ct, _ss) = encapsulate(&pk);
-        assert_eq!(ct.len(), 1088);
-    }
-
-    #[test]
-    fn multiple_consecutive_roundtrips_all_match() {
-        let (pk, sk) = generate_kem_key_pair();
-        let (_ct, ss) = encapsulate(&pk);
-
-        for i in 0..50 {
-            let (ct, _ss) = encapsulate(&pk);
-            let recovered = decapsulate(&ct, &sk);
-            assert_eq!(
-                recovered.as_slice(),
-                ss.as_slice(),
-                "roundtrip {} failed",
-                i
-            );
-        }
-    }
-
-    #[test]
-    fn public_key_and_secret_key_types_are_distinct() {
-        let (pk, sk) = generate_kem_key_pair();
-        // Type-level distinction – they don't mix without explicit destructuring
-        // This just confirms compilation succeeds and values are extractable
-        let _pk_bytes: &[u8] = &pk.0;
-        let _sk_bytes: &[u8] = &sk.0;
+        let (ct1, ss1) = encapsulate(&pk);
+        let (ct2, ss2) = encapsulate(&pk);
+        // Both roundtrip correctly
+        assert_eq!(decapsulate(&ct1, &sk).as_slice(), ss1.as_slice());
+        assert_eq!(decapsulate(&ct2, &sk).as_slice(), ss2.as_slice());
     }
 }

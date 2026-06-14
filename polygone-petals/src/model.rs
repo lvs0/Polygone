@@ -1,6 +1,4 @@
 use candle_core::{Device, Tensor};
-use candle_nn::VarBuilder;
-use candle_transformers::models::llama;
 
 pub struct ModelRelay {
     pub device: Device,
