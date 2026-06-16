@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polygone — Post-Quantum Privacy Network</title>
+<meta name="description" content="Infrastructure de confidentialité post-quantique autonome. ML-KEM-1024, Shamir 4-of-7, AES-256-GCM, BLAKE3. Une commande: polygone.">
+
+<!-- NYX-aligned tokens & layout -->
+<link rel="stylesheet" href="polygone-tokens.css">
+<link rel="stylesheet" href="polygone-layout.css">
+<link rel="stylesheet" href="polygone-hero.css">
+<link rel="stylesheet" href="polygone-sections.css">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;1,500&family=Space+Grotesk:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-gradient"></div>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="logo-polygone.svg" alt="Polygone">
+    <span>POLYGONE</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#crypto">Crypto</a></li>
+    <li><a href="#modules">Modules</a></li>
+    <li><a href="#reseau">Réseau</a></li>
+    <li><a href="https://github.com/lvs0/Polygone" target="_blank">GitHub</a></li>
+  </ul>
+  <a href="#install" class="nav-cta">$ polygone</a>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-logo-container">
+    <img src="logo-polygone.svg" alt="Polygone mark" class="hex-mark">
+  </div>
+  <h1>
+    <span class="gradient">Post-quantique.</span><br>
+    Pair à pair. <em>Local.</em>
+  </h1>
+  <p class="tagline">
+    Une infrastructure de confidentialité qui s'installe et se contrôle avec une seule commande.
+    Zéro confiance. Zéro télémétrie. Le PC reprend la main.
+  </p>
+  <div class="cta-group">
+    <a href="#install" class="btn btn-primary">Installer · Linux / macOS / Windows</a>
+    <a href="https://github.com/lvs0/Polygone" class="btn btn-ghost" target="_blank">Voir le code</a>
+    <a href="#crypto" class="btn btn-electric">Découvrir la crypto</a>
+  </div>
+</section>
+
+<!-- ─── CRYPTO ─── -->
+<section id="crypto">
+  <span class="tag">→ Crypto stack</span>
+  <h2 class="section-title">Six primitives.<br>Aucune confiance tierce.</h2>
+  <p class="section-lede">
+    Pas de TLS classique. Pas de RSA. Pas de courbe ECDSA exposée. Tout est construit sur des primitives post-quantiques ouches à effacer.
+  </p>
+
+  <div class="crypto-row">
+    <div class="crypto-item">
+      <div class="label">KEM</div>
+      <div class="value">ML-KEM-1024</div>
+    </div>
+    <div class="crypto-item">
+      <div class="label">Threshold</div>
+      <div class="value">Shamir 4/7</div>
+    </div>
+    <div class="crypto-item">
+      <div class="label">AEAD</div>
+      <div class="value">AES-256-GCM</div>
+    </div>
+    <div class="crypto-item">
+      <div class="label">Hash</div>
+      <div class="value">BLAKE3</div>
+    </div>
+    <div class="crypto-item">
+      <div class="label">Sign</div>
+      <div class="value">Ed25519</div>
+    </div>
+    <div class="crypto-item">
+      <div class="label">RNG</div>
+      <div class="value">OS / RDRAND</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── MODULES ─── -->
+<section id="modules">
+  <span class="tag">→ Architecture</span>
+  <h2 class="section-title">Dix modules Rust.<br>Une seule commande.</h2>
+  <p class="section-lede">
+    Polygone est un workspace Cargo. Chaque module a son rôle, son API, ses tests. Tu peux en activer un seul ou tous.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-icon">core</div>
+      <h3>polygone-core</h3>
+      <p>Crypto et protocole MSH. Le cerveau cryptographique. Pas de dépendance externe non maîtrisée.</p>
+    </div>
+    <div class="card card--violet">
+      <div class="card-icon">tui</div>
+      <h3>polygone-shell</h3>
+      <p>TUI ratatui 4 onglets (Accueil, Favoris, Services, Paramètres). Compréhensible en 30 secondes.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">drive</div>
+      <h3>polygone-drive</h3>
+      <p>Stockage P2P chiffré + Web UI axum. Tes fichiers restent chez toi.</p>
+    </div>
+    <div class="card card--magenta">
+      <div class="card-icon">hide</div>
+      <h3>polygone-hide</h3>
+      <p>Proxy SOCKS5 tunnelisé post-quantique. Le réseau que tu traverses ne lit rien.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">mesh</div>
+      <h3>polygone-mesh</h3>
+      <p>LAN/WiFi + Bluetooth BLE. Découverte zéro-config. Mesh local pragmatique.</p>
+    </div>
+    <div class="card card--violet">
+      <div class="card-icon">msg</div>
+      <h3>polygone-msg</h3>
+      <p>Messagerie P2P chiffrée bout-en-bout. Pas de serveur central.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">brain</div>
+      <h3>polygone-brain</h3>
+      <p>Couche d'intelligence locale. Ask/Doctor. Inference candle_core CPU.</p>
+    </div>
+    <div class="card card--magenta">
+      <div class="card-icon">petals</div>
+      <h3>polygone-petals</h3>
+      <p>Référent d'inférence pour d'autres LLM. Distribué, souverain.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── INSTALL ─── -->
+<section id="install">
+  <span class="tag">→ Quickstart</span>
+  <h2 class="section-title">Une commande.<br>C'est en route.</h2>
+
+  <pre style="background:var(--pol-ink);border:1px solid var(--pol-border-thin);border-radius:var(--pol-r-md);padding:var(--pol-sp-5);font-family:var(--pol-font-mono);font-size:14px;color:var(--pol-cyan);overflow-x:auto;">
+$ curl -fsSL https://get.polygone.dev | sh
+$ polygone
+  </pre>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div>
+    <a href="https://github.com/lvs0/Polygone" target="_blank">GitHub</a>
+    <a href="https://lvs0.github.io/nyx/" target="_blank">Écosystème NYX</a>
+    <a href="#">Manifeste</a>
+  </div>
+  <div>MIT · Zoe & Lévy · Europe/Paris · 2026</div>
+</footer>
+
+</body>
+</html>

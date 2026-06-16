@@ -1,0 +1,49 @@
+/* POLYGONE — Layout & components (NYX-aligned) v0.2 */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--pol-font-sans);
+  background: var(--pol-bg);
+  color: var(--pol-snow);
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Background grid + scanlines ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,245,212,0.015) 2px,
+    rgba(0,245,212,0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(157,78,221,0.14), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,245,212,0.10), transparent);
+  z-index: 0;
+}

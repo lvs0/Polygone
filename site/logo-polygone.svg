@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="polyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5d4"/>
+      <stop offset="50%" stop-color="#9d4edd"/>
+      <stop offset="100%" stop-color="#ff3d8c"/>
+    </linearGradient>
+    <linearGradient id="polyInner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9d4edd" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00f5d4" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer ring: hex perimeter -->
+  <polygon
+    points="100,15 168,52.5 168,147.5 100,185 32,147.5 32,52.5"
+    fill="none"
+    stroke="url(#polyGrad)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.9"
+  />
+
+  <!-- Mid polygon: rotated 30° -->
+  <polygon
+    points="100,40 150,68 150,132 100,160 50,132 50,68"
+    fill="url(#polyInner)"
+    stroke="url(#polyGrad)"
+    stroke-width="1.5"
+    opacity="0.7"
+  />
+
+  <!-- Inner polygon: filled -->
+  <polygon
+    points="100,70 130,87 130,113 100,130 70,113 70,87"
+    fill="url(#polyGrad)"
+    opacity="0.5"
+  />
+
+  <!-- Center crystals: 3 sigils (post-quantique / ML-KEM / network) -->
+  <circle cx="100" cy="100" r="6" fill="#05060a"/>
+  <circle cx="100" cy="100" r="3" fill="#00f5d4"/>
+
+  <!-- Edge nodes: 6 vertices -->
+  <circle cx="100" cy="15" r="3.5" fill="#00f5d4"/>
+  <circle cx="168" cy="52.5" r="3.5" fill="#9d4edd"/>
+  <circle cx="168" cy="147.5" r="3.5" fill="#9d4edd"/>
+  <circle cx="100" cy="185" r="3.5" fill="#ff3d8c"/>
+  <circle cx="32" cy="147.5" r="3.5" fill="#ff3d8c"/>
+  <circle cx="32" cy="52.5" r="3.5" fill="#00f5d4"/>
+</svg>
