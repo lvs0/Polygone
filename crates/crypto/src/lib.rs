@@ -8,8 +8,10 @@ pub use kem::{decapsulate, encapsulate, generate_kem_key_pair, PublicKey, Secret
 pub use shamir::{reconstruct_secret, split_secret, Fragment as ShamirFragment};
 pub use symmetric::{decrypt, encrypt, SymmetricError};
 pub use hash::hash_data;
+pub use cascade::{Cascade, CascadeConfig, CascadeMetrics, OpComplexity, SecurityLevel, KemKeyCache, RoutingDecision};
 
 pub mod kem;
 pub mod symmetric;
 pub mod shamir;
 pub mod hash;
+pub mod cascade;
