@@ -3,11 +3,16 @@ name = "polygone-app"
 version = "1.0.0"
 edition = "2021"
 license = "MIT"
-description = "Interface CLI/TUI pour Polygone"
+authors = ["Lévy <polygone@proton.me>"]
+description = "⬡ Polygone CLI — Post-quantum ephemeral privacy network"
 
 [[bin]]
 name = "polygone"
 path = "src/main.rs"
+
+[lib]
+name = "polygone_app"
+path = "src/lib.rs"
 
 [dependencies]
 polygone-common = { path = "../common" }
@@ -16,7 +21,6 @@ polygone-crypto = { path = "../crypto" }
 clap = { version = "4", features = ["derive"] }
 tracing = "0.1"
 hex = "0.4"
-reqwest = "0.11"
-open = "5"
-axum = "0.7"
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+axum = "0.7"

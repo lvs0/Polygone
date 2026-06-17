@@ -9,3 +9,6 @@ webui
 node
 *.profraw *.profdata
 target/
+
+# Pre-built binaries — served via GitHub Releases, not in git
+dist/polygone-bin/polygone
