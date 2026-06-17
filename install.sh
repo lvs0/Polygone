@@ -14,7 +14,14 @@ MAGENTA='\033[0;35m'
 
 INSTALL_BASE="${POLYGONE_HOME:-$HOME/.polygone}"
 BIN_DIR="$INSTALL_BASE/bin"
+
 REPO_BASE="https://lvs0.github.io/Polygone"
+RELEASE_URL="https://github.com/lvs0/Polygone/releases/download/v1.0.0"
+RELEASE_TAG="v1.0.0"
+
+# Pre-built binary URL (GitHub Release)
+BINARY_URL="${RELEASE_URL}/polygone"
+CHECKSUM_URL="${RELEASE_URL}/checksums.txt"
 
 # Parse flags
 SKIP_SOURCE=0
@@ -71,17 +78,16 @@ download_binary() {
 install_fast() {
   mkdir -p "$BIN_DIR"
 
-  local binary_url="$REPO_BASE/dist/polygone-bin/polygone"
-  local checksum_url="$REPO_BASE/dist/polygone-bin/SHA256SUM"
   local dest="$BIN_DIR/polygone"
 
-  # Download binary
-  if download_binary "$binary_url" "$dest"; then
+  # Download binary from GitHub Release
+  echo -e "  ${CYAN}↓${NC} Downloading binary from GitHub Release..."
+  if download_binary "$BINARY_URL" "$dest"; then
     chmod +x "$dest"
 
     # Verify checksum if available
-    local sha_file="$INSTALL_BASE/SHA256SUM"
-    if download_binary "$checksum_url" "$sha_file" 2>/dev/null; then
+    local sha_file="$INSTALL_BASE/checksums.txt"
+    if download_binary "$CHECKSUM_URL" "$sha_file" 2>/dev/null; then
       echo -e "  ${CYAN}✓${NC} Verifying SHA256..."
       local expected_sha
       expected_sha=$(awk '{print $1}' "$sha_file")
@@ -95,7 +101,7 @@ install_fast() {
       echo -e "  ${GREEN}  ✓ SHA256 verified${NC}"
       rm -f "$sha_file"
     else
-      echo -e "  ${YELLOW}  ⚠ No checksum file found — trust at your own risk${NC}"
+      echo -e "  ${YELLOW}  ⚠ No checksums.txt found — trust at your own risk${NC}"
     fi
 
     # Add to PATH
