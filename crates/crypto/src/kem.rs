@@ -9,12 +9,34 @@
 
 use polygone_common::SessionKey;
 use pqcrypto_mlkem::mlkem1024;
-use pqcrypto_traits::kem::{SharedSecret as _, Ciphertext as _};
+use pqcrypto_traits::kem::{PublicKey as PubKeyTrait, SecretKey as SecKeyTrait, SharedSecret as _, Ciphertext as _};
 
 pub const PK_SIZE: usize = 1568;
 pub const SK_SIZE: usize = 3168;
 pub const CT_SIZE: usize = 1568;
 pub const SS_SIZE: usize = 32;
+
+/// Construct a PublicKey from raw bytes (wire format).
+///
+/// Returns `Err("invalid pk length")` if the byte slice is not exactly PK_SIZE.
+pub fn pk_from_bytes(bytes: &[u8]) -> Result<PublicKey, &'static str> {
+    use pqcrypto_mlkem::mlkem1024;
+    if bytes.len() != PK_SIZE {
+        return Err("invalid pk length");
+    }
+    Ok(PublicKey(mlkem1024::PublicKey::from_bytes(bytes).expect("validated size")))
+}
+
+/// Construct a SecretKey from raw bytes (wire format).
+///
+/// Returns `Err("invalid sk length")` if the byte slice is not exactly SK_SIZE.
+pub fn sk_from_bytes(bytes: &[u8]) -> Result<SecretKey, &'static str> {
+    use pqcrypto_mlkem::mlkem1024;
+    if bytes.len() != SK_SIZE {
+        return Err("invalid sk length");
+    }
+    Ok(SecretKey(mlkem1024::SecretKey::from_bytes(bytes).expect("validated size")))
+}
 
 pub struct PublicKey(mlkem1024::PublicKey);
 pub struct SecretKey(mlkem1024::SecretKey);
@@ -22,6 +44,20 @@ pub struct SecretKey(mlkem1024::SecretKey);
 pub fn generate_kem_key_pair() -> (PublicKey, SecretKey) {
     let (pk, sk) = mlkem1024::keypair();
     (PublicKey(pk), SecretKey(sk))
+}
+
+impl PublicKey {
+    /// Return the raw public key bytes (wire format, PK_SIZE bytes).
+    pub fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes().to_vec()
+    }
+}
+
+impl SecretKey {
+    /// Return the raw secret key bytes (wire format, SK_SIZE bytes).
+    pub fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes().to_vec()
+    }
 }
 
 pub fn encapsulate(pk: &PublicKey) -> (Vec<u8>, SessionKey) {
@@ -42,7 +78,7 @@ pub fn decapsulate(ct_bytes: &[u8], sk: &SecretKey) -> SessionKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+    use pqcrypto_traits::kem::{PublicKey as PubKeyTrait, SecretKey as SecKeyTrait};
 
     #[test]
     fn key_sizes_are_correct() {
@@ -56,6 +92,24 @@ mod tests {
         let (pk1, _sk1) = generate_kem_key_pair();
         let (pk2, _sk2) = generate_kem_key_pair();
         assert_ne!(pk1.0.as_bytes(), pk2.0.as_bytes());
+    }
+
+    #[test]
+    fn key_to_bytes_has_correct_size() {
+        let (pk, sk) = generate_kem_key_pair();
+        assert_eq!(pk.to_bytes().len(), PK_SIZE);
+        assert_eq!(sk.to_bytes().len(), SK_SIZE);
+    }
+
+    #[test]
+    fn key_to_bytes_roundtrips() {
+        let (pk, sk) = generate_kem_key_pair();
+        let pk_bytes = pk.to_bytes();
+        let sk_bytes = sk.to_bytes();
+        let pk2 = pk_from_bytes(&pk_bytes).expect("roundtrip pk");
+        let sk2 = ***(&sk_bytes).expect("roundtrip sk");
+        assert_eq!(pk.to_bytes(), pk2.to_bytes());
+        assert_eq!(sk.to_bytes(), sk2.to_bytes());
     }
 
     #[test]

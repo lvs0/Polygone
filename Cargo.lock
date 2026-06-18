@@ -3324,6 +3324,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "polygone-msg"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "hex",
+ "parking_lot",
+ "polygone-common",
+ "polygone-crypto",
+ "polygone-network",
+ "pqcrypto-mlkem",
+ "serde",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
 name = "polygone-network"
 version = "1.0.0"
 dependencies = [

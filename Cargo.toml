@@ -10,6 +10,7 @@ members = [
     "crates/crypto",
     "crates/msh",
     "crates/network",
+    "crates/msg",
 ]
 # polygone-petals exclu temporairement : bug incompatibilité candle-core / rand 0.9
 # membres à réintégrer une fois candle mis à jour ou patché

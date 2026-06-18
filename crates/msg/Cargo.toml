@@ -1,0 +1,36 @@
+[package]
+name = "polygone-msg"
+version = "0.1.0"
+edition = "2021"
+authors = ["Lévy <polygone@proton.me>"]
+description = "High-level ephemeral messaging over the Polygone network"
+license = "MIT"
+rust-version = "1.75"
+
+[dependencies]
+# Workspace crates
+polygone-crypto = { path = "../crypto" }
+polygone-common = { path = "../common" }
+polygone-network = { path = "../network" }
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+
+# Error handling
+thiserror = "1"
+
+# Hex encoding (for MessageId display)
+hex = "0.4"
+
+# ML-KEM keys (for raw byte → key construction)
+pqcrypto-mlkem = "0.1"
+
+# Time
+parking_lot = "0.12"
+
+[dev-dependencies]
+polygone-crypto = { path = "../crypto" }

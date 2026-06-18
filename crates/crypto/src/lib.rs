@@ -4,7 +4,7 @@
 //! le chiffrement AES-256-GCM, le secret-sharing Shamir
 //! et le hachage BLAKE3.
 
-pub use kem::{decapsulate, encapsulate, generate_kem_key_pair, PublicKey, SecretKey};
+pub use kem::{decapsulate, encapsulate, generate_kem_key_pair, pk_from_bytes, sk_from_bytes, PublicKey, SecretKey};
 pub use shamir::{reconstruct_secret, split_secret, Fragment as ShamirFragment};
 pub use symmetric::{decrypt, encrypt, SymmetricError};
 pub use hash::hash_data;
