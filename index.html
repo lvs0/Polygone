@@ -1,1269 +1,1028 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⬡ Polygone — L'information n'existe pas. Elle traverse.</title>
-  <meta name="description" content="Réseau de vie privée éphémère post-quantique. ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM. Nobody sees the message. Nobody proves it existed.">
-  <meta property="og:title" content="⬡ Polygone — Réseau post-quantique made in France">
-  <meta property="og:description" content="Messages that become distributed computational states, then vaporize. No metadata. No log. No trace.">
-  <meta property="og:type" content="website">
-  <link rel="icon" type="image/svg+xml" href="../brand/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⬡ POLYGONE — Le système nerveux d'Internet</title>
+    <meta name="description" content="Polygone est un réseau neuronal distribué chiffré post-quantique. Chaque nœud est un neurone. Chaque message est une synapse. Chaque attaque est guérie.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --black-void: #0a0a0f;
+            --deep-black: #050508;
+            --violet-neural: #7c3aed;
+            --violet-light: #a78bfa;
+            --cyan-quantum: #22d3ee;
+            --amber-warning: #f59e0b;
+            --green-healthy: #22c55e;
+            --red-attack: #ef4444;
+            --white-ghost: #f8fafc;
+            --gray-neutral: #94a3b8;
+            --gray-dark: #1e293b;
+        }
 
-  <style>
-    /* ════════════════════════════════════════════════════
-       BRAND TOKENS — Glassmorphism × Very Peri × Dark
-       Pantone 17-3938 Very Peri as accent
-    ════════════════════════════════════════════════════ */
-    :root {
-      --bg:          #030308;
-      --bg-2:        #06060f;
-      --glass-bg:    rgba(102, 103, 171, 0.07);
-      --glass-border: rgba(102, 103, 171, 0.18);
-      --glass-hover:  rgba(102, 103, 171, 0.12);
-      --peri:        #6667AB;
-      --peri-dim:    #5558A0;
-      --peri-glow:   rgba(102, 103, 171, 0.35);
-      --peri-light:  #8B8CCC;
-      --violet:      #9B7FD4;
-      --text:        #E8E8F4;
-      --text-dim:    #7878A0;
-      --white:       #F0F0FA;
-      --transition:  0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      --font-display:'Orbitron', monospace;
-      --font-body:   'Sora', system-ui, sans-serif;
-      --radius:      16px;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            background: var(--black-void);
+            color: var(--white-ghost);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-weight: 300;
-      line-height: 1.65;
-      overflow-x: hidden;
-    }
+        ::selection {
+            background: var(--violet-neural);
+            color: var(--white-ghost);
+        }
 
-    /* ─── 3D FLOATING BACKGROUND ELEMENTS ─── */
-    .bg-orbs {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--deep-black);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--violet-neural);
+            border-radius: 4px;
+        }
 
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      animation: orb-drift 20s ease-in-out infinite;
-    }
+        /* ═══════════════════════════════════════════
+           NEURAL NETWORK BACKGROUND
+           ═══════════════════════════════════════════ */
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
 
-    .orb-1 {
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(102,103,171,0.15), transparent 70%);
-      top: -200px; left: -150px;
-      animation-duration: 25s;
-    }
-    .orb-2 {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(155,127,212,0.1), transparent 70%);
-      bottom: -100px; right: -100px;
-      animation-duration: 30s;
-      animation-delay: -10s;
-    }
-    .orb-3 {
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(102,103,171,0.2), transparent 70%);
-      top: 40%; left: 60%;
-      animation-duration: 18s;
-      animation-delay: -5s;
-    }
+        .node {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--violet-neural);
+            border-radius: 50%;
+            animation: node-pulse 3s ease-in-out infinite;
+        }
 
-    @keyframes orb-drift {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(40px, -30px) scale(1.05); }
-      66% { transform: translate(-20px, 20px) scale(0.97); }
-    }
+        .node::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--violet-neural);
+            border-radius: 50%;
+            opacity: 0.2;
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
 
-    /* ─── FLOATING HEXAGONS ─── */
-    .hex-float {
-      position: absolute;
-      opacity: 0.04;
-      animation: hex-rotate 60s linear infinite;
-    }
-    .hex-float svg { width: 120px; height: 120px; }
-    .hf-1 { top: 10%; right: 5%; animation-duration: 80s; }
-    .hf-2 { bottom: 20%; left: 3%; animation-duration: 100s; animation-direction: reverse; }
-    .hf-3 { top: 60%; right: 20%; animation-duration: 70s; opacity: 0.03; }
+        @keyframes node-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
 
-    @keyframes hex-rotate {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
+        @keyframes glow-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
+            50% { transform: translate(-50%, -50%) scale(2); opacity: 0.1; }
+        }
 
-    /* ─── GRAIN TEXTURE OVERLAY ─── */
-    .grain {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 200px 200px;
-    }
+        /* ═══════════════════════════════════════════
+           LAYOUT
+           ═══════════════════════════════════════════ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
 
-    /* ─── NAVIGATION ─── */
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      padding: 20px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      background: rgba(3, 3, 8, 0.7);
-      border-bottom: 1px solid var(--glass-border);
-    }
+        section {
+            padding: 6rem 0;
+        }
 
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--white);
-    }
-    .nav-logo svg { width: 28px; height: 28px; }
-    .nav-logo span {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-    }
+        /* ═══════════════════════════════════════════
+           HEADER
+           ═══════════════════════════════════════════ */
+        header {
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+        }
 
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-      list-style: none;
-    }
-    .nav-links a {
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 400;
-      letter-spacing: 0.05em;
-      transition: color var(--transition);
-    }
-    .nav-links a:hover { color: var(--peri-light); }
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .nav-cta {
-      padding: 8px 20px;
-      background: var(--peri);
-      border-radius: 8px;
-      color: var(--white) !important;
-      font-weight: 600 !important;
-      transition: var(--transition);
-      box-shadow: 0 0 20px var(--peri-glow);
-    }
-    .nav-cta:hover {
-      background: var(--peri-light);
-      transform: translateY(-1px);
-      box-shadow: 0 0 30px var(--peri-glow);
-    }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--violet-neural);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    /* ─── SECTION SHARED ─── */
-    section {
-      position: relative;
-      z-index: 2;
-      padding: 120px 40px;
-    }
+        .logo-hex {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--violet-neural), var(--cyan-quantum));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            animation: logo-pulse 4s ease-in-out infinite;
+        }
 
-    .container {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
+        @keyframes logo-pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px var(--violet-neural)); }
+            50% { filter: drop-shadow(0 0 15px var(--violet-neural)); }
+        }
 
-    /* Glass card base */
-    .glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius);
-    }
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
 
-    .section-label {
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--peri);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .section-label::before {
-      content: '';
-      display: block;
-      width: 32px;
-      height: 1px;
-      background: var(--peri);
-    }
+        nav a {
+            color: var(--gray-neutral);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
 
-    .section-title {
-      font-family: var(--font-display);
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 700;
-      line-height: 1.15;
-      margin-bottom: 16px;
-      color: var(--white);
-    }
+        nav a:hover {
+            color: var(--white-ghost);
+        }
 
-    .section-desc {
-      color: var(--text-dim);
-      max-width: 580px;
-      font-size: 1.05rem;
-      margin-bottom: 64px;
-      font-weight: 300;
-    }
+        .nav-cta {
+            background: var(--violet-neural);
+            color: var(--white-ghost) !important;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
 
-    /* ─── HERO ─── */
-    #hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding-top: 80px;
-    }
+        .nav-cta:hover {
+            background: var(--violet-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        }
 
-    /* 3D Hexagon SVG */
-    .hero-hex {
-      width: 180px;
-      height: 180px;
-      margin-bottom: 40px;
-      animation: hex-float 6s ease-in-out infinite;
-      filter: drop-shadow(0 0 40px rgba(102,103,171,0.4));
-    }
-    .hero-hex polygon { transition: var(--transition); }
-    .hero-hex:hover polygon { fill: var(--peri-light); }
+        /* ═══════════════════════════════════════════
+           HERO
+           ═══════════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+            position: relative;
+        }
 
-    @keyframes hex-float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50%       { transform: translateY(-12px) rotate(3deg); }
-    }
+        .hero-content {
+            max-width: 800px;
+        }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      border-radius: 100px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      font-size: 11px;
-      font-family: var(--font-display);
-      letter-spacing: 0.1em;
-      color: var(--peri-light);
-      margin-bottom: 32px;
-    }
-    .hero-badge .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #50FA7B;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.5; transform: scale(0.8); }
-    }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid var(--violet-neural);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--violet-light);
+            margin-bottom: 1.5rem;
+            animation: badge-glow 3s ease-in-out infinite;
+        }
 
-    .hero-title {
-      font-family: var(--font-display);
-      font-size: clamp(3rem, 10vw, 6rem);
-      font-weight: 900;
-      line-height: 1;
-      color: var(--white);
-      margin-bottom: 8px;
-      letter-spacing: -0.02em;
-    }
+        @keyframes badge-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); }
+        }
 
-    .hero-sub {
-      font-size: clamp(0.9rem, 2vw, 1.1rem);
-      color: var(--peri-light);
-      font-weight: 300;
-      font-family: var(--font-display);
-      letter-spacing: 0.15em;
-      margin-bottom: 24px;
-    }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--white-ghost) 0%, var(--violet-light) 50%, var(--cyan-quantum) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    .hero-quote {
-      font-size: clamp(1rem, 2.5vw, 1.3rem);
-      color: var(--text-dim);
-      font-style: italic;
-      margin-bottom: 16px;
-      font-weight: 300;
-    }
+        .hero h1 span {
+            display: block;
+            font-size: 0.5em;
+            background: var(--gray-neutral);
+            -webkit-background-clip: text;
+            background-clip: text;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
 
-    .hero-desc {
-      max-width: 540px;
-      font-size: 1rem;
-      color: var(--text-dim);
-      margin-bottom: 48px;
-      line-height: 1.7;
-    }
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--gray-neutral);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+        }
 
-    /* Install box */
-    .hero-install {
-      margin-bottom: 40px;
-    }
-    .install-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 10px;
-      padding: 14px 20px;
-    }
-    .install-box .prompt {
-      font-family: var(--font-display);
-      color: var(--peri);
-      font-weight: 600;
-    }
-    .install-box code {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      color: var(--text);
-      letter-spacing: 0.02em;
-    }
-    .copy-btn {
-      padding: 4px 12px;
-      background: var(--peri);
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    .copy-btn:hover { background: var(--peri-light); }
+        .hero-subtitle strong {
+            color: var(--violet-light);
+        }
 
-    /* Hero CTAs */
-    .hero-cta {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 64px;
-    }
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
 
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 32px;
-      background: var(--peri);
-      border-radius: 10px;
-      color: white;
-      text-decoration: none;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      transition: var(--transition);
-      box-shadow: 0 0 32px var(--peri-glow);
-    }
-    .btn-primary:hover {
-      background: var(--peri-light);
-      transform: translateY(-2px);
-      box-shadow: 0 0 48px var(--peri-glow);
-    }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
 
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 32px;
-      background: transparent;
-      border: 1px solid var(--glass-border);
-      border-radius: 10px;
-      color: var(--text);
-      text-decoration: none;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      transition: var(--transition);
-    }
-    .btn-secondary:hover {
-      border-color: var(--peri);
-      color: var(--peri-light);
-      transform: translateY(-2px);
-    }
+        .btn-primary {
+            background: var(--violet-neural);
+            color: var(--white-ghost);
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.3);
+        }
 
-    .btn-sponsor {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 28px;
-      background: rgba(235, 68, 68, 0.1);
-      border: 1px solid rgba(235, 68, 68, 0.3);
-      border-radius: 10px;
-      color: #EB4457;
-      text-decoration: none;
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      transition: var(--transition);
-    }
-    .btn-sponsor:hover {
-      background: rgba(235, 68, 68, 0.2);
-      transform: translateY(-2px);
-    }
+        .btn-primary:hover {
+            background: var(--violet-light);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.5);
+        }
 
-    /* Scroll indicator */
-    .scroll-hint {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-dim);
-      font-size: 10px;
-      font-family: var(--font-display);
-      letter-spacing: 0.15em;
-      animation: scroll-bounce 2s ease-in-out infinite;
-    }
-    .scroll-hint svg { opacity: 0.4; }
-    @keyframes scroll-bounce {
-      0%, 100% { transform: translateY(0); opacity: 0.4; }
-      50%       { transform: translateY(6px); opacity: 0.8; }
-    }
+        .btn-secondary {
+            background: transparent;
+            color: var(--white-ghost);
+            border: 1px solid var(--gray-dark);
+        }
 
-    /* ─── PROBLEM SECTION ─── */
-    #problem {
-      background: rgba(6, 6, 15, 0.6);
-      border-top: 1px solid var(--glass-border);
-      border-bottom: 1px solid var(--glass-border);
-    }
+        .btn-secondary:hover {
+            border-color: var(--violet-neural);
+            background: rgba(124, 58, 237, 0.1);
+        }
 
-    .comparison-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      margin-bottom: 48px;
-    }
-    .comparison-table th {
-      text-align: left;
-      padding: 14px 20px;
-      font-family: var(--font-display);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      border-bottom: 1px solid var(--glass-border);
-    }
-    .comparison-table th:first-child { color: var(--text); }
-    .comparison-table td {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
-      color: var(--text);
-    }
-    .comparison-table tr:last-child td { border-bottom: none; }
-    .comparison-table tr:hover td { background: rgba(102,103,171,0.04); }
-    .check { color: #50FA7B; font-size: 16px; }
-    .cross { color: #EB4457; font-size: 16px; }
-    .partial { color: var(--peri-light); font-size: 16px; }
+        /* Stats */
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(124, 58, 237, 0.2);
+        }
 
-    .problem-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2px;
-      background: var(--glass-border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 48px;
-    }
-    .problem-card {
-      padding: 32px;
-    }
-    .problem-card.bad { border-left: 2px solid #EB4457; }
-    .problem-card.good { border-left: 2px solid #50FA7B; }
-    .problem-card .icon { font-size: 28px; margin-bottom: 14px; display: block; }
-    .problem-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
-    .problem-card.bad h3 { color: #EB4457; }
-    .problem-card.good h3 { color: #50FA7B; }
-    .problem-card p { color: var(--text-dim); font-size: 0.9rem; }
+        .stat {
+            text-align: left;
+        }
 
-    /* ─── HOW IT WORKS ─── */
-    #how { background: var(--bg); }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--cyan-quantum);
+        }
 
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 2px;
-      background: var(--glass-border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 48px;
-    }
-    .step {
-      padding: 32px 24px;
-      background: var(--glass-bg);
-      position: relative;
-    }
-    .step-num {
-      font-family: var(--font-display);
-      font-size: 40px;
-      font-weight: 900;
-      color: rgba(102,103,171,0.12);
-      line-height: 1;
-      margin-bottom: 20px;
-    }
-    .step h3 {
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--peri-light);
-      margin-bottom: 10px;
-    }
-    .step p { color: var(--text-dim); font-size: 0.875rem; }
-    .step-tag {
-      display: inline-block;
-      margin-top: 14px;
-      padding: 4px 10px;
-      background: rgba(102,103,171,0.1);
-      border-radius: 4px;
-      font-size: 10px;
-      font-family: var(--font-display);
-      color: var(--peri);
-      letter-spacing: 0.08em;
-    }
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray-neutral);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-    /* Metrics row */
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-    .metric {
-      padding: 28px;
-      text-align: center;
-    }
-    .metric-val {
-      font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--white);
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-    .metric-unit {
-      font-size: 0.9rem;
-      color: var(--peri-light);
-      font-family: var(--font-display);
-    }
-    .metric-label {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      margin-top: 6px;
-    }
+        /* ═══════════════════════════════════════════
+           FEATURES
+           ═══════════════════════════════════════════ */
+        .features {
+            background: linear-gradient(180deg, var(--black-void) 0%, var(--deep-black) 100%);
+        }
 
-    /* ─── ECOSYSTEM ─── */
-    #ecosystem {
-      background: rgba(6, 6, 15, 0.6);
-      border-top: 1px solid var(--glass-border);
-    }
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
 
-    .ecosystem-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .eco-card {
-      padding: 28px;
-      transition: var(--transition);
-      cursor: default;
-    }
-    .eco-card:hover {
-      background: var(--glass-hover);
-      transform: translateY(-3px);
-      border-color: rgba(102,103,171,0.35);
-    }
-    .eco-icon {
-      font-size: 32px;
-      margin-bottom: 16px;
-      display: block;
-    }
-    .eco-card h3 {
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--white);
-      margin-bottom: 10px;
-    }
-    .eco-card p { color: var(--text-dim); font-size: 0.875rem; }
-    .eco-tag {
-      display: inline-block;
-      margin-top: 14px;
-      padding: 3px 8px;
-      background: rgba(102,103,171,0.1);
-      border: 1px solid rgba(102,103,171,0.2);
-      border-radius: 4px;
-      font-size: 9px;
-      font-family: var(--font-display);
-      color: var(--peri-light);
-      letter-spacing: 0.1em;
-    }
+        .section-tag {
+            font-size: 0.85rem;
+            color: var(--cyan-quantum);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+        }
 
-    /* ─── NEURAL PROTOCOL ─── */
-    #petals {
-      background: var(--bg);
-    }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
 
-    .petals-highlight {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      align-items: center;
-      margin-bottom: 48px;
-    }
-    .petals-text h3 {
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--white);
-      margin-bottom: 16px;
-    }
-    .petals-text p { color: var(--text-dim); margin-bottom: 12px; }
-    .petals-visual {
-      display: flex;
-      justify-content: center;
-    }
-    .petals-visual svg { width: 240px; height: 240px; opacity: 0.8; }
+        .section-desc {
+            color: var(--gray-neutral);
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
-    .petals-features {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-    .petals-feat {
-      padding: 24px;
-    }
-    .petals-feat h4 {
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--peri-light);
-      margin-bottom: 8px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-    .petals-feat p { color: var(--text-dim); font-size: 0.875rem; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
 
-    /* ─── FOOTER ─── */
-    footer {
-      position: relative;
-      z-index: 2;
-      padding: 60px 40px;
-      border-top: 1px solid var(--glass-border);
-      background: rgba(3, 3, 8, 0.8);
-      backdrop-filter: blur(20px);
-    }
-    .footer-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 24px;
-    }
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .footer-brand svg { width: 24px; height: 24px; }
-    .footer-brand .name {
-      font-family: var(--font-display);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: var(--white);
-    }
-    .footer-brand .desc {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-    .footer-links {
-      display: flex;
-      gap: 24px;
-    }
-    .footer-links a {
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 13px;
-      transition: color var(--transition);
-    }
-    .footer-links a:hover { color: var(--peri-light); }
-    .footer-copy {
-      font-size: 12px;
-      color: var(--text-dim);
-      font-family: var(--font-display);
-      letter-spacing: 0.05em;
-    }
-    .footer-copy .made { color: var(--peri-light); }
-    .footer-copy .sep { margin: 0 8px; color: var(--glass-border); }
+        .feature-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(34, 211, 238, 0.02) 100%);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* ─── SCROLL REVEAL ─── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--violet-neural), var(--cyan-quantum));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
 
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 768px) {
-      section { padding: 80px 20px; }
-      nav { padding: 16px 20px; }
-      .nav-links { display: none; }
-      .hero-cta { flex-direction: column; align-items: center; }
-      .steps { grid-template-columns: 1fr 1fr; }
-      .metrics { grid-template-columns: 1fr; }
-      .petals-highlight { grid-template-columns: 1fr; }
-      .petals-features { grid-template-columns: 1fr; }
-      .problem-grid { grid-template-columns: 1fr; }
-      .ecosystem-grid { grid-template-columns: 1fr; }
-      .footer-inner { flex-direction: column; align-items: flex-start; }
-    }
-  </style>
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--violet-neural);
+            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.2);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .feature-icon.quantum {
+            background: rgba(34, 211, 238, 0.1);
+            color: var(--cyan-quantum);
+        }
+
+        .feature-icon.shamir {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--amber-warning);
+        }
+
+        .feature-icon.neural {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--violet-neural);
+        }
+
+        .feature-icon::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--cyan-quantum), var(--violet-neural));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover .feature-icon::after {
+            opacity: 0.5;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--gray-neutral);
+            font-size: 0.95rem;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--violet-light);
+        }
+
+        /* ═══════════════════════════════════════════
+           CODE
+           ═══════════════════════════════════════════ */
+        .code-section {
+            background: var(--deep-black);
+        }
+
+        .code-demo {
+            background: var(--black-void);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(124, 58, 237, 0.05);
+            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: var(--red-attack); }
+        .code-dot.yellow { background: var(--amber-warning); }
+        .code-dot.green { background: var(--green-healthy); }
+
+        .code-filename {
+            margin-left: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--gray-neutral);
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .code-content .keyword { color: var(--violet-light); }
+        .code-content .function { color: var(--cyan-quantum); }
+        .code-content .string { color: var(--green-healthy); }
+        .code-content .comment { color: var(--gray-neutral); font-style: italic; }
+        .code-content .type { color: var(--amber-warning); }
+
+        /* ═══════════════════════════════════════════
+           ARCHITECTURE
+           ═══════════════════════════════════════════ */
+        .architecture {
+            background: linear-gradient(180deg, var(--deep-black) 0%, var(--black-void) 100%);
+        }
+
+        .arch-diagram {
+            background: var(--deep-black);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 16px;
+            padding: 3rem;
+            margin-top: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .arch-diagram::before {
+            content: 'POLYGONE STACK';
+            position: absolute;
+            top: -12px;
+            left: 2rem;
+            background: var(--black-void);
+            padding: 0 1rem;
+            color: var(--violet-light);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+        }
+
+        /* ═══════════════════════════════════════════
+           FOOTER
+           ═══════════════════════════════════════════ */
+        footer {
+            background: var(--deep-black);
+            padding: 3rem 0;
+            border-top: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .footer-text {
+            color: var(--gray-neutral);
+            font-size: 0.9rem;
+        }
+
+        .footer-text a {
+            color: var(--violet-light);
+            text-decoration: none;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--gray-neutral);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--white-ghost);
+        }
+
+        /* ═══════════════════════════════════════════
+           ANIMATIONS
+           ═══════════════════════════════════════════ */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator span {
+            display: block;
+            width: 24px;
+            height: 40px;
+            border: 2px solid var(--gray-neutral);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .scroll-indicator span::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: var(--violet-neural);
+            border-radius: 2px;
+            animation: scroll-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes scroll-dot {
+            0%, 100% { opacity: 1; top: 8px; }
+            50% { opacity: 0.3; top: 16px; }
+        }
+
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+           ═══════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Neural Network Background -->
+    <canvas id="neuralCanvas" class="neural-bg"></canvas>
 
-  <!-- 3D Background -->
-  <div class="bg-orbs" aria-hidden="true">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
-  <div class="hex-float hf-1" aria-hidden="true">
-    <svg viewBox="0 0 200 200" fill="none">
-      <polygon points="100,10 178,55 178,145 100,190 22,145 22,55" stroke="rgba(102,103,171,0.4)" stroke-width="1" fill="none"/>
-    </svg>
-  </div>
-  <div class="hex-float hf-2" aria-hidden="true">
-    <svg viewBox="0 0 200 200" fill="none">
-      <polygon points="100,10 178,55 178,145 100,190 22,145 22,55" stroke="rgba(102,103,171,0.4)" stroke-width="1" fill="none"/>
-    </svg>
-  </div>
-  <div class="hex-float hf-3" aria-hidden="true">
-    <svg viewBox="0 0 200 200" fill="none">
-      <polygon points="100,10 178,55 178,145 100,190 22,145 22,55" stroke="rgba(102,103,171,0.3)" stroke-width="1" fill="none"/>
-    </svg>
-  </div>
-  <div class="grain" aria-hidden="true"></div>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <a href="#" class="logo">
+                <div class="logo-hex"></div>
+                POLYGONE
+            </a>
+            <nav>
+                <a href="#features">Features</a>
+                <a href="#code">Code</a>
+                <a href="#architecture">Architecture</a>
+                <a href="https://github.com/lvs0/Polygone" class="nav-cta">GitHub</a>
+            </nav>
+        </div>
+    </header>
 
-  <!-- Navigation -->
-  <nav>
-    <a href="#" class="nav-logo">
-      <svg viewBox="0 0 32 32" width="28" height="28">
-        <defs>
-          <linearGradient id="hex-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#6667AB"/>
-            <stop offset="100%" stop-color="#9B7FD4"/>
-          </linearGradient>
-        </defs>
-        <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="url(#hex-grad)"/>
-        <polygon points="16,8 22,11.5 22,18.5 16,22 10,18.5 10,11.5" fill="rgba(255,255,255,0.15)"/>
-      </svg>
-      <span>POLYGONE</span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#how">Protocol</a></li>
-      <li><a href="#ecosystem">Ecosystem</a></li>
-      <li><a href="#petals">Petals</a></li>
-      <li><a href="https://github.com/lvs0/Polygone">GitHub</a></li>
-      <li><a href="https://github.com/sponsors/lvs0" class="nav-cta">Sponsor</a></li>
-    </ul>
-  </nav>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span>⬡</span> Post-Quantum Ready — NIST Standard
+                </div>
+                
+                <h1>
+                    Le système nerveux d'Internet
+                    <span>Chiffré. Distribué. Vivant.</span>
+                </h1>
 
-  <!-- ═══════════════ HERO ═══════════════ -->
-  <section id="hero">
-    <div class="container" style="display:flex;flex-direction:column;align-items:center;">
+                <p class="hero-subtitle">
+                    Chaque nœud est un <strong>neurone</strong>. Chaque message est une <strong>synapse</strong>. 
+                    Chaque attaque est <strong>guérie</strong>. La cryptographie post-quantique n'est pas une 
+                    feature — c'est l'<strong>ADN</strong>.
+                </p>
 
-      <!-- 3D Hexagon Logo -->
-      <svg class="hero-hex" viewBox="0 0 200 200" role="img" aria-label="Polygone logo">
-        <defs>
-          <linearGradient id="hg1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#6667AB"/>
-            <stop offset="50%" stop-color="#9B7FD4"/>
-            <stop offset="100%" stop-color="#6667AB"/>
-          </linearGradient>
-          <linearGradient id="hg2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#8B8CCC"/>
-            <stop offset="100%" stop-color="#5558A0"/>
-          </linearGradient>
-          <filter id="hero-glow">
-            <feGaussianBlur stdDeviation="8" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="hero-shadow">
-            <feDropShadow dx="0" dy="0" stdDeviation="16" flood-color="rgba(102,103,171,0.4)"/>
-          </filter>
-        </defs>
-        <!-- Outer hex with glow -->
-        <polygon
-          points="100,8 180,54 180,146 100,192 20,146 20,54"
-          fill="url(#hg1)"
-          filter="url(#hero-shadow)"
-        />
-        <!-- Inner hex -->
-        <polygon
-          points="100,35 148,68 148,132 100,165 52,132 52,68"
-          fill="url(#hg2)"
-          opacity="0.3"
-        />
-        <!-- Center dot -->
-        <circle cx="100" cy="100" r="12" fill="rgba(255,255,255,0.2)"/>
-        <circle cx="100" cy="100" r="6" fill="white" opacity="0.8"/>
-      </svg>
+                <div class="hero-actions">
+                    <a href="#code" class="btn btn-primary">
+                        ⬡ Commencer
+                    </a>
+                    <a href="https://github.com/lvs0/Polygone" class="btn btn-secondary">
+                        GitHub →
+                    </a>
+                </div>
 
-      <div class="hero-badge">
-        <span class="dot"></span>
-        Post-quantum ready · No telemetry · MIT
-      </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-value">ML-KEM-1024</div>
+                        <div class="stat-label">Post-Quantum Encryption</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">4-of-7</div>
+                        <div class="stat-label">Shamir Secret Sharing</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Open Source</div>
+                    </div>
+                </div>
+            </div>
 
-      <h1 class="hero-title">POLYGONE</h1>
-      <p class="hero-sub">POST-QUANTUM PRIVACY NETWORK</p>
+            <div class="scroll-indicator">
+                <span></span>
+            </div>
+        </div>
+    </section>
 
-      <p class="hero-quote">« L'information n'existe pas. Elle traverse. »</p>
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Pourquoi Polygone</div>
+                <h2 class="section-title">Pas un messenger.<br>Un réseau neuronal.</h2>
+                <p class="section-desc">
+                    Polygone n'est pas une alternative à Signal. C'est une nouvelle forme 
+                    d'intelligence distribuée, chiffrée contre les machines quantiques de 2030.
+                </p>
+            </div>
 
-      <p class="hero-desc">
-        Réseau de vie privée éphémère. Aucun serveur ne voit le message.
-        Aucun observateur ne prouve qu'une communication a existé.
-        Le chiffrement classique dissimule le contenu. Polygone dissimule la communication elle-même.
-      </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon quantum">⚛</div>
+                    <h3>Cryptographie Post-Quantique</h3>
+                    <p>
+                        ML-KEM-1024, le standard NIST 2024. En 2030, les ordis quantiques 
+                        pourront casser RSA en quelques heures. Polygone sera toujours chiffré.
+                    </p>
+                    <span class="feature-tag">ML-KEM-1024</span>
+                </div>
 
-      <div class="hero-install">
-        <div class="install-box">
-          <span class="prompt">$</span>
-          <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
-          <button class="copy-btn" onclick="copyCmd()">Copy</button>
-        </div>
-      </div>
+                <div class="feature-card">
+                    <div class="feature-icon shamir">🔑</div>
+                    <h3>Shamir 4-of-7</h3>
+                    <p>
+                        Tu ne perds jamais ta clé. 4 fragments sur 7 suffisent pour 
+                        tout reconstruire. Distribue-les à tes amis, ta famille, tes serveurs.
+                        Aucun tiers de confiance.
+                    </p>
+                    <span class="feature-tag">Zero Trust</span>
+                </div>
 
-      <div class="hero-cta">
-        <a href="https://github.com/lvs0/Polygone" class="btn-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/></svg>
-          GitHub
-        </a>
-        <a href="#how" class="btn-secondary">How It Works</a>
-        <a href="https://github.com/sponsors/lvs0" class="btn-sponsor">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.637 3.363A10 10 0 0112 3a10 10 0 018.637.363.5.5 0 01-.274.942A6 6 0 0012 5.25 6 6 0 005.637 4.305a.5.5 0 01-.274-.942z"/></svg>
-          Sponsor
-        </a>
-      </div>
+                <div class="feature-card">
+                    <div class="feature-icon neural">🧠</div>
+                    <h3>Auto-Guérison</h3>
+                    <p>
+                        Byzantine Fault Tolerance = système immunitaire. Un nœud compromis ? 
+                        Le réseau l'isole en moins d'une seconde. L'attaque meurt. Polygone survit.
+                    </p>
+                    <span class="feature-tag">Byzantine Fault Tolerance</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
-      <div class="scroll-hint">
-        <span>SCROLL</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-      </div>
+    <!-- Code -->
+    <section class="code-section" id="code">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Quick Start</div>
+                <h2 class="section-title">Démarrer en 30 secondes</h2>
+                <p class="section-desc">
+                    Cargo install. Deux lignes de code. Tu es dans le réseau.
+                </p>
+            </div>
 
-    </div>
-  </section>
+            <div class="code-demo">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-filename">terminal</span>
+                </div>
+                <div class="code-content">
+<span class="comment"># Installer Polygone</span>
+<span class="keyword">cargo</span> install polygone
 
-  <!-- ═══════════════ THE PROBLEM ═══════════════ -->
-  <section id="problem">
-    <div class="container reveal">
-      <p class="section-label">The Metadata Problem</p>
-      <h2 class="section-title">Encryption hides the content.<br>Not the communication.</h2>
-      <p class="section-desc">
-        Chiffrement classique protège ce que vous dites. Il ne peut pas cacher que vous l'avez dit.
-        Polygone résout le problème de métadonnées à la racine.
-      </p>
+<span class="comment"># Démarrer un nœud</span>
+polygone-node --identity ./my-identity.p2p
 
-      <div class="problem-grid">
-        <div class="problem-card bad glass">
-          <span class="icon">🔓</span>
-          <h3>Classical Encryption</h3>
-          <p>Hides content. Observers see who talks to whom, when, and how often.</p>
-        </div>
-        <div class="problem-card bad glass">
-          <span class="icon">🧅</span>
-          <h3>Tor / I2P</h3>
-          <p>Hides path. But relay nodes exist. Logs survive. Timing attacks work.</p>
-        </div>
-        <div class="problem-card good glass">
-          <span class="icon">⬡</span>
-          <h3>Polygone</h3>
-          <p>Messages become distributed mathematical states. No one sees more than a fragment.</p>
-        </div>
-        <div class="problem-card good glass">
-          <span class="icon">💎</span>
-          <h3>Post-Quantum</h3>
-          <p>ML-KEM-1024 resists quantum cryptanalysis. Safe today, safe tomorrow.</p>
-        </div>
-      </div>
+<span class="comment"># Envoyer un message chiffré</span>
+<span class="keyword">use</span> polygone::{Message, Cipher};
+<span class="keyword">use</span> polygone_crypto::<span class="type">ml_kem::MLKEM1024</span>;
 
-      <table class="comparison-table glass">
-        <thead>
-          <tr>
-            <th>Property</th>
-            <th>VPN</th>
-            <th>Tor</th>
-            <th>⬡ Polygone</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Hides message content</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>Hides source IP</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>Hides target IP</td>
-            <td class="cross">✗</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>Post-quantum crypto</td>
-            <td class="cross">✗</td>
-            <td class="cross">✗</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>No persistent relay</td>
-            <td class="cross">✗</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>Messages auto-evaporate</td>
-            <td class="cross">✗</td>
-            <td class="cross">✗</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>Provable zero-log</td>
-            <td class="partial">~</td>
-            <td class="cross">✗</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>Open source</td>
-            <td class="partial">~</td>
-            <td class="check">✓</td>
-            <td class="check">✓</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+<span class="keyword">let</span> keypair = MLKEM1024::<span class="function">generate</span>();
+<span class="keyword">let</span> message = Message::<span class="function">new</span>(<span class="string">"Secret data"</span>, &keypair.public);
+<span class="keyword">let</span> encrypted = message.<span class="function">encrypt</span>()?;
 
-  <!-- ═══════════════ HOW IT WORKS ═══════════════ -->
-  <section id="how">
-    <div class="container reveal">
-      <p class="section-label">Protocol</p>
-      <h2 class="section-title">Quatre couches. Une garantie.</h2>
-      <p class="section-desc">
-        De la poignée de main à l'évaporation — chaque couche résout une dimension
-        du problème de métadonnées.
-      </p>
+<span class="comment">// Partager avec Shamir 4-of-7</span>
+<span class="keyword">use</span> polygone_crypto::<span class="type">shamir::ShamirScheme</span>;
 
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">01</div>
-          <h3>ML-KEM-1024</h3>
-          <p>Échange de clé post-quantique. Clé de session unique par message. Indéchiffrable par ordinateur quantique.</p>
-          <span class="step-tag">NIST FIPS 203</span>
+<span class="keyword">let</span> shares = ShamirScheme::<span class="function">split</span>(secret, threshold: <span class="number">4</span>, total: <span class="number">7</span>);
+<span class="comment">// Distribue 7 fragments. 4 suffisent pour reconstruire.</span>
+                </div>
+            </div>
         </div>
-        <div class="step">
-          <div class="step-num">02</div>
-          <h3>AES-256-GCM</h3>
-          <p>Chiffrement de bout en bout. Nonce aléatoire 96-bit. Validité cryptographique absolue.</p>
-          <span class="step-tag">NIST SP 800-38D</span>
-        </div>
-        <div class="step">
-          <div class="step-num">03</div>
-          <h3>Shamir 4-of-7</h3>
-          <p>Fragmentation secrète. 7 fragments distribués. Seuls 4 permettent la reconstruction. Aucun nœud ne voit le message complet.</p>
-          <span class="step-tag">Secret Sharing</span>
-        </div>
-        <div class="step">
-          <div class="step-num">04</div>
-          <h3>Auto-Evaporation</h3>
-          <p>Fragments supprimés après 30 secondes. Clés de session effacées. L'échange n'a jamais existé.</p>
-          <span class="step-tag">TTL 30s</span>
-        </div>
-      </div>
+    </section>
 
-      <div class="metrics">
-        <div class="metric glass">
-          <div class="metric-val">34<span class="metric-unit">µs</span></div>
-          <div class="metric-label">ML-KEM-1024 encapsulate</div>
-        </div>
-        <div class="metric glass">
-          <div class="metric-val">208<span class="metric-unit">µs</span></div>
-          <div class="metric-label">Full E2E send latency</div>
-        </div>
-        <div class="metric glass">
-          <div class="metric-val">2.1<span class="metric-unit">MB</span></div>
-          <div class="metric-label">Binary size (stripped)</div>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- Architecture -->
+    <section class="architecture" id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Architecture</div>
+                <h2 class="section-title">Le Stack</h2>
+                <p class="section-desc">
+                    100% Rust. Chaque crate est un pilier. Ensemble, elles forment 
+                    le système nerveux d'Internet.
+                </p>
+            </div>
 
-  <!-- ═══════════════ ECOSYSTEM ═══════════════ -->
-  <section id="ecosystem">
-    <div class="container reveal">
-      <p class="section-label">Ecosystem</p>
-      <h2 class="section-title">Une stack post-quantique complète.</h2>
-      <p class="section-desc">
-        Huit crates. Chacune résout une partie du problème de vie privée.
-        Ensemble, elles rendent la confidentialité architecturale.
-      </p>
+            <div class="arch-diagram">
+┌──────────────────────────────────────────────────────────────────┐
+│                          POLYGONE STACK                            │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   ┌────────────┐    ┌────────────┐    ┌────────────┐            │
+│   │ polygone   │    │  polygone  │    │  polygone  │            │
+│   │   -app     │    │   -msg     │    │   -msh     │            │
+│   └─────┬──────┘    └─────┬──────┘    └─────┬──────┘            │
+│         │                  │                  │                   │
+│   ┌─────▼──────────────────▼──────────────────▼─────┐            │
+│   │                 polygone-core                     │            │
+│   │        Neural Network + Message Protocol         │            │
+│   └───────────────────────┬─────────────────────────┘            │
+│                           │                                        │
+│   ┌───────────────────────▼─────────────────────────────────┐   │
+│   │                 polygone-crypto                           │   │
+│   │  ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌─────────┐     │   │
+│   │  │ ML-KEM   │ │  AES-256 │ │ Shamir  │ │ BLAKE3  │     │   │
+│   │  │ -1024    │ │  -GCM    │ │  4-of-7 │ │         │     │   │
+│   │  └──────────┘ └──────────┘ └─────────┘ └─────────┘     │   │
+│   └───────────────────────────────────────────────────────────┘   │
+│                                                                   │
+│   ┌───────────────────────▼─────────────────────────────────┐   │
+│   │                 polygone-network                          │   │
+│   │   libp2p │ Kademlia DHT │ QUIC │ WebRTC                  │   │
+│   └───────────────────────────────────────────────────────────┘   │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
+            </div>
+        </div>
+    </section>
 
-      <div class="ecosystem-grid">
-        <div class="eco-card glass">
-          <span class="eco-icon">⬡</span>
-          <h3>Polygone — Core</h3>
-          <p>CLI et bibliothèque. ML-KEM-1024, Shamir 4-of-7, AES-256-GCM. L'implémentation du protocole.</p>
-          <span class="eco-tag">cargo: polygone</span>
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo-hex"></div>
+                    <div class="footer-text">
+                        Fait avec 🦀 par <a href="https://github.com/lvs0">l-vs</a><br>
+                        Open-source sous MIT License
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/lvs0/Polygone">GitHub</a>
+                    <a href="docs/PETALS_NEURO_SPEC.md">PETALS_NEURO</a>
+                    <a href="SPEC.md">Specs</a>
+                    <a href="BRAND.md">Brand</a>
+                </div>
+            </div>
         </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">🛡️</span>
-          <h3>Polygone-Hide</h3>
-          <p>Tunnel SOCKS5 post-quantique. Transforme toute connexion TCP en flux chiffré et protégé.</p>
-          <span class="eco-tag">cargo: polygone-hide</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">💾</span>
-          <h3>Polygone-Drive</h3>
-          <p>Stockage de fichiers distribué chiffré. Fichiers fragmentés, chiffrés, dispersés sur le réseau.</p>
-          <span class="eco-tag">cargo: polygone-drive</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">🌐</span>
-          <h3>Polygone-Server</h3>
-          <p>Déploie des nœuds relais persistants via Docker. Participe au réseau depuis n'importe où.</p>
-          <span class="eco-tag">cargo: polygone-server</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">🖥️</span>
-          <h3>Polygone-Shell</h3>
-          <p>Terminal cloud sécurisé sur le réseau Polygone. Sessions shell sans trace.</p>
-          <span class="eco-tag">cargo: polygone-shell</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">🧠</span>
-          <h3>Polygone-Petals</h3>
-          <p>Protocole d'échange neuronal entre IA. Modèles qui échangent des états chiffrés, sans fuite de权重.</p>
-          <span class="eco-tag">cargo: polygone-petals</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">🔗</span>
-          <h3>Polygone-Mesh</h3>
-          <p>Mode local indoor. Réseau maillé entre machines à proximité sans passer par le réseau global.</p>
-          <span class="eco-tag">cargo: polygone-mesh</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">☁️</span>
-          <h3>Polygone-Cloud</h3>
-          <p>Compute distribué sur le réseau. Machines qui travaillent pour le réseau et reçoivent du POLY.</p>
-          <span class="eco-tag">cargo: polygone-cloud</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">💻</span>
-          <h3>Polygone-Computer</h3>
-          <p>VM serverless sur le réseau. Déploie des applications entières sans infrastructure centralisée.</p>
-          <span class="eco-tag">cargo: polygone-computer</span>
-        </div>
-        <div class="eco-card glass">
-          <span class="eco-icon">🔒</span>
-          <h3>Polygone-Networks</h3>
-          <p>Le réseau maillé complet. Routing non-géographique. Aucun nœud ne connaît la position des autres.</p>
-          <span class="eco-tag">cargo: polygone-networks</span>
-        </div>
-      </div>
-    </div>
-  </section>
+    </footer>
 
-  <!-- ═══════════════ PETALS — NEURAL EXCHANGE ═══════════════ -->
-  <section id="petals">
-    <div class="container reveal">
-      <p class="section-label">Petals</p>
-      <h2 class="section-title">Protocole d'échange neuronal.</h2>
-      <p class="section-desc">
-        Les modèles d'IA communiquent entre eux sans exposer leurs poids, leurs données d'entraînement,
-        ni leur architecture. Polygone-Petals est le protocole qui rend ça possible.
-      </p>
+    <script>
+        // ═══════════════════════════════════════════
+        // Neural Network Canvas Animation
+        // ═══════════════════════════════════════════
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
 
-      <div class="petals-highlight">
-        <div class="petals-text">
-          <h3>IA qui parlent à IA, sans que personne n'écoute</h3>
-          <p>
-            Aujourd'hui, quand deux modèles échangent des informations, ils révèlent :
-            leur architecture, leurs poids, leurs biais. Petals chiffre tout à la couche réseau —
-            avant même que la donnée ne soit créée.
-          </p>
-          <p>
-            Chaque échange neuronal est fragmenté, routé via le réseau Polygone,
-            et auto-effacé après reconstruction. Le modèle récepteur ne sait pas d'où vient le signal.
-            L'émetteur ne sait pas où il va.
-          </p>
-        </div>
-        <div class="petals-visual">
-          <svg viewBox="0 0 240 240" fill="none">
-            <!-- Outer ring -->
-            <circle cx="120" cy="120" r="100" stroke="rgba(102,103,171,0.15)" stroke-width="1" stroke-dasharray="4 8"/>
-            <circle cx="120" cy="120" r="80" stroke="rgba(102,103,171,0.1)" stroke-width="1"/>
-            <!-- Hex rings -->
-            <polygon points="120,40 180,70 180,130 120,160 60,130 60,70"
-              stroke="rgba(102,103,171,0.25)" stroke-width="1.5" fill="none"/>
-            <polygon points="120,60 160,77.5 160,122.5 120,140 80,122.5 80,77.5"
-              stroke="rgba(155,127,212,0.4)" stroke-width="1.5" fill="rgba(102,103,171,0.05)"/>
-            <!-- Neural nodes -->
-            <circle cx="120" cy="40" r="8" fill="#6667AB" opacity="0.8"/>
-            <circle cx="180" cy="70" r="8" fill="#9B7FD4" opacity="0.8"/>
-            <circle cx="180" cy="130" r="8" fill="#6667AB" opacity="0.8"/>
-            <circle cx="120" cy="160" r="8" fill="#9B7FD4" opacity="0.8"/>
-            <circle cx="60" cy="130" r="8" fill="#6667AB" opacity="0.8"/>
-            <circle cx="60" cy="70" r="8" fill="#9B7FD4" opacity="0.8"/>
-            <!-- Center -->
-            <circle cx="120" cy="100" r="16" fill="rgba(102,103,171,0.15)" stroke="rgba(102,103,171,0.5)" stroke-width="1"/>
-            <circle cx="120" cy="100" r="6" fill="#6667AB"/>
-            <!-- Connection lines -->
-            <line x1="120" y1="40" x2="120" y2="84" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
-            <line x1="180" y1="70" x2="136" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
-            <line x1="180" y1="130" x2="136" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
-            <line x1="120" y1="160" x2="120" y2="116" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
-            <line x1="60" y1="130" x2="104" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
-            <line x1="60" y1="70" x2="104" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
-            <!-- Fragment symbols -->
-            <text x="120" y="240" text-anchor="middle" font-family="Orbitron,monospace" font-size="9" fill="rgba(102,103,171,0.5)">FRAGMENTS</text>
-          </svg>
-        </div>
-      </div>
+        let width, height;
+        let nodes = [];
+        let connections = [];
 
-      <div class="petals-features">
-        <div class="petals-feat glass">
-          <h4>Gradient Encryption</h4>
-          <p>Les poids sont chiffrés couche par couche avec ML-KEM-1024. Seul le récepteur légitime peut reconstruire les gradients.</p>
-        </div>
-        <div class="petals-feat glass">
-          <h4>Zero-Knowledge Verification</h4>
-          <p>Preuve cryptographique que le modèle a bien appris sans exposer ce qu'il a appris. ZK pour l'entraînement distribué.</p>
-        </div>
-        <div class="petals-feat glass">
-          <h4>Federated Leak Prevention</h4>
-          <p>Même avec accès aux fragments, un observateur ne peut corréler aucun gradient avec aucune entrée d'entraînement.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════ FOOTER ═══════════════ -->
-  <footer>
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <svg viewBox="0 0 32 32" width="24" height="24">
-          <defs>
-            <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#6667AB"/>
-              <stop offset="100%" stop-color="#9B7FD4"/>
-            </linearGradient>
-          </defs>
-          <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="url(#fg)"/>
-        </svg>
-        <div>
-          <div class="name">POLYGONE</div>
-          <div class="desc">Post-quantum ephemeral privacy</div>
-        </div>
-      </div>
-
-      <div class="footer-links">
-        <a href="https://github.com/lvs0/Polygone">GitHub</a>
-        <a href="https://github.com/lvs0/Polygone/blob/main/README.md">Docs</a>
-        <a href="https://github.com/lvs0/Polygone/security">Security</a>
-        <a href="https://github.com/sponsors/lvs0">Sponsor</a>
-      </div>
-
-      <div class="footer-copy">
-        <span class="made">Made in France</span>
-        <span class="sep">·</span>
-        by lvs0 &lt;lvs0@proton.me&gt;
-        <span class="sep">·</span>
-        MIT License
-        <span class="sep">·</span>
-        2026
-      </div>
-    </div>
-  </footer>
-
-  <script>
-    // Copy install command
-    function copyCmd() {
-      const cmd = document.getElementById('install-cmd').textContent.trim();
-      navigator.clipboard.writeText(cmd).then(() => {
-        const btn = document.querySelector('.copy-btn');
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-      });
-    }
-
-    // Scroll reveal
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
         }
-      });
-    }, { threshold: 0.1 });
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  </script>
+        function init() {
+            resize();
+            nodes = [];
+            connections = [];
+            
+            // Create nodes
+            const numNodes = Math.floor((width * height) / 15000);
+            for (let i = 0; i < numNodes; i++) {
+                nodes.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: Math.random() * 2 + 1,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
 
+            // Pre-calculate connections
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        connections.push([i, j, dist]);
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Update and draw nodes
+            nodes.forEach((node, i) => {
+                node.x += node.vx;
+                node.y += node.vy;
+                node.pulse += 0.02;
+
+                // Bounce off edges
+                if (node.x < 0 || node.x > width) node.vx *= -1;
+                if (node.y < 0 || node.y > height) node.vy *= -1;
+
+                // Draw node
+                const alpha = 0.5 + Math.sin(node.pulse) * 0.3;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(124, 58, 237, ${alpha})`;
+                ctx.fill();
+
+                // Glow
+                const gradient = ctx.createRadialGradient(
+                    node.x, node.y, 0,
+                    node.x, node.y, node.radius * 5
+                );
+                gradient.addColorStop(0, `rgba(124, 58, 237, ${alpha * 0.3})`);
+                gradient.addColorStop(1, 'rgba(124, 58, 237, 0)');
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius * 5, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            });
+
+            // Draw connections
+            connections.forEach(([i, j, baseDist]) => {
+                const dx = nodes[i].x - nodes[j].x;
+                const dy = nodes[i].y - nodes[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 150) {
+                    const alpha = (1 - dist / 150) * 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(nodes[i].x, nodes[i].y);
+                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                    
+                    // Gradient from violet to cyan
+                    const gradient = ctx.createLinearGradient(
+                        nodes[i].x, nodes[i].y,
+                        nodes[j].x, nodes[j].y
+                    );
+                    gradient.addColorStop(0, `rgba(124, 58, 237, ${alpha})`);
+                    gradient.addColorStop(1, `rgba(34, 211, 238, ${alpha})`);
+                    
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+            init();
+        });
+
+        init();
+        animate();
+    </script>
 </body>
 </html>

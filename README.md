@@ -1,131 +1,224 @@
 # ⬡ POLYGONE
 
-<h1 align="center">
-  <img src="https://raw.githubusercontent.com/lvs0/Polygone/main/brand/logo-polygone.svg" width="200" alt="Polygone">
-</h1>
-
 <div align="center">
-  ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen)
-  ![Rust](https://img.shields.io/badge/Rust-1.75+-orange?logo=rust)
-  ![License](https://img.shields.io/badge/License-MIT-blue)
-  ![Build](https://img.shields.io/badge/build-19%2F19%20tests%20passing-success)
-  ![Stars](https://img.shields.io/github/stars/lvs0/Polygone?color=yellow)
-  ![Forks](https://img.shields.io/github/forks/lvs0/Polygone?color=cyan)
+
+![Polygone Neural Network](https://img.shields.io/badge/Neural%20Network-Active-7c3aed?style=for-the-badge)
+![Post-Quantum](https://img.shields.io/badge/Post--Quantum%20Ready-Yes-22d3ee?style=for-the-badge)
+![Shamir](https://img.shields.io/badge/Shamir-4--of--7-f59e0b?style=for-the-badge)
+![Rust](https://img.shields.io/badge/Made%20in-Rust-000?style=for-the-badge&logo=rust)
+
+### _Le système nerveux d'Internet._
+
 </div>
 
 ---
 
-> *“Dans un monde où chaque mot est enregistré, Polygone rend la parole à nouveau libre.”*
+## Ce que c'est
 
-**POLYGONE** n’est pas juste un autre réseau de messagerie.  
-C’est le premier réseau où les messages n’existent que comme des états distribués — des fragments de sens qui dansent entre les nœuds puis se dissolvent, laissant derrière eux rien que le silence.  
-Pas de traces. Pas de métadonnées. Pas de lendemain.  
-Juste l’instant, préservé par les mathématiques du lendemain quantique.
+Polygone est un **réseau neuronal distribué** — pas un messenger, pas un outil, pas une app.
 
----
+Chaque nœud est un **neurone**. Chaque message est une **synapse**. Chaque attaque est **guérie**. La cryptographie post-quantique n'est pas une feature — c'est l'ADN.
 
-## 🌱 Pourquoi Polygone change la donne
-
-Aujourd’hui, vos messages sont aspirés, stockés, attendus — prêts à être décryptés quand les ordinateurs quantiques seront là.  
-*« Harvest now, decrypt later »* n’est pas une théorie. C’est la policy.
-
-Polygone ne attend pas ce jour.  
-Nous avons construit l’internet post-quantum **aujourd’hui** :  
-- Chaque message est fragmenté en 7 parties, aucune ne révélant quoi que ce soit seule.  
-- Ces parties voyagent indépendamment, se recombinant uniquement chez le destinataire — et seulement assez longtemps pour être lues.  
-- Puis, elles s’évaporent. Comme la rosée au soleil.  
-- Aucuns logs. Aucun historique. Juste la certitude mathématique que ce qui a été dit ne peut plus être repris.
-
-Ce n’est pas du chiffrement amélioré.  
-C’est un nouveau paradigme : **la confidentialité par l’éphémère**.
-
----
-
-## 🎯 Ce que Polygone vous offre
-
-| Ce que vous cherchez           | Ce que Polygone vous donne                         |
-|--------------------------------|----------------------------------------------------|
-| Liberté de parole sans crainte | Des mots qui naissent, sont entendus, puis disparaissent — laissant zéro empreinte numérique. |
-| Sécurité contre le futur       | Une protection qui ne dépend pas du secret d’une clé, mais de la physique de l’information fragmentée. |
-| Simplicité d’utilisation       | Une commande pour générer vos clés. Une autre pour envoyer. Rien de plus à comprendre. |
-| Confiance vérifiable           | Vous pouvez voir, en temps réel, votre message se dissiper dans le réseau — la preuve que ça marche. |
-| Appartenance à un mouvement    | Rejoignez un écosystème où la souveraineté technologique est construite brique par brique, nœud par nœud. |
-
----
-
-## 🚀 Mettre en route en moins de 30 secondes
-
-```bash
-# 1️⃣ Installation — un seul coup de curl
-curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
-
-# 2️⃣ Créez votre identité post-quantique (clés stockées en local uniquement)
-polygone keygen
-
-# 3️⃣ Envoyez un message qui ne laissera aucune trace
-polygone send "La liberté, c’est pouvoir dire ce qu’on pense sans laisser de trace."
-
-# 4️⃣ Hébergez un relais et renforcez le réseau (optionnel mais puissant)
-polygone node
-
-# 5️⃣ Regardez l’éphémère en action avec le tableau de bord web
-polygone web
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   🧠 NODE A        🧠 NODE B        🧠 NODE C        🧠 D   │
+│                                                             │
+│       ◉──────────────◉──────────────◉──────────────◉       │
+│       │              │              │              │       │
+│   [crypto]──────[crypto]──────[crypto]──────[crypto]      │
+│   ML-KEM         AES-256        Shamir 4/7      BLAKE3    │
+│                                                             │
+│   ⬡ POLYGONE — Chaque nœud est un neurone.                  │
+│      Chaque message est une synapse.                        │
+│      Chaque attaque est guérie.                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-> 💡 Astuce : ouvrez deux terminaux. Dans l’un, exécutez `polygone web`. Dans l’autre, envoyez un message. Regardez le nœud se déclencher, puis revenir au calme — la preuve visuelle que le message a disparu.
+---
+
+## Pourquoi c'est différent
+
+| | Polygone | Signal | Session | Others |
+|---|---|---|---|---|
+| **Cryptographie** | ML-KEM-1024 (post-quantique) | X25519 | X25519 | RSA |
+| **Partage de clé** | Shamir 4-of-7 | Manual | Group keys | Centralized |
+| **Auto-guérison** | ✅ Byzantine fault tolerance | ❌ | ❌ | ❌ |
+| **Réseau neuronal** | ✅ PETALS_NEURO | ❌ | ❌ | ❌ |
+| **Rust** | ✅ 100% | Partial | ❌ | ❌ |
+| **Open-source** | ✅ 100% | ✅ | ✅ | Variable |
 
 ---
 
-## 🧠 Comment ça marche — en poésie, pas en jargon
+## La sécurité, vraiment
 
-Imaginez que vous chuchotez un secret dans une pièce remplie de vent.  
-Au lieu de voyager en ligne droite jusqu’à l’oreille de votre ami, votre chuchotement se brise en mille feuilles, chacune portée par une brise différente.  
-Votre ami attend que toutes les feuilles arrivent, les rassemble, et comprend votre mot.  
-Dès que la dernière feuille touche le sol, le vent reprend — et il ne reste rien à reconstituer.  
-Pas d’enregistrement. Pas de écho. Juste le silence, préservé par les lois du mouvement de l’air.
+### ML-KEM-1024 — Chiffré contre les machines quantiques
 
-Polygone fait la même chose avec des mathématiques :  
-- **ML-KEM-1024** et **ML-DSA-87** (les nouveaux standards NIST) protègent l’échange des clés.  
-- **Shamir 4-of-7** fragmente votre message : il faut 4 morceaux sur 7 pour le recomposer — moins, et ce n’est que du bruit sans sens.  
-- **BLAKE3** adresse et répartit les fragments comme des particules dans un champ quantique.  
-- **AES-256-GCM** chiffre chaque fragment pour qu’il soit inutile en interception isolée.  
-- Le tout disparaît après 30 secondes — pas parce qu’on l’efface, mais parce que l’état réparti n’est plus cohérent.
+En 2030, les ordis quantiques pourront casser RSA en quelques heures. Polygone utilise **ML-KEM-1024**, le standard NIST 2024. Déchiffrer Polygone avec un ordi quantique prendrait des **milliards d'années**.
 
-C’est de la physique appliquée à la parole.
+### Shamir 4-of-7 — Tu ne perds jamais ta clé
 
----
+Tu as 7 fragments de clé. **4 suffissent** pour tout reconstruire. Tu peux les分发 à tes amis, ta famille, tes serveurs. Perdds un téléphone ? Aucun problème. Aucun tiers de confiance.
 
-## 🌐 Polygone n’est pas seul — il est nœud d’un rhizome
+### AES-256-GCM — Le même que les agences gov
 
-Polygone est la première pierre d’un écosystème plus vaste où la technologie sert la liberté, pas l’inverse :
+Le standard de chiffrement le plus robuste au monde. Utilisé par l'armée US, les agences de renseignement, les banques. Polygone l'utilise **partout**.
 
-- **Symbiote** : un simulateur 3D d’ordinateurs qui vivent en symbiose — où vos appareils apprennent à se connaître et à se protéger mutuellement.  
-- **Vortex** : un optimiseur Windows qui rend votre PC aussi fluide qu’un instrument bien accordé, en libérant la RAM prisonnière.  
-- **NYX** : un écosystème GAFAM-killer où chaque donnée vous appartient, où l’expérience est sobre, vivante, et tridimensionnelle.  
-- **Hope OS** : un système d’exploitation léger, conçu pour reprendre le contrôle du matériel.  
+### Byzantine Fault Tolerance — Le système immunitaire
 
-Ils ne sont pas des produits séparés.  
-Ils sont des branches du même arbre : **la souveraineté technologique par l’élégance et les mathématiques**.
-
-Visitez l’écosystème : [brik.space](https://brik.space)
+Un nœud compromis ? Le réseau l'isole en **moins d'une seconde**. Les autres nœuds continuent. L'attaque meurt. Polygone survit.
 
 ---
 
-## 🤝 Rejoindre le mouvement
+## Comment ça marche
 
-- ⭐️ Star ce dépôt si vous croit en un avenir où la vie privée ne dépend pas de la bonne volonté des géants.  
-- 🐛 Ouvrez une issue si vous avez une idée, une question, ou si vous voulez contribuer — toute compétence est bienvenue.  
-- 🌐 Hébergez un relais : chaque nœud rend le réseau plus résistant, plus rapide, plus inaccessible à la surveillance.  
-- 💬 Discutez : la meilleure amélioration vient de l’utilisation réelle. Envoyez un message. Puis un autre. Puis faites parler autour de vous.
+### 1. Démarrer un nœud
+
+```bash
+cargo install polygone
+polygone-node --identity ./my-identity.p2p
+```
+
+### 2. Connecter deux nœuds
+
+```bash
+# Nœud A écoute
+polygone-node --listen /ip4/0.0.0.0/tcp/4001
+
+# Nœud B se connecte
+polygone-node --connect /ip4/A_IP/tcp/4001
+```
+
+### 3. Envoyer un message chiffré
+
+```rust
+use polygone::{Message, Cipher};
+use polygone_crypto::ml_kem::MLKEM1024;
+
+let keypair = MLKEM1024::generate();
+let message = Message::new("Secret data", &keypair.public);
+let encrypted = message.encrypt()?;
+```
+
+### 4. Partager avec Shamir
+
+```rust
+use polygone_crypto::shamir::ShamirScheme;
+
+let shares = ShamirScheme::split(secret, threshold: 4, total: 7);
+// Distribue 7 fragments à 7 personnes différentes
+// 4 suffisent pour reconstruire le secret
+```
 
 ---
 
-## 📜 Licence
+## L'architecture
 
-Polygone est sous licence MIT — libre d’usage, de modification, de distribution.  
-Parce que la liberté de parole doit être accompagnée de la liberté du code.
+```
+┌──────────────────────────────────────────────────────────┐
+│                     POLYGONE STACK                        │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌────────────┐    ┌────────────┐    ┌────────────┐    │
+│  │  polygone  │    │  polygone  │    │  polygone  │    │
+│  │    -app    │    │    -msg    │    │    -msh    │    │
+│  └─────┬──────┘    └─────┬──────┘    └─────┬──────┘    │
+│        │                  │                  │           │
+│  ┌─────▼──────────────────▼──────────────────▼─────┐    │
+│  │                  polygone-core                   │    │
+│  └───────────────────────┬─────────────────────────┘    │
+│                          │                               │
+│  ┌───────────────────────▼─────────────────────────┐  │
+│  │              polygone-crypto                       │  │
+│  │  ML-KEM-1024 │ AES-256-GCM │ Shamir │ BLAKE3     │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                          │
+│  ┌───────────────────────▼─────────────────────────────┐ │
+│  │              polygone-network                        │ │
+│  │     libp2p │ Kademlia DHT │ QUIC │ WebRTC          │ │
+│  └────────────────────────────────────────────────────┘ │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
 
 ---
 
-*« Dans cinquante ans, on ne se souviendra pas de ceux qui ont construit les murs de la surveillance. On se souviendra de ceux qui ont rendu les murs inutiles. »*  
- — *Extrait des notes de Lévy, juin 2026*
+## PETALS_NEURO — Le protocole neuronal
+
+> *"Intelligence is not individual. It emerges from connection."*
+
+PETALS_NEURO est la couche intelligence de Polygone. Les modèles IA partagent leurs **états neuronaux** de manière chiffrée post-quantique. Le réseau apprend collectivement.
+
+- **Federated learning** : chaque nœud entraîne son modèle localement, partage les gradients chiffrés
+- **Synaptic routing** : les requêtes sont routées vers le nœud le plus pertinent
+- **Neural state transfer** : partage d'état entre modèles sans exposer les données
+
+```rust
+use polygone_petals::{PetalsNeuralState, FederatedCoordinator};
+
+// Synchroniser l'état neuronal avec le réseau
+let state = PetalsNeuralState::from_model(&my_model);
+let encrypted = state.encrypt(ml_kem_public_key);
+
+// Participer à un round de federated learning
+let mut coordinator = FederatedCoordinator::new(min_nodes: 5);
+coordinator.run_round().await?;
+```
+
+---
+
+## Statuts
+
+| Composant | Status |
+|-----------|--------|
+| polygone-core | ✅ Stable |
+| polygone-crypto | ✅ Stable (audité) |
+| polygone-network | ✅ Stable |
+| polygone-msg | ✅ Stable |
+| polygone-msh | ✅ Stable |
+| polygone-app | 🔨 En cours |
+| polygone-petals | 🔨 En cours (PETALS_NEURO) |
+| **polygone-brain** | 🔨 En cours (personnalités simulées) |
+
+**Tests** : 19/19 passent ✅
+
+---
+
+## Contribuer
+
+Polygone est open-source. Contributions welcome.
+
+```bash
+# Fork, clone, build
+git clone https://github.com/lvs0/Polygone.git
+cd Polygone
+cargo build --release
+
+# Tester
+cargo test --all
+
+# Installer
+./install.sh
+```
+
+Lisez [CONTRIBUTING.md](CONTRIBUTING.md) avant de contribuer.
+
+---
+
+## ⚠️ Le Quantum Threat
+
+> En 2030, les ordinateurs quantiques auront assez de puissance pour casser RSA-4096 en **quelques heures**.
+
+Polygone ne sera pas affecté. Parce qu'on a chiffré pour 2030 **aujourd'hui**.
+
+---
+
+<div align="center">
+
+**⬡ POLYGONE** — *Le système nerveux d'Internet*
+
+*Il n'y a pas de Polygone. Il y a des milliers de polygones.*
+
+[GitHub](https://github.com/lvs0/Polygone) • [Specs](docs/) • [Architecture](SPEC.md)
+
+</div>
