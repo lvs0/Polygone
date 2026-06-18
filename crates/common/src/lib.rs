@@ -13,6 +13,12 @@ pub use fragment::{
  CollectRequest, CollectedFragments, DispatchConfig,
 };
 
+pub mod sync;
+pub use sync::{
+    Capabilities, SyncNode, TwoPSet, LWWRegister,
+    DistributedState, ConsensusEngine,
+};
+
 pub mod error;
 pub mod packet;
 pub mod session;
