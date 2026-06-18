@@ -3198,6 +3198,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "polygone-examples"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "hex",
+]
+
+[[package]]
 name = "polygone-msg"
 version = "0.1.0"
 dependencies = [

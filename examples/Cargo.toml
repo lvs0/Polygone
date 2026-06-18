@@ -1,0 +1,16 @@
+[package]
+name = "polygone-examples"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "wds_sim"
+path = "wds_sim.rs"
+
+[[bin]]
+name = "lc_wds_sim"
+path = "lc_wds_sim.rs"
+
+[dependencies]
+blake3.workspace = true
+hex.workspace = true

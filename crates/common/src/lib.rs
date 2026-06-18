@@ -19,6 +19,12 @@ pub use sync::{
     DistributedState, ConsensusEngine,
 };
 
+pub mod lc_wds;
+pub use lc_wds::{
+    LatencyRtt, LatencyCluster, ClusterMember, ClusterTopology,
+    assign_cluster, elect_tire_leader, elect_global_leader, LcWdsRound,
+};
+
 pub mod error;
 pub mod packet;
 pub mod session;

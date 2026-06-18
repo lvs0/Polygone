@@ -1,640 +1,705 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⬡ Polygone — Information Does Not Exist</title>
-  <meta name="description" content="Post-quantum ephemeral privacy network. ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM. The metadata problem, solved.">
-  <meta property="og:title" content="Polygone — Post-Quantum Privacy Network">
-  <meta property="og:description" content="Messages that become distributed mathematical states, then vaporize.">
+  <title>⬡ Polygone — L'information n'existe pas. Elle traverse.</title>
+  <meta name="description" content="Réseau de vie privée éphémère post-quantique. ML-KEM-1024 · Shamir 4-of-7 · AES-256-GCM. Nobody sees the message. Nobody proves it existed.">
+  <meta property="og:title" content="⬡ Polygone — Réseau post-quantique made in France">
+  <meta property="og:description" content="Messages that become distributed computational states, then vaporize. No metadata. No log. No trace.">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="brand/favicon.svg">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    /* ════════════════════════════════════════════════
-       POLYGONE — Brand System
-    ════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════
+       BRAND TOKENS — Glassmorphism × Very Peri × Dark
+       Pantone 17-3938 Very Peri as accent
+    ════════════════════════════════════════════════════ */
     :root {
-      --bg:        #04040c;
-      --bg-2:      #07071a;
-      --bg-card:   #0a0a1f;
-      --blue:      #00c8ff;
-      --blue-dim:  #0090cc;
-      --blue-deep: #0055aa;
-      --violet:    #8855ff;
-      --text:      #dde0f0;
-      --text-dim:  #6b6f8a;
-      --border:    rgba(0, 200, 255, 0.12);
-      --glow:      rgba(0, 200, 255, 0.15);
-      --glow-strong: rgba(0, 200, 255, 0.3);
-
-      --font-display: 'Orbitron', 'Share Tech Mono', monospace;
-      --font-mono:    'Share Tech Mono', 'Courier New', monospace;
-      --font-body:    'Inter', system-ui, sans-serif;
-
-      --hex-angle: 30deg;
-      --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --bg:          #030308;
+      --bg-2:        #06060f;
+      --glass-bg:    rgba(102, 103, 171, 0.07);
+      --glass-border: rgba(102, 103, 171, 0.18);
+      --glass-hover:  rgba(102, 103, 171, 0.12);
+      --peri:        #6667AB;
+      --peri-dim:    #5558A0;
+      --peri-glow:   rgba(102, 103, 171, 0.35);
+      --peri-light:  #8B8CCC;
+      --violet:      #9B7FD4;
+      --text:        #E8E8F4;
+      --text-dim:    #7878A0;
+      --white:       #F0F0FA;
+      --transition:  0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --font-display:'Orbitron', monospace;
+      --font-body:   'Sora', system-ui, sans-serif;
+      --radius:      16px;
     }
 
-    /* ─── Reset ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-size: 16px; }
+
+    html { scroll-behavior: smooth; }
+
     body {
       background: var(--bg);
       color: var(--text);
       font-family: var(--font-body);
       font-weight: 300;
-      line-height: 1.7;
+      line-height: 1.65;
       overflow-x: hidden;
     }
 
-    /* ─── Scrollbar ─── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--blue-deep); border-radius: 3px; }
-    ::selection { background: var(--blue); color: var(--bg); }
-
-    /* ─── Typography ─── */
-    h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.04em; }
-    code, .mono { font-family: var(--font-mono); }
-
-    /* ════════════════════════════════════════════════
-       HEXAGON BACKGROUND PATTERN
-    ╔═══════════════════════════════════════════════
-       A grid of hexagons that subtly animates.
-       The hex grid is the identity mark of Polygone.
-    ════════════════════════════════════════════════ */
-    .hex-bg {
+    /* ─── 3D FLOATING BACKGROUND ELEMENTS ─── */
+    .bg-orbs {
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.04;
       overflow: hidden;
     }
-    .hex-bg svg {
-      width: 200%;
-      height: 200%;
-      animation: hex-drift 120s linear infinite;
-    }
-    @keyframes hex-drift {
-      0%   { transform: translate(-25%, -25%) rotate(0deg); }
-      100% { transform: translate(-25%, -25%) rotate(6deg); }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orb-drift 20s ease-in-out infinite;
     }
 
-    /* ════════════════════════════════════════════════
-       NAVIGATION
-    ════════════════════════════════════════════════ */
+    .orb-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(102,103,171,0.15), transparent 70%);
+      top: -200px; left: -150px;
+      animation-duration: 25s;
+    }
+    .orb-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(155,127,212,0.1), transparent 70%);
+      bottom: -100px; right: -100px;
+      animation-duration: 30s;
+      animation-delay: -10s;
+    }
+    .orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(102,103,171,0.2), transparent 70%);
+      top: 40%; left: 60%;
+      animation-duration: 18s;
+      animation-delay: -5s;
+    }
+
+    @keyframes orb-drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.97); }
+    }
+
+    /* ─── FLOATING HEXAGONS ─── */
+    .hex-float {
+      position: absolute;
+      opacity: 0.04;
+      animation: hex-rotate 60s linear infinite;
+    }
+    .hex-float svg { width: 120px; height: 120px; }
+    .hf-1 { top: 10%; right: 5%; animation-duration: 80s; }
+    .hf-2 { bottom: 20%; left: 3%; animation-duration: 100s; animation-direction: reverse; }
+    .hf-3 { top: 60%; right: 20%; animation-duration: 70s; opacity: 0.03; }
+
+    @keyframes hex-rotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ─── GRAIN TEXTURE OVERLAY ─── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* ─── NAVIGATION ─── */
     nav {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       z-index: 100;
+      padding: 20px 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 40px;
-      background: rgba(4, 4, 12, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      transition: var(--transition);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(3, 3, 8, 0.7);
+      border-bottom: 1px solid var(--glass-border);
     }
-    nav .nav-logo {
+
+    .nav-logo {
       display: flex;
       align-items: center;
       gap: 10px;
       text-decoration: none;
+      color: var(--white);
     }
-    nav .nav-logo svg {
-      width: 28px; height: 28px;
-    }
-    nav .nav-logo span {
+    .nav-logo svg { width: 28px; height: 28px; }
+    .nav-logo span {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      color: var(--blue);
       letter-spacing: 0.15em;
     }
-    nav .nav-links {
+
+    .nav-links {
       display: flex;
       align-items: center;
       gap: 32px;
       list-style: none;
     }
-    nav .nav-links a {
+    .nav-links a {
       color: var(--text-dim);
       text-decoration: none;
       font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      transition: color 0.2s;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      transition: color var(--transition);
     }
-    nav .nav-links a:hover { color: var(--blue); }
-    nav .nav-cta {
-      padding: 7px 18px;
-      border: 1px solid var(--blue);
-      border-radius: 4px;
-      color: var(--blue) !important;
-      transition: var(--transition) !important;
+    .nav-links a:hover { color: var(--peri-light); }
+
+    .nav-cta {
+      padding: 8px 20px;
+      background: var(--peri);
+      border-radius: 8px;
+      color: var(--white) !important;
+      font-weight: 600 !important;
+      transition: var(--transition);
+      box-shadow: 0 0 20px var(--peri-glow);
     }
-    nav .nav-cta:hover {
-      background: var(--blue);
-      color: var(--bg) !important;
+    .nav-cta:hover {
+      background: var(--peri-light);
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px var(--peri-glow);
     }
 
-    /* ════════════════════════════════════════════════
-       HERO SECTION
-    ════════════════════════════════════════════════ */
-    .hero {
+    /* ─── SECTION SHARED ─── */
+    section {
       position: relative;
+      z-index: 2;
+      padding: 120px 40px;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    /* Glass card base */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+    }
+
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--peri);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--peri);
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: var(--white);
+    }
+
+    .section-desc {
+      color: var(--text-dim);
+      max-width: 580px;
+      font-size: 1.05rem;
+      margin-bottom: 64px;
+      font-weight: 300;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 120px 24px 80px;
-      overflow: hidden;
-    }
-    /* Radial glow behind hero content */
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(0, 100, 200, 0.12) 0%, transparent 70%);
-      pointer-events: none;
+      padding-top: 80px;
     }
 
-    /* Logo SVG centered */
-    .hero-logo {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 32px;
-      animation: hero-float 6s ease-in-out infinite;
-      filter: drop-shadow(0 0 30px rgba(0, 200, 255, 0.4));
+    /* 3D Hexagon SVG */
+    .hero-hex {
+      width: 180px;
+      height: 180px;
+      margin-bottom: 40px;
+      animation: hex-float 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 40px rgba(102,103,171,0.4));
     }
-    @keyframes hero-float {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-10px); }
+    .hero-hex polygon { transition: var(--transition); }
+    .hero-hex:hover polygon { fill: var(--peri-light); }
+
+    @keyframes hex-float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%       { transform: translateY(-12px) rotate(3deg); }
     }
 
     .hero-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 14px;
-      border: 1px solid var(--border);
+      gap: 8px;
+      padding: 6px 16px;
       border-radius: 100px;
-      font-family: var(--font-mono);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       font-size: 11px;
-      color: var(--blue);
+      font-family: var(--font-display);
       letter-spacing: 0.1em;
-      margin-bottom: 28px;
-      background: rgba(0, 200, 255, 0.04);
+      color: var(--peri-light);
+      margin-bottom: 32px;
     }
     .hero-badge .dot {
-      width: 5px; height: 5px;
+      width: 6px; height: 6px;
       border-radius: 50%;
-      background: var(--blue);
+      background: #50FA7B;
       animation: pulse-dot 2s ease-in-out infinite;
     }
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.7); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
     }
 
-    .hero h1 {
-      font-size: clamp(2.4rem, 6vw, 4.5rem);
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 10vw, 6rem);
       font-weight: 900;
-      line-height: 1.05;
+      line-height: 1;
+      color: var(--white);
       margin-bottom: 8px;
-      background: linear-gradient(135deg, #fff 0%, var(--blue) 50%, var(--violet) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      max-width: 900px;
+      letter-spacing: -0.02em;
     }
-    .hero .tagline {
-      font-family: var(--font-mono);
-      font-size: clamp(1rem, 2.5vw, 1.35rem);
+
+    .hero-sub {
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      color: var(--peri-light);
+      font-weight: 300;
+      font-family: var(--font-display);
+      letter-spacing: 0.15em;
+      margin-bottom: 24px;
+    }
+
+    .hero-quote {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
       color: var(--text-dim);
-      margin-bottom: 20px;
-      letter-spacing: 0.03em;
       font-style: italic;
-    }
-    .hero .tagline em {
-      color: var(--blue);
-      font-style: normal;
+      margin-bottom: 16px;
+      font-weight: 300;
     }
 
     .hero-desc {
-      max-width: 560px;
+      max-width: 540px;
+      font-size: 1rem;
       color: var(--text-dim);
-      font-size: 1.05rem;
-      font-weight: 300;
       margin-bottom: 48px;
-      line-height: 1.8;
+      line-height: 1.7;
     }
 
-    /* Install command box */
+    /* Install box */
     .hero-install {
-      width: 100%;
-      max-width: 540px;
-      margin-bottom: 24px;
+      margin-bottom: 40px;
     }
     .install-box {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px 28px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 14px;
-      box-shadow: 0 0 40px rgba(0, 200, 255, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+      gap: 12px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 14px 20px;
     }
     .install-box .prompt {
-      color: var(--blue);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      white-space: nowrap;
-    }
-    .install-box .cmd {
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      flex: 1;
-      word-break: break-all;
-    }
-    .install-box .copy-btn {
-      flex-shrink: 0;
-      padding: 6px 12px;
-      background: var(--blue);
-      border: none;
-      border-radius: 5px;
-      color: var(--bg);
-      font-size: 12px;
+      font-family: var(--font-display);
+      color: var(--peri);
       font-weight: 600;
+    }
+    .install-box code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .copy-btn {
+      padding: 4px 12px;
+      background: var(--peri);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       cursor: pointer;
       transition: var(--transition);
-      font-family: var(--font-mono);
     }
-    .install-box .copy-btn:hover { background: #fff; }
-    .install-box .copy-btn.copied { background: #00aa77; }
+    .copy-btn:hover { background: var(--peri-light); }
 
+    /* Hero CTAs */
     .hero-cta {
       display: flex;
-      gap: 14px;
+      gap: 16px;
       flex-wrap: wrap;
       justify-content: center;
+      margin-bottom: 64px;
     }
+
     .btn-primary {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 13px 28px;
-      background: var(--blue);
-      border: none;
-      border-radius: 8px;
-      color: var(--bg);
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      padding: 14px 32px;
+      background: var(--peri);
+      border-radius: 10px;
+      color: white;
       text-decoration: none;
-      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       transition: var(--transition);
-      box-shadow: 0 0 24px rgba(0, 200, 255, 0.3);
+      box-shadow: 0 0 32px var(--peri-glow);
     }
     .btn-primary:hover {
+      background: var(--peri-light);
       transform: translateY(-2px);
-      box-shadow: 0 0 40px rgba(0, 200, 255, 0.5);
+      box-shadow: 0 0 48px var(--peri-glow);
     }
+
     .btn-secondary {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 13px 28px;
+      padding: 14px 32px;
       background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
       color: var(--text);
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
       text-decoration: none;
-      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       transition: var(--transition);
     }
     .btn-secondary:hover {
-      border-color: var(--blue);
-      color: var(--blue);
+      border-color: var(--peri);
+      color: var(--peri-light);
       transform: translateY(-2px);
     }
 
+    .btn-sponsor {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: rgba(235, 68, 68, 0.1);
+      border: 1px solid rgba(235, 68, 68, 0.3);
+      border-radius: 10px;
+      color: #EB4457;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: var(--transition);
+    }
+    .btn-sponsor:hover {
+      background: rgba(235, 68, 68, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Scroll indicator */
     .scroll-hint {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       color: var(--text-dim);
-      font-size: 11px;
-      font-family: var(--font-mono);
-      letter-spacing: 0.1em;
-      animation: scroll-hint-fade 3s ease-in-out infinite;
+      font-size: 10px;
+      font-family: var(--font-display);
+      letter-spacing: 0.15em;
+      animation: scroll-bounce 2s ease-in-out infinite;
     }
-    .scroll-hint svg { opacity: 0.5; }
-    @keyframes scroll-hint-fade {
-      0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
-      50%       { opacity: 0.9; transform: translateX(-50%) translateY(6px); }
+    .scroll-hint svg { opacity: 0.4; }
+    @keyframes scroll-bounce {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50%       { transform: translateY(6px); opacity: 0.8; }
     }
 
-    /* ════════════════════════════════════════════════
-       SECTION COMMON
-    ════════════════════════════════════════════════ */
-    section {
-      position: relative;
-      z-index: 1;
-      padding: 100px 40px;
+    /* ─── PROBLEM SECTION ─── */
+    #problem {
+      background: rgba(6, 6, 15, 0.6);
+      border-top: 1px solid var(--glass-border);
+      border-bottom: 1px solid var(--glass-border);
     }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .section-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .section-label::before {
-      content: '';
-      display: block;
-      width: 24px;
-      height: 1px;
-      background: var(--blue);
-    }
-    .section-title {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      margin-bottom: 16px;
-      line-height: 1.15;
-    }
-    .section-desc {
-      color: var(--text-dim);
-      max-width: 600px;
-      font-size: 1.05rem;
-      margin-bottom: 60px;
-    }
-
-    /* ════════════════════════════════════════════════
-       THE PROBLEM SECTION
-    ════════════════════════════════════════════════ */
-    #problem { background: var(--bg-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .problem-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2px;
-      background: var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 48px;
-    }
-    .problem-card {
-      background: var(--bg);
-      padding: 36px;
-    }
-    .problem-card h3 {
-      font-size: 1rem;
-      color: var(--blue);
-      margin-bottom: 10px;
-    }
-    .problem-card p {
-      color: var(--text-dim);
-      font-size: 0.95rem;
-    }
-    .problem-card .icon {
-      font-size: 28px;
-      margin-bottom: 16px;
-      display: block;
-    }
-    .problem-card.bad { border-left: 2px solid #ff4466; }
-    .problem-card.good { border-left: 2px solid #00cc88; }
-    .problem-card.bad h3 { color: #ff4466; }
-    .problem-card.good h3 { color: #00cc88; }
 
     .comparison-table {
       width: 100%;
       border-collapse: collapse;
-      font-family: var(--font-mono);
       font-size: 13px;
+      margin-bottom: 48px;
     }
     .comparison-table th {
       text-align: left;
-      padding: 12px 16px;
-      background: var(--bg-card);
-      color: var(--text-dim);
+      padding: 14px 20px;
       font-family: var(--font-display);
       font-size: 10px;
+      font-weight: 600;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--glass-border);
     }
+    .comparison-table th:first-child { color: var(--text); }
     .comparison-table td {
-      padding: 13px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
       color: var(--text);
     }
     .comparison-table tr:last-child td { border-bottom: none; }
-    .comparison-table .check { color: #00cc88; }
-    .comparison-table .cross { color: #ff4466; }
-    .comparison-table .partial { color: var(--blue); }
-    .comparison-table tr:hover td { background: rgba(0, 200, 255, 0.03); }
+    .comparison-table tr:hover td { background: rgba(102,103,171,0.04); }
+    .check { color: #50FA7B; font-size: 16px; }
+    .cross { color: #EB4457; font-size: 16px; }
+    .partial { color: var(--peri-light); font-size: 16px; }
 
-    /* ════════════════════════════════════════════════
-       HOW IT WORKS
-    ════════════════════════════════════════════════ */
-    #how {
-      background: var(--bg);
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--glass-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 48px;
     }
+    .problem-card {
+      padding: 32px;
+    }
+    .problem-card.bad { border-left: 2px solid #EB4457; }
+    .problem-card.good { border-left: 2px solid #50FA7B; }
+    .problem-card .icon { font-size: 28px; margin-bottom: 14px; display: block; }
+    .problem-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
+    .problem-card.bad h3 { color: #EB4457; }
+    .problem-card.good h3 { color: #50FA7B; }
+    .problem-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* ─── HOW IT WORKS ─── */
+    #how { background: var(--bg); }
+
     .steps {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 2px;
-      background: var(--border);
-      border-radius: 12px;
+      background: var(--glass-border);
+      border-radius: var(--radius);
       overflow: hidden;
-      margin-bottom: 60px;
+      margin-bottom: 48px;
     }
     .step {
-      background: var(--bg-card);
       padding: 32px 24px;
+      background: var(--glass-bg);
       position: relative;
     }
     .step-num {
       font-family: var(--font-display);
-      font-size: 42px;
+      font-size: 40px;
       font-weight: 900;
-      color: rgba(0, 200, 255, 0.1);
+      color: rgba(102,103,171,0.12);
       line-height: 1;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
     .step h3 {
-      font-size: 0.85rem;
       font-family: var(--font-display);
-      color: var(--blue);
-      margin-bottom: 8px;
-      letter-spacing: 0.06em;
-    }
-    .step p {
-      font-size: 0.88rem;
-      color: var(--text-dim);
-      line-height: 1.6;
-    }
-    .step .step-tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--violet);
-      display: block;
-      margin-top: 12px;
-      letter-spacing: 0.1em;
-    }
-
-    /* Benchmarks */
-    .bench-section {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-    }
-    .bench-section h3 {
       font-size: 0.75rem;
-      font-family: var(--font-display);
-      color: var(--text-dim);
-      letter-spacing: 0.15em;
+      font-weight: 600;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 24px;
+      color: var(--peri-light);
+      margin-bottom: 10px;
     }
-    .bench-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      background: var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .bench-item {
-      background: var(--bg);
-      padding: 24px 20px;
-      text-align: center;
-    }
-    .bench-value {
+    .step p { color: var(--text-dim); font-size: 0.875rem; }
+    .step-tag {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 10px;
+      background: rgba(102,103,171,0.1);
+      border-radius: 4px;
+      font-size: 10px;
       font-family: var(--font-display);
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--blue);
-      line-height: 1;
-    }
-    .bench-unit {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      display: block;
-      margin-top: 4px;
-    }
-    .bench-label {
-      font-size: 0.82rem;
-      color: var(--text-dim);
-      margin-top: 10px;
+      color: var(--peri);
+      letter-spacing: 0.08em;
     }
 
-    /* ════════════════════════════════════════════════
-       ARCHITECTURE
-    ════════════════════════════════════════════════ */
-    #architecture { background: var(--bg-2); border-top: 1px solid var(--border); }
-    .arch-grid {
+    /* Metrics row */
+    .metrics {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      margin-bottom: 48px;
     }
-    .arch-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+    .metric {
       padding: 28px;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
+      text-align: center;
     }
-    .arch-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--blue), var(--violet));
-      opacity: 0;
-      transition: var(--transition);
+    .metric-val {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 6px;
     }
-    .arch-card:hover {
-      border-color: rgba(0, 200, 255, 0.3);
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(0, 100, 200, 0.12);
-    }
-    .arch-card:hover::before { opacity: 1; }
-    .arch-card .crate-icon {
-      font-size: 22px;
-      margin-bottom: 14px;
-    }
-    .arch-card h3 {
+    .metric-unit {
       font-size: 0.9rem;
-      margin-bottom: 8px;
-      color: var(--text);
+      color: var(--peri-light);
+      font-family: var(--font-display);
     }
-    .arch-card p {
-      font-size: 0.85rem;
+    .metric-label {
+      font-size: 0.8rem;
       color: var(--text-dim);
-      line-height: 1.6;
-    }
-    .arch-card .crate-tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--blue-dim);
-      display: inline-block;
-      margin-top: 12px;
-      padding: 3px 8px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
+      margin-top: 6px;
     }
 
-    /* ════════════════════════════════════════════════
-       FOOTER
-    ════════════════════════════════════════════════ */
-    footer {
-      position: relative;
-      z-index: 1;
-      border-top: 1px solid var(--border);
-      padding: 48px 40px;
+    /* ─── ECOSYSTEM ─── */
+    #ecosystem {
+      background: rgba(6, 6, 15, 0.6);
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .ecosystem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .eco-card {
+      padding: 28px;
+      transition: var(--transition);
+      cursor: default;
+    }
+    .eco-card:hover {
+      background: var(--glass-hover);
+      transform: translateY(-3px);
+      border-color: rgba(102,103,171,0.35);
+    }
+    .eco-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .eco-card h3 {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    .eco-card p { color: var(--text-dim); font-size: 0.875rem; }
+    .eco-tag {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 3px 8px;
+      background: rgba(102,103,171,0.1);
+      border: 1px solid rgba(102,103,171,0.2);
+      border-radius: 4px;
+      font-size: 9px;
+      font-family: var(--font-display);
+      color: var(--peri-light);
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── NEURAL PROTOCOL ─── */
+    #petals {
       background: var(--bg);
     }
+
+    .petals-highlight {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 48px;
+    }
+    .petals-text h3 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+    .petals-text p { color: var(--text-dim); margin-bottom: 12px; }
+    .petals-visual {
+      display: flex;
+      justify-content: center;
+    }
+    .petals-visual svg { width: 240px; height: 240px; opacity: 0.8; }
+
+    .petals-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .petals-feat {
+      padding: 24px;
+    }
+    .petals-feat h4 {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--peri-light);
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .petals-feat p { color: var(--text-dim); font-size: 0.875rem; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 2;
+      padding: 60px 40px;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(3, 3, 8, 0.8);
+      backdrop-filter: blur(20px);
+    }
     .footer-inner {
-      max-width: 1100px;
+      max-width: 1120px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -645,20 +710,19 @@
     .footer-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .footer-brand svg { width: 24px; height: 24px; }
     .footer-brand .name {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--blue);
-      letter-spacing: 0.1em;
+      letter-spacing: 0.15em;
+      color: var(--white);
     }
     .footer-brand .desc {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-dim);
-      font-family: var(--font-mono);
     }
     .footer-links {
       display: flex;
@@ -668,193 +732,216 @@
       color: var(--text-dim);
       text-decoration: none;
       font-size: 13px;
-      font-family: var(--font-mono);
-      transition: color 0.2s;
+      transition: color var(--transition);
     }
-    .footer-links a:hover { color: var(--blue); }
+    .footer-links a:hover { color: var(--peri-light); }
     .footer-copy {
       font-size: 12px;
       color: var(--text-dim);
-      font-family: var(--font-mono);
+      font-family: var(--font-display);
+      letter-spacing: 0.05em;
+    }
+    .footer-copy .made { color: var(--peri-light); }
+    .footer-copy .sep { margin: 0 8px; color: var(--glass-border); }
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    /* ════════════════════════════════════════════════
-       RESPONSIVE
-    ════════════════════════════════════════════════ */
-    @media (max-width: 900px) {
-      section { padding: 80px 24px; }
-      .problem-grid,
-      .arch-grid { grid-template-columns: 1fr; }
-      .steps { grid-template-columns: repeat(2, 1fr); }
-      .bench-grid { grid-template-columns: 1fr; }
-      nav { padding: 14px 24px; }
-      nav .nav-links { display: none; }
-    }
-    @media (max-width: 600px) {
-      .steps { grid-template-columns: 1fr; }
-      .install-box { flex-direction: column; align-items: flex-start; }
-      .install-box .cmd { font-size: 12px; }
-      .install-box .copy-btn { width: 100%; text-align: center; }
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      section { padding: 80px 20px; }
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+      .petals-highlight { grid-template-columns: 1fr; }
+      .petals-features { grid-template-columns: 1fr; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .ecosystem-grid { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Hexagon background pattern -->
-  <div class="hex-bg" aria-hidden="true">
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="#00c8ff" stroke-width="0.3">
-        <!-- Hex grid: tessellated hexagons -->
-        <!-- Row 1 -->
-        <polygon points="16,3 28,10 28,22 16,29 4,22 4,10"/>
-        <polygon points="50,3 62,10 62,22 50,29 38,22 38,10"/>
-        <polygon points="84,3 96,10 96,22 84,29 72,22 72,10"/>
-        <!-- Row 2 (offset) -->
-        <polygon points="33,19 45,26 45,38 33,45 21,38 21,26"/>
-        <polygon points="67,19 79,26 79,38 67,45 55,38 55,26"/>
-        <!-- Row 3 -->
-        <polygon points="16,35 28,42 28,54 16,61 4,54 4,42"/>
-        <polygon points="50,35 62,42 62,54 50,61 38,54 38,42"/>
-        <polygon points="84,35 96,42 96,54 84,61 72,54 72,42"/>
-        <!-- Row 4 (offset) -->
-        <polygon points="33,51 45,58 45,70 33,77 21,70 21,58"/>
-        <polygon points="67,51 79,58 79,70 67,77 55,70 55,58"/>
-        <!-- Row 5 -->
-        <polygon points="16,67 28,74 28,86 16,93 4,86 4,74"/>
-        <polygon points="50,67 62,74 62,86 50,93 38,86 38,74"/>
-        <polygon points="84,67 96,74 96,86 84,93 72,86 72,74"/>
-      </g>
+  <!-- 3D Background -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="hex-float hf-1" aria-hidden="true">
+    <svg viewBox="0 0 200 200" fill="none">
+      <polygon points="100,10 178,55 178,145 100,190 22,145 22,55" stroke="rgba(102,103,171,0.4)" stroke-width="1" fill="none"/>
     </svg>
   </div>
+  <div class="hex-float hf-2" aria-hidden="true">
+    <svg viewBox="0 0 200 200" fill="none">
+      <polygon points="100,10 178,55 178,145 100,190 22,145 22,55" stroke="rgba(102,103,171,0.4)" stroke-width="1" fill="none"/>
+    </svg>
+  </div>
+  <div class="hex-float hf-3" aria-hidden="true">
+    <svg viewBox="0 0 200 200" fill="none">
+      <polygon points="100,10 178,55 178,145 100,190 22,145 22,55" stroke="rgba(102,103,171,0.3)" stroke-width="1" fill="none"/>
+    </svg>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
 
   <!-- Navigation -->
   <nav>
     <a href="#" class="nav-logo">
-      <svg viewBox="0 0 32 32"><polygon points="16,3 28,10 28,22 16,29 4,22 4,10" fill="url(#f-hex)" xmlns="http://www.w3.org/2000/svg"/>
-        <defs><linearGradient id="f-hex" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c8ff"/><stop offset="100%" stop-color="#0055cc"/></linearGradient></defs>
+      <svg viewBox="0 0 32 32" width="28" height="28">
+        <defs>
+          <linearGradient id="hex-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6667AB"/>
+            <stop offset="100%" stop-color="#9B7FD4"/>
+          </linearGradient>
+        </defs>
+        <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="url(#hex-grad)"/>
+        <polygon points="16,8 22,11.5 22,18.5 16,22 10,18.5 10,11.5" fill="rgba(255,255,255,0.15)"/>
       </svg>
       <span>POLYGONE</span>
     </a>
     <ul class="nav-links">
-      <li><a href="#problem">The Problem</a></li>
-      <li><a href="#how">How It Works</a></li>
-      <li><a href="#architecture">Architecture</a></li>
-      <li><a href="#install" class="nav-cta">Install</a></li>
+      <li><a href="#how">Protocol</a></li>
+      <li><a href="#ecosystem">Ecosystem</a></li>
+      <li><a href="#petals">Petals</a></li>
+      <li><a href="https://github.com/lvs0/Polygone">GitHub</a></li>
+      <li><a href="https://github.com/sponsors/lvs0" class="nav-cta">Sponsor</a></li>
     </ul>
   </nav>
 
-  <!-- Hero -->
-  <section class="hero">
-    <!-- Animated logo -->
-    <svg class="hero-logo" viewBox="0 0 256 256" role="img" aria-label="Polygone logo">
-      <defs>
-        <radialGradient id="bg-glow" cx="50%" cy="50%" r="70%"><stop offset="0%" stop-color="#0d0d1a"/><stop offset="100%" stop-color="#040408"/></radialGradient>
-        <linearGradient id="hex-fill" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c8ff"/><stop offset="50%" stop-color="#0090ff"/><stop offset="100%" stop-color="#0055cc"/></linearGradient>
-        <filter id="glow-core"><feGaussianBlur stdDeviation="6" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
-        <filter id="glow-atmo" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="blur"/><feColorMatrix in="blur" type="matrix" values="0 0 0 0 0 0 0.5 0.8 0 0 0 0 1 0 0 0 0 0 0.4 0" result="blue-glow"/><feComposite in="SourceGraphic" in2="blue-glow" operator="over"/></filter>
-      </defs>
-      <rect width="256" height="256" fill="url(#bg-glow)" rx="24"/>
-      <g opacity="0.3" filter="url(#glow-atmo)"><polygon points="128,16 228,71 228,185 128,240 28,185 28,71" fill="none" stroke="#0099ff" stroke-width="3"/></g>
-      <g filter="url(#glow-core)">
-        <polygon points="128,16 228,71 228,185 128,240 28,185 28,71" fill="url(#hex-fill)" opacity="0.92"/>
-        <polygon points="128,16 228,71 128,128" fill="white" opacity="0.08"/>
-        <line x1="128" y1="16" x2="128" y2="240" stroke="#00e5ff" stroke-width="0.8" opacity="0.25"/>
-        <line x1="28" y1="71" x2="228" y2="185" stroke="#00e5ff" stroke-width="0.8" opacity="0.25"/>
-        <line x1="28" y1="185" x2="228" y2="71" stroke="#00e5ff" stroke-width="0.8" opacity="0.25"/>
-      </g>
-      <g opacity="0.95">
-        <polygon points="128,88 168,113 168,153 128,178 88,153 88,113" fill="#040408"/>
-        <polygon points="128,88 168,113 168,153 128,178 88,153 88,113" fill="none" stroke="#00c8ff" stroke-width="1.2" opacity="0.5"/>
-      </g>
-      <g opacity="0.7">
-        <circle cx="158" cy="105" r="3.5" fill="#00c8ff"/>
-        <circle cx="173" cy="128" r="2.5" fill="#00aaff" opacity="0.8"/>
-        <circle cx="163" cy="152" r="3" fill="#0055ff" opacity="0.9"/>
-        <circle cx="138" cy="165" r="2" fill="#00c8ff" opacity="0.7"/>
-        <circle cx="88" cy="143" r="3.5" fill="#00aaff"/>
-        <circle cx="95" cy="113" r="2.5" fill="#0077ff" opacity="0.8"/>
-        <circle cx="128" cy="128" r="2" fill="#00e5ff"/>
-      </g>
-      <g fill="none" opacity="0.12">
-        <circle cx="128" cy="128" r="52" stroke="#00c8ff" stroke-width="0.8"/>
-        <circle cx="128" cy="128" r="64" stroke="#0077ff" stroke-width="0.5"/>
-        <circle cx="128" cy="128" r="78" stroke="#0044aa" stroke-width="0.3"/>
-      </g>
-      <line x1="20" y1="20" x2="40" y2="20" stroke="#0090ff" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-      <line x1="20" y1="20" x2="20" y2="40" stroke="#0090ff" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-      <line x1="236" y1="236" x2="216" y2="236" stroke="#0090ff" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-      <line x1="236" y1="236" x2="236" y2="216" stroke="#0090ff" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
-    </svg>
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <section id="hero">
+    <div class="container" style="display:flex;flex-direction:column;align-items:center;">
 
-    <div class="hero-badge">
-      <span class="dot"></span>
-      Post-quantum · Ephemeral · Zero metadata
-    </div>
+      <!-- 3D Hexagon Logo -->
+      <svg class="hero-hex" viewBox="0 0 200 200" role="img" aria-label="Polygone logo">
+        <defs>
+          <linearGradient id="hg1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6667AB"/>
+            <stop offset="50%" stop-color="#9B7FD4"/>
+            <stop offset="100%" stop-color="#6667AB"/>
+          </linearGradient>
+          <linearGradient id="hg2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#8B8CCC"/>
+            <stop offset="100%" stop-color="#5558A0"/>
+          </linearGradient>
+          <filter id="hero-glow">
+            <feGaussianBlur stdDeviation="8" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="hero-shadow">
+            <feDropShadow dx="0" dy="0" stdDeviation="16" flood-color="rgba(102,103,171,0.4)"/>
+          </filter>
+        </defs>
+        <!-- Outer hex with glow -->
+        <polygon
+          points="100,8 180,54 180,146 100,192 20,146 20,54"
+          fill="url(#hg1)"
+          filter="url(#hero-shadow)"
+        />
+        <!-- Inner hex -->
+        <polygon
+          points="100,35 148,68 148,132 100,165 52,132 52,68"
+          fill="url(#hg2)"
+          opacity="0.3"
+        />
+        <!-- Center dot -->
+        <circle cx="100" cy="100" r="12" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="100" cy="100" r="6" fill="white" opacity="0.8"/>
+      </svg>
 
-    <h1>Information does not exist.<br>It drifts.</h1>
-    <p class="tagline">"L'information n'existe pas. Elle traverse."</p>
-
-    <p class="hero-desc">
-      Polygone turns a message into a distributed mathematical state — a wave that crosses
-      a global DHT and then vaporizes. No tunnel. No trace. No metadata.
-    </p>
-
-    <div class="hero-install" id="install">
-      <div class="install-box">
-        <span class="prompt">$</span>
-        <code class="cmd" id="install-cmd">curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
-        <button class="copy-btn" onclick="copyCmd(this)">Copy</button>
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Post-quantum ready · No telemetry · MIT
       </div>
-    </div>
 
-    <div class="hero-cta">
-      <a href="https://github.com/lvs0/Polygone" class="btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
-        GitHub
-      </a>
-      <a href="#how" class="btn-secondary">How It Works</a>
-    </div>
+      <h1 class="hero-title">POLYGONE</h1>
+      <p class="hero-sub">POST-QUANTUM PRIVACY NETWORK</p>
 
-    <div class="scroll-hint" aria-hidden="true">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
-      scroll
+      <p class="hero-quote">« L'information n'existe pas. Elle traverse. »</p>
+
+      <p class="hero-desc">
+        Réseau de vie privée éphémère. Aucun serveur ne voit le message.
+        Aucun observateur ne prouve qu'une communication a existé.
+        Le chiffrement classique dissimule le contenu. Polygone dissimule la communication elle-même.
+      </p>
+
+      <div class="hero-install">
+        <div class="install-box">
+          <span class="prompt">$</span>
+          <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash</code>
+          <button class="copy-btn" onclick="copyCmd()">Copy</button>
+        </div>
+      </div>
+
+      <div class="hero-cta">
+        <a href="https://github.com/lvs0/Polygone" class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/></svg>
+          GitHub
+        </a>
+        <a href="#how" class="btn-secondary">How It Works</a>
+        <a href="https://github.com/sponsors/lvs0" class="btn-sponsor">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.637 3.363A10 10 0 0112 3a10 10 0 018.637.363.5.5 0 01-.274.942A6 6 0 0012 5.25 6 6 0 005.637 4.305a.5.5 0 01-.274-.942z"/></svg>
+          Sponsor
+        </a>
+      </div>
+
+      <div class="scroll-hint">
+        <span>SCROLL</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </div>
+
     </div>
   </section>
 
-  <!-- The Problem -->
+  <!-- ═══════════════ THE PROBLEM ═══════════════ -->
   <section id="problem">
-    <div class="container">
+    <div class="container reveal">
       <p class="section-label">The Metadata Problem</p>
       <h2 class="section-title">Encryption hides the content.<br>Not the communication.</h2>
-      <p class="section-desc">Traditional encryption protects what you say. It cannot hide that you said it.</p>
+      <p class="section-desc">
+        Chiffrement classique protège ce que vous dites. Il ne peut pas cacher que vous l'avez dit.
+        Polygone résout le problème de métadonnées à la racine.
+      </p>
 
       <div class="problem-grid">
-        <div class="problem-card bad">
+        <div class="problem-card bad glass">
           <span class="icon">🔓</span>
-          <h3>VPN / TLS</h3>
-          <p>The tunnel is encrypted. But source IP, target IP, packet timing, and message size remain visible to any observer on the path.</p>
+          <h3>Classical Encryption</h3>
+          <p>Hides content. Observers see who talks to whom, when, and how often.</p>
         </div>
-        <div class="problem-card bad">
+        <div class="problem-card bad glass">
           <span class="icon">🧅</span>
-          <h3>Tor</h3>
-          <p>Circuit switching hides the exit node. But timing correlation attacks still link sender and receiver. Metadata persists.</p>
+          <h3>Tor / I2P</h3>
+          <p>Hides path. But relay nodes exist. Logs survive. Timing attacks work.</p>
         </div>
-        <div class="problem-card good">
+        <div class="problem-card good glass">
           <span class="icon">⬡</span>
           <h3>Polygone</h3>
-          <p>The message does not travel from A to B. It enters a mathematical state across 7 distributed nodes — and vaporizes in 30 seconds.</p>
+          <p>Messages become distributed mathematical states. No one sees more than a fragment.</p>
         </div>
-        <div class="problem-card good">
+        <div class="problem-card good glass">
           <span class="icon">💎</span>
           <h3>Post-Quantum</h3>
-          <p>Even a quantum computer cannot reconstruct a message from fewer than 4 of 7 Shamir fragments. ML-KEM-1024 secures the handshake.</p>
+          <p>ML-KEM-1024 resists quantum cryptanalysis. Safe today, safe tomorrow.</p>
         </div>
       </div>
 
-      <table class="comparison-table">
+      <table class="comparison-table glass">
         <thead>
           <tr>
-            <th></th>
+            <th>Property</th>
             <th>VPN</th>
             <th>Tor</th>
             <th>⬡ Polygone</th>
@@ -881,20 +968,32 @@
           </tr>
           <tr>
             <td>Post-quantum crypto</td>
-            <td class="partial">varies</td>
-            <td class="cross">✗</td>
-            <td class="check">✓</td>
-          </tr>
-          <tr>
-            <td>No persistent storage</td>
             <td class="cross">✗</td>
             <td class="cross">✗</td>
             <td class="check">✓</td>
           </tr>
           <tr>
-            <td>Zero metadata footprint</td>
+            <td>No persistent relay</td>
             <td class="cross">✗</td>
-            <td class="partial">partial</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Messages auto-evaporate</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Provable zero-log</td>
+            <td class="partial">~</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Open source</td>
+            <td class="partial">~</td>
+            <td class="check">✓</td>
             <td class="check">✓</td>
           </tr>
         </tbody>
@@ -902,171 +1001,269 @@
     </div>
   </section>
 
-  <!-- How It Works -->
+  <!-- ═══════════════ HOW IT WORKS ═══════════════ -->
   <section id="how">
-    <div class="container">
+    <div class="container reveal">
       <p class="section-label">Protocol</p>
-      <h2 class="section-title">Four layers. One guarantee.</h2>
-      <p class="section-desc">From handshake to vaporization — each layer addresses one dimension of the metadata problem.</p>
+      <h2 class="section-title">Quatre couches. Une garantie.</h2>
+      <p class="section-desc">
+        De la poignée de main à l'évaporation — chaque couche résout une dimension
+        du problème de métadonnées.
+      </p>
 
       <div class="steps">
         <div class="step">
           <div class="step-num">01</div>
-          <h3>ML-KEM Handshake</h3>
-          <p>Quantum-resistant key exchange. The session key is derived from a shared secret that no quantum computer can recover.</p>
-          <span class="step-tag">post-quantum · ~34µs</span>
+          <h3>ML-KEM-1024</h3>
+          <p>Échange de clé post-quantique. Clé de session unique par message. Indéchiffrable par ordinateur quantique.</p>
+          <span class="step-tag">NIST FIPS 203</span>
         </div>
         <div class="step">
           <div class="step-num">02</div>
-          <h3>BLAKE3 Node Selection</h3>
-          <p>7 nodes are deterministically selected from the DHT using BLAKE3. The selection is reproducible — but unpredictable without the session key.</p>
-          <span class="step-tag">deterministic · Kademlia DHT</span>
+          <h3>AES-256-GCM</h3>
+          <p>Chiffrement de bout en bout. Nonce aléatoire 96-bit. Validité cryptographique absolue.</p>
+          <span class="step-tag">NIST SP 800-38D</span>
         </div>
         <div class="step">
           <div class="step-num">03</div>
-          <h3>Shamir Dispersion</h3>
-          <p>Message is encrypted with AES-256-GCM, then split into 7 fragments via Shamir secret sharing (4-of-7 threshold). Each fragment is sent to a different node.</p>
-          <span class="step-tag">4-of-7 · AES-256-GCM</span>
+          <h3>Shamir 4-of-7</h3>
+          <p>Fragmentation secrète. 7 fragments distribués. Seuls 4 permettent la reconstruction. Aucun nœud ne voit le message complet.</p>
+          <span class="step-tag">Secret Sharing</span>
         </div>
         <div class="step">
           <div class="step-num">04</div>
-          <h3>30s Vaporization</h3>
-          <p>Fragments TTL expires after 30 seconds. No fragment alone contains information. The message ceases to exist.</p>
-          <span class="step-tag">ephemeral · auto-evaporate</span>
+          <h3>Auto-Evaporation</h3>
+          <p>Fragments supprimés après 30 secondes. Clés de session effacées. L'échange n'a jamais existé.</p>
+          <span class="step-tag">TTL 30s</span>
         </div>
       </div>
 
-      <div class="bench-section">
-        <h3>Benchmarks — ThinkPad X250 (Broadwell)</h3>
-        <div class="bench-grid">
-          <div class="bench-item">
-            <div class="bench-value">~34µs</div>
-            <span class="bench-unit">microseconds</span>
-            <div class="bench-label">ML-KEM Encapsulation</div>
-          </div>
-          <div class="bench-item">
-            <div class="bench-value">~3.8µs</div>
-            <span class="bench-unit">microseconds</span>
-            <div class="bench-label">AES-256-GCM Encrypt</div>
-          </div>
-          <div class="bench-item">
-            <div class="bench-value">~208µs</div>
-            <span class="bench-unit">microseconds</span>
-            <div class="bench-label">Full E2E Send</div>
-          </div>
+      <div class="metrics">
+        <div class="metric glass">
+          <div class="metric-val">34<span class="metric-unit">µs</span></div>
+          <div class="metric-label">ML-KEM-1024 encapsulate</div>
+        </div>
+        <div class="metric glass">
+          <div class="metric-val">208<span class="metric-unit">µs</span></div>
+          <div class="metric-label">Full E2E send latency</div>
+        </div>
+        <div class="metric glass">
+          <div class="metric-val">2.1<span class="metric-unit">MB</span></div>
+          <div class="metric-label">Binary size (stripped)</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Architecture -->
-  <section id="architecture">
-    <div class="container">
+  <!-- ═══════════════ ECOSYSTEM ═══════════════ -->
+  <section id="ecosystem">
+    <div class="container reveal">
       <p class="section-label">Ecosystem</p>
-      <h2 class="section-title">A complete post-quantum stack.</h2>
-      <p class="section-desc">Seven crates. Each solves one part of the privacy problem. Together, they make privacy architectural.</p>
+      <h2 class="section-title">Une stack post-quantique complète.</h2>
+      <p class="section-desc">
+        Huit crates. Chacune résout une partie du problème de vie privée.
+        Ensemble, elles rendent la confidentialité architecturale.
+      </p>
 
-      <div class="arch-grid">
-        <div class="arch-card">
-          <div class="crate-icon">⬡</div>
-          <h3>Polygone Core</h3>
-          <p>The CLI and library. ML-KEM-1024, Shamir 4-of-7, AES-256-GCM. The protocol implementation.</p>
-          <span class="crate-tag">cargo: polygone</span>
+      <div class="ecosystem-grid">
+        <div class="eco-card glass">
+          <span class="eco-icon">⬡</span>
+          <h3>Polygone — Core</h3>
+          <p>CLI et bibliothèque. ML-KEM-1024, Shamir 4-of-7, AES-256-GCM. L'implémentation du protocole.</p>
+          <span class="eco-tag">cargo: polygone</span>
         </div>
-        <div class="arch-card">
-          <div class="crate-icon">🧠</div>
-          <h3>Polygone-Brain</h3>
-          <p>The intelligence layer. Peer discovery, routing heuristics, adaptive quorum sizing, and threat modeling.</p>
-          <span class="crate-tag">cargo: polygone-brain</span>
-        </div>
-        <div class="arch-card">
-          <div class="crate-icon">🛡️</div>
+        <div class="eco-card glass">
+          <span class="eco-icon">🛡️</span>
           <h3>Polygone-Hide</h3>
-          <p>Post-quantum SOCKS5 tunnel. Turns any TCP connection into a Polygone-encrypted, metadata-shielded flow.</p>
-          <span class="crate-tag">cargo: polygone-hide</span>
+          <p>Tunnel SOCKS5 post-quantique. Transforme toute connexion TCP en flux chiffré et protégé.</p>
+          <span class="eco-tag">cargo: polygone-hide</span>
         </div>
-        <div class="arch-card">
-          <div class="crate-icon">💾</div>
+        <div class="eco-card glass">
+          <span class="eco-icon">💾</span>
           <h3>Polygone-Drive</h3>
-          <p>Encrypted distributed file storage. Files are sharded, encrypted, and dispersed across the network.</p>
-          <span class="crate-tag">cargo: polygone-drive</span>
+          <p>Stockage de fichiers distribué chiffré. Fichiers fragmentés, chiffrés, dispersés sur le réseau.</p>
+          <span class="eco-tag">cargo: polygone-drive</span>
         </div>
-        <div class="arch-card">
-          <div class="crate-icon">🖥️</div>
-          <h3>Polygone-Shell</h3>
-          <p>Secure cloud terminal over the Polygone network. Shell sessions that leave no trace.</p>
-          <span class="crate-tag">cargo: polygone-shell</span>
-        </div>
-        <div class="arch-card">
-          <div class="crate-icon">🌐</div>
+        <div class="eco-card glass">
+          <span class="eco-icon">🌐</span>
           <h3>Polygone-Server</h3>
-          <p>Docker wrapper for deploying persistent relay nodes. Run a node, contribute to the network.</p>
-          <span class="crate-tag">cargo: polygone-server</span>
+          <p>Déploie des nœuds relais persistants via Docker. Participe au réseau depuis n'importe où.</p>
+          <span class="eco-tag">cargo: polygone-server</span>
+        </div>
+        <div class="eco-card glass">
+          <span class="eco-icon">🖥️</span>
+          <h3>Polygone-Shell</h3>
+          <p>Terminal cloud sécurisé sur le réseau Polygone. Sessions shell sans trace.</p>
+          <span class="eco-tag">cargo: polygone-shell</span>
+        </div>
+        <div class="eco-card glass">
+          <span class="eco-icon">🧠</span>
+          <h3>Polygone-Petals</h3>
+          <p>Protocole d'échange neuronal entre IA. Modèles qui échangent des états chiffrés, sans fuite de权重.</p>
+          <span class="eco-tag">cargo: polygone-petals</span>
+        </div>
+        <div class="eco-card glass">
+          <span class="eco-icon">🔗</span>
+          <h3>Polygone-Mesh</h3>
+          <p>Mode local indoor. Réseau maillé entre machines à proximité sans passer par le réseau global.</p>
+          <span class="eco-tag">cargo: polygone-mesh</span>
+        </div>
+        <div class="eco-card glass">
+          <span class="eco-icon">☁️</span>
+          <h3>Polygone-Cloud</h3>
+          <p>Compute distribué sur le réseau. Machines qui travaillent pour le réseau et reçoivent du POLY.</p>
+          <span class="eco-tag">cargo: polygone-cloud</span>
+        </div>
+        <div class="eco-card glass">
+          <span class="eco-icon">💻</span>
+          <h3>Polygone-Computer</h3>
+          <p>VM serverless sur le réseau. Déploie des applications entières sans infrastructure centralisée.</p>
+          <span class="eco-tag">cargo: polygone-computer</span>
+        </div>
+        <div class="eco-card glass">
+          <span class="eco-icon">🔒</span>
+          <h3>Polygone-Networks</h3>
+          <p>Le réseau maillé complet. Routing non-géographique. Aucun nœud ne connaît la position des autres.</p>
+          <span class="eco-tag">cargo: polygone-networks</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
+  <!-- ═══════════════ PETALS — NEURAL EXCHANGE ═══════════════ -->
+  <section id="petals">
+    <div class="container reveal">
+      <p class="section-label">Petals</p>
+      <h2 class="section-title">Protocole d'échange neuronal.</h2>
+      <p class="section-desc">
+        Les modèles d'IA communiquent entre eux sans exposer leurs poids, leurs données d'entraînement,
+        ni leur architecture. Polygone-Petals est le protocole qui rend ça possible.
+      </p>
+
+      <div class="petals-highlight">
+        <div class="petals-text">
+          <h3>IA qui parlent à IA, sans que personne n'écoute</h3>
+          <p>
+            Aujourd'hui, quand deux modèles échangent des informations, ils révèlent :
+            leur architecture, leurs poids, leurs biais. Petals chiffre tout à la couche réseau —
+            avant même que la donnée ne soit créée.
+          </p>
+          <p>
+            Chaque échange neuronal est fragmenté, routé via le réseau Polygone,
+            et auto-effacé après reconstruction. Le modèle récepteur ne sait pas d'où vient le signal.
+            L'émetteur ne sait pas où il va.
+          </p>
+        </div>
+        <div class="petals-visual">
+          <svg viewBox="0 0 240 240" fill="none">
+            <!-- Outer ring -->
+            <circle cx="120" cy="120" r="100" stroke="rgba(102,103,171,0.15)" stroke-width="1" stroke-dasharray="4 8"/>
+            <circle cx="120" cy="120" r="80" stroke="rgba(102,103,171,0.1)" stroke-width="1"/>
+            <!-- Hex rings -->
+            <polygon points="120,40 180,70 180,130 120,160 60,130 60,70"
+              stroke="rgba(102,103,171,0.25)" stroke-width="1.5" fill="none"/>
+            <polygon points="120,60 160,77.5 160,122.5 120,140 80,122.5 80,77.5"
+              stroke="rgba(155,127,212,0.4)" stroke-width="1.5" fill="rgba(102,103,171,0.05)"/>
+            <!-- Neural nodes -->
+            <circle cx="120" cy="40" r="8" fill="#6667AB" opacity="0.8"/>
+            <circle cx="180" cy="70" r="8" fill="#9B7FD4" opacity="0.8"/>
+            <circle cx="180" cy="130" r="8" fill="#6667AB" opacity="0.8"/>
+            <circle cx="120" cy="160" r="8" fill="#9B7FD4" opacity="0.8"/>
+            <circle cx="60" cy="130" r="8" fill="#6667AB" opacity="0.8"/>
+            <circle cx="60" cy="70" r="8" fill="#9B7FD4" opacity="0.8"/>
+            <!-- Center -->
+            <circle cx="120" cy="100" r="16" fill="rgba(102,103,171,0.15)" stroke="rgba(102,103,171,0.5)" stroke-width="1"/>
+            <circle cx="120" cy="100" r="6" fill="#6667AB"/>
+            <!-- Connection lines -->
+            <line x1="120" y1="40" x2="120" y2="84" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
+            <line x1="180" y1="70" x2="136" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
+            <line x1="180" y1="130" x2="136" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
+            <line x1="120" y1="160" x2="120" y2="116" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
+            <line x1="60" y1="130" x2="104" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
+            <line x1="60" y1="70" x2="104" y2="100" stroke="rgba(102,103,171,0.3)" stroke-width="1"/>
+            <!-- Fragment symbols -->
+            <text x="120" y="240" text-anchor="middle" font-family="Orbitron,monospace" font-size="9" fill="rgba(102,103,171,0.5)">FRAGMENTS</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="petals-features">
+        <div class="petals-feat glass">
+          <h4>Gradient Encryption</h4>
+          <p>Les poids sont chiffrés couche par couche avec ML-KEM-1024. Seul le récepteur légitime peut reconstruire les gradients.</p>
+        </div>
+        <div class="petals-feat glass">
+          <h4>Zero-Knowledge Verification</h4>
+          <p>Preuve cryptographique que le modèle a bien appris sans exposer ce qu'il a appris. ZK pour l'entraînement distribué.</p>
+        </div>
+        <div class="petals-feat glass">
+          <h4>Federated Leak Prevention</h4>
+          <p>Même avec accès aux fragments, un observateur ne peut corréler aucun gradient avec aucune entrée d'entraînement.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">
         <svg viewBox="0 0 32 32" width="24" height="24">
-          <polygon points="16,3 28,10 28,22 16,29 4,22 4,10" fill="#00c8ff"/>
+          <defs>
+            <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6667AB"/>
+              <stop offset="100%" stop-color="#9B7FD4"/>
+            </linearGradient>
+          </defs>
+          <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="url(#fg)"/>
         </svg>
         <div>
           <div class="name">POLYGONE</div>
           <div class="desc">Post-quantum ephemeral privacy</div>
         </div>
       </div>
+
       <div class="footer-links">
         <a href="https://github.com/lvs0/Polygone">GitHub</a>
         <a href="https://github.com/lvs0/Polygone/blob/main/README.md">Docs</a>
         <a href="https://github.com/lvs0/Polygone/security">Security</a>
+        <a href="https://github.com/sponsors/lvs0">Sponsor</a>
       </div>
+
       <div class="footer-copy">
-        MIT License · Built by Lévy, 14 ans · 2026
+        <span class="made">Made in France</span>
+        <span class="sep">·</span>
+        by lvs0 &lt;lvs0@proton.me&gt;
+        <span class="sep">·</span>
+        MIT License
+        <span class="sep">·</span>
+        2026
       </div>
     </div>
   </footer>
 
   <script>
-    function copyCmd(btn) {
-      const cmd = document.getElementById('install-cmd').textContent;
+    // Copy install command
+    function copyCmd() {
+      const cmd = document.getElementById('install-cmd').textContent.trim();
       navigator.clipboard.writeText(cmd).then(() => {
+        const btn = document.querySelector('.copy-btn');
         btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-      }).catch(() => {
-        // Fallback for older browsers
-        const ta = document.createElement('textarea');
-        ta.value = cmd;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
       });
     }
 
-    // Subtle scroll-based reveal
+    // Scroll reveal
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
+          entry.target.classList.add('visible');
         }
       });
     }, { threshold: 0.1 });
 
-    document.querySelectorAll('section > .container > *').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      observer.observe(el);
-    });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>
+
 </body>
 </html>
