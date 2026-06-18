@@ -1,33 +1,237 @@
-version: "3.8"
+version: "3.9"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# POLYGONE — Production Docker Stack
+# ═══════════════════════════════════════════════════════════════════════════
 
 services:
-  node1:
-    build: .
-    container_name: polygone-node1
+  # ─────────────────────────────────────────────────────────────────────────
+  # POLYGONE NODE — Relay Node
+  # ─────────────────────────────────────────────────────────────────────────
+  polygone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - ghcr.io/lvs0/polygone:latest
+    image: ghcr.io/lvs0/polygone:latest
+    container_name: polygone-node
+    restart: unless-stopped
+    
     environment:
-      - NODE_PSEUDO=node1
-      - LISTEN_ADDR=/ip4/0.0.0.0/tcp/4001
+      # Network
+      - NODE_MODE=relay
+      - PORT=8080
+      - MAX_CONNECTIONS=1000
+      
+      # Cryptographic settings
+      - KEY_ROTATION_HOURS=24
+      - FRAGMENT_COUNT=7
+      - FRAGMENT_THRESHOLD=4
+      - TTL_SECONDS=30
+      
+      # DHT settings
+      - DHT_BOOTSTRAP_NODES=/dns4/polygone-1.local/tcp/4001,/ip4/127.0.0.1/tcp/4002
+      - KADEMLIA_ALPHA=3
+      
+      # Logging
+      - RUST_LOG=info,polygone=debug
+      - LOG_FORMAT=json
+    
     ports:
-      - "4001:4001"
-      - "4002:4002"
-    command: ["--bootstrap", "/dns4/node2/tcp/4001/p2p/QmNode2", "--listen", "/ip4/0.0.0.0/tcp/4001"]
+      - "8080:8080"  # HTTP API
+      - "4001:4001"  # libp2p TCP
+      - "4002:4002/udp"  # libp2p UDP (QUIC)
+    
+    volumes:
+      - polygone-data:/app/data
+      - polygone-keys:/app/keys
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    
+    networks:
+      - polygone-net
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
 
-  node2:
-    build: .
-    container_name: polygone-node2
+  # ─────────────────────────────────────────────────────────────────────────
+  # POLYGONE TUI — Dashboard (optional)
+  # ─────────────────────────────────────────────────────────────────────────
+  polygone-tui:
+    image: ghcr.io/lvs0/polygone:latest
+    container_name: polygone-dashboard
+    restart: unless-stopped
+    profiles:
+      - dashboard
+    command: polygone tui
+    
     environment:
-      - NODE_PSEUDO=node2
-    ports:
-      - "5001:4001"
-      - "5002:4002"
-    command: ["--bootstrap", "/dns4/node3/tcp/4001/p2p/QmNode3", "--listen", "/ip4/0.0.0.0/tcp/4001"]
+      - RUST_LOG=info
+      - COLOR=1
+    
+    volumes:
+      - polygone-data:/app/data
+    
+    networks:
+      - polygone-net
+    
+    stdin_open: true
+    tty: true
 
-  node3:
-    build: .
-    container_name: polygone-node3
-    environment:
-      - NODE_PSEUDO=node3
+  # ─────────────────────────────────────────────────────────────────────────
+  # NGINX — Reverse Proxy & Rate Limiting
+  # ─────────────────────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: polygone-proxy
+    restart: unless-stopped
+    profiles:
+      - proxy
+    depends_on:
+      polygone:
+        condition: service_healthy
+    
     ports:
-      - "6001:4001"
-      - "6002:4002"
-    command: ["--listen", "/ip4/0.0.0.0/tcp/4001"]
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - nginx-logs:/var/log/nginx
+    
+    environment:
+      - TZ=Europe/Paris
+    
+    networks:
+      - polygone-net
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # POSTGRES — Metrics Storage (optional)
+  # ─────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: polygone-metrics
+    restart: unless-stopped
+    profiles:
+      - metrics
+    environment:
+      POSTGRES_DB: polygone
+      POSTGRES_USER: polygone
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polygone"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - polygone-net
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # PROMETHEUS — Metrics Collection
+  # ─────────────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: polygone-prometheus
+    restart: unless-stopped
+    profiles:
+      - metrics
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - polygone-net
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # GRAFANA — Metrics Visualization
+  # ─────────────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: polygone-grafana
+    restart: unless-stopped
+    profiles:
+      - metrics
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_password
+      - GF_USERS_ALLOW_SIGN_UP=false
+    secrets:
+      - grafana_password
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - polygone-net
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECRETS (generate with: openssl rand -base64 32)
+# ═══════════════════════════════════════════════════════════════════════════
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  grafana_password:
+    file: ./secrets/grafana_password.txt
+
+# ═══════════════════════════════════════════════════════════════════════════
+# VOLUMES
+# ═══════════════════════════════════════════════════════════════════════════
+volumes:
+  polygone-data:
+    driver: local
+  polygone-keys:
+    driver: local
+  nginx-logs:
+    driver: local
+  postgres-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NETWORKS
+# ═══════════════════════════════════════════════════════════════════════════
+networks:
+  polygone-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

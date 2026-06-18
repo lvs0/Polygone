@@ -1,27 +1,265 @@
-name: CI
+name: POLYGONE CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
     branches: [main]
 
-jobs:
-  cargo-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: cargo check --workspace
-        run: cargo check --workspace
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
 
-  cargo-test-lib:
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # FORMAT & LINT
+  # ═══════════════════════════════════════════════════════════════════════════
+  fmt:
+    name: Format Check
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: cargo test --workspace --lib
-        run: cargo test --workspace --lib
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          components: rustfmt
+      
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy Lints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          components: clippy
+      
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # TEST SUITE
+  # ═══════════════════════════════════════════════════════════════════════════
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: target
+      
+      - name: Run tests
+        run: cargo test --workspace --all-features -- --test-threads=4
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # BENCHMARKS
+  # ═══════════════════════════════════════════════════════════════════════════
+  bench:
+    name: Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Run benchmarks
+        run: cargo bench --workspace
+      
+      - name: Compare with baseline
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'cargo'
+          output-file-path: bench_results.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '150%'
+          comment-on-alert: true
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # BUILD & RELEASE
+  # ═══════════════════════════════════════════════════════════════════════════
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+      
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: target
+      
+      - name: Build release
+        run: cargo build --release --workspace --bin polygone
+      
+      - name: Build binary checksums
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            sha256sum target/release/polygone > polygone.sha256
+          fi
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: polygone-${{ matrix.os }}
+          path: |
+            target/release/polygone
+            target/release/polygone.exe
+            polygone.sha256
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SECURITY AUDIT
+  # ═══════════════════════════════════════════════════════════════════════════
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+      
+      - name: Run cargo-audit
+        run: |
+          cargo install cargo-audit
+          cargo audit
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DOCUMENTATION
+  # ═══════════════════════════════════════════════════════════════════════════
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          components: rustdoc
+      
+      - name: Generate docs
+        run: cargo doc --workspace --no-deps
+      
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/doc
+          publish_branch: gh-pages
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CONTAINER BUILD
+  # ═══════════════════════════════════════════════════════════════════════════
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository }}/polygone:latest
+            ghcr.io/${{ github.repository }}/polygone:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CROSS-COMPILE RELEASES
+  # ═══════════════════════════════════════════════════════════════════════════
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [build, docker, security]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# JOB STATUS MATRIX
+# ═══════════════════════════════════════════════════════════════════════════
+#
+#  ✅ fmt ──────→ ✅ clippy ──────┐
+#                                  │
+#  ✅ security ───────────────────┤
+#                                  │
+#  ✅ test ──────────→ ✅ docker ──┤
+#                                  │
+#  ✅ build ────────→ ✅ release ──┘
+#                                  │
+#  ✅ docs ────────────────────────┘
+#
+# ═══════════════════════════════════════════════════════════════════════════
