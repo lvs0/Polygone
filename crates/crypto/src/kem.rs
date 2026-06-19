@@ -107,7 +107,7 @@ mod tests {
         let pk_bytes = pk.to_bytes();
         let sk_bytes = sk.to_bytes();
         let pk2 = pk_from_bytes(&pk_bytes).expect("roundtrip pk");
-        let sk2 = ***(&sk_bytes).expect("roundtrip sk");
+        let sk2 = sk_from_bytes(&sk_bytes).expect("roundtrip sk");
         assert_eq!(pk.to_bytes(), pk2.to_bytes());
         assert_eq!(sk.to_bytes(), sk2.to_bytes());
     }

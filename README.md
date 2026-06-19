@@ -2,112 +2,110 @@
 
 <div align="center">
 
-![Polygone Neural Network](https://img.shields.io/badge/Neural%20Network-Active-7c3aed?style=for-the-badge)
-![Post-Quantum](https://img.shields.io/badge/Post--Quantum%20Ready-Yes-22d3ee?style=for-the-badge)
-![Shamir](https://img.shields.io/badge/Shamir-4--of--7-f59e0b?style=for-the-badge)
-![Rust](https://img.shields.io/badge/Made%20in-Rust-000?style=for-the-badge&logo=rust)
+### Le système nerveux d'Internet.
 
-### _Le système nerveux d'Internet._
+*Chiffré post-quantique. Distribué. Vivant.*
+
+[![Post-Quantum](https://img.shields.io/badge/Post--Quantum-NIST%20ML--KEM--1024-22d3ee?style=flat-square)](https://csrc.nist.gov/projects/post-quantum-cryptography)
+[![Shamir](https://img.shields.io/badge/Shamir-4--of--7-f59e0b?style=flat-square)](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
+[![Rust](https://img.shields.io/badge/Made%20in-100%25%20Rust-000?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/badge/License-MIT-7c3aed?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
+## En 2030, ils liront tout.
+
+Les clés RSA qui protègent tes messages aujourd'hui — WhatsApp, Signal, tesbanques — seront une blague pour un ordi quantique à 1000$.
+
+Tes conversations. Tes fichiers. Tes mots de passe. Tes pensées numériques. **Tout lu. Tout gardé. Tout exploité.**
+
+On n'a pas le luxe d'attendre. La cryptographie post-quantique, c'est maintenant ou c'est trop tard.
+
+**Polygone chiffre pour 2030, aujourd'hui.**
+
+---
+
 ## Ce que c'est
 
-Polygone est un **réseau neuronal distribué** — pas un messenger, pas un outil, pas une app.
+Polygone n'est pas un messenger. Ce n'est pas une app. Ce n'est pas un outil.
 
-Chaque nœud est un **neurone**. Chaque message est une **synapse**. Chaque attaque est **guérie**. La cryptographie post-quantique n'est pas une feature — c'est l'ADN.
+C'est le **système immunitaire d'Internet**.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│   🧠 NODE A        🧠 NODE B        🧠 NODE C        🧠 D   │
-│                                                             │
-│       ◉──────────────◉──────────────◉──────────────◉       │
-│       │              │              │              │       │
-│   [crypto]──────[crypto]──────[crypto]──────[crypto]      │
-│   ML-KEM         AES-256        Shamir 4/7      BLAKE3    │
-│                                                             │
-│   ⬡ POLYGONE — Chaque nœud est un neurone.                  │
-│      Chaque message est une synapse.                        │
-│      Chaque attaque est guérie.                              │
-└─────────────────────────────────────────────────────────────┘
-```
+Chaque nœud est un neurone. Chaque message est une synapse chiffrée. Le réseaune stocke rien — chaque fragment meurt en 30 secondes. Et quand les machines quantiques arrivent en 2030, le chiffrement tient quand même.
+
+**La cryptographie post-quantique n'est pas une feature. C'est l'ADN.**
 
 ---
 
-## Pourquoi c'est différent
+## Pourquoi pas Signal ? Pourquoi pas Tor ?
 
-| | Polygone | Signal | Session | Others |
+| | Polygone | Signal | Tor | Telegram |
 |---|---|---|---|---|
-| **Cryptographie** | ML-KEM-1024 (post-quantique) | X25519 | X25519 | RSA |
-| **Partage de clé** | Shamir 4-of-7 | Manual | Group keys | Centralized |
-| **Auto-guérison** | ✅ Byzantine fault tolerance | ❌ | ❌ | ❌ |
-| **Réseau neuronal** | ✅ PETALS_NEURO | ❌ | ❌ | ❌ |
-| **Rust** | ✅ 100% | Partial | ❌ | ❌ |
-| **Open-source** | ✅ 100% | ✅ | ✅ | Variable |
+| **Post-quantique** | ML-KEM-1024 | X25519 ⚠️ | RSA ⚠️ | RSA ⚠️ |
+| **Fragmentation Shamir** | 4-of-7 | ❌ | ❌ | ❌ |
+| **Auto-guérison (BFT)** | ✅ | ❌ | ❌ | ❌ |
+| **Zéro données persistées** | ✅ | ❌ | Partial | ❌ |
+| **100% Rust** | ✅ | ❌ | Partial | ❌ |
+| **Réseau neuronal IA** | PETALS_NEURO | ❌ | ❌ | ❌ |
 
----
-
-## La sécurité, vraiment
-
-### ML-KEM-1024 — Chiffré contre les machines quantiques
-
-En 2030, les ordis quantiques pourront casser RSA en quelques heures. Polygone utilise **ML-KEM-1024**, le standard NIST 2024. Déchiffrer Polygone avec un ordi quantique prendrait des **milliards d'années**.
-
-### Shamir 4-of-7 — Tu ne perds jamais ta clé
-
-Tu as 7 fragments de clé. **4 suffissent** pour tout reconstruire. Tu peux les分发 à tes amis, ta famille, tes serveurs. Perdds un téléphone ? Aucun problème. Aucun tiers de confiance.
-
-### AES-256-GCM — Le même que les agences gov
-
-Le standard de chiffrement le plus robuste au monde. Utilisé par l'armée US, les agences de renseignement, les banques. Polygone l'utilise **partout**.
-
-### Byzantine Fault Tolerance — Le système immunitaire
-
-Un nœud compromis ? Le réseau l'isole en **moins d'une seconde**. Les autres nœuds continuent. L'attaque meurt. Polygone survit.
+⚠️ = vulnérable aux ordinateurs quantiques
 
 ---
 
 ## Comment ça marche
 
-### 1. Démarrer un nœud
+```
+Nœud A                       Réseau Polygone                     Nœud B
+  │                                │                                │
+  │  1. ML-KEM-1024               │                                │
+  │──────────────────────────────► │  (clé du destinataire)         │
+  │                                │                                │
+  │  2. AES-256-GCM               │                                │
+  │     Chiffrement du message    │                                │
+  │──────────────────────────────► │                                │
+  │                                │                                │
+  │  3. Shamir 4-of-7             │                                │
+  │     Fragmentation             │                                │
+  │     [F1]──►[F2]──►[F3]──►    │                                │
+  │     [F4]──►[F5]──►[F6]──►    │                                │
+  │     [F7]                      │                                │
+  │            Chaque fragment prend un chemin différent             │
+  │                                │                                │
+  │  4. TTL 30s                   │                                │
+  │     Auto-destruction          │                                │
+  │                    ✗   ✗   ✗  (les fragments meurent)           │
+  │                                │                                │
+  │  5. Réassemblage (4 fragments suffisent)                        │
+  │                                │        ◄────────────────────── │
+  │  6. Déchiffrement             │        4-of-7 → message         │
+  │                                │                                │
+  │  7. ML-DSA-87                 │                                │
+  │     Vérification authenticité │        ◄────────────────────── │
+```
+
+---
+
+## Démarrer — 30 secondes
 
 ```bash
-cargo install polygone
-polygone-node --identity ./my-identity.p2p
+# Une ligne. Tu es dans le réseau.
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
 ```
-
-### 2. Connecter deux nœuds
 
 ```bash
-# Nœud A écoute
-polygone-node --listen /ip4/0.0.0.0/tcp/4001
+# Vérifier que ça marche
+polygone self-test
 
-# Nœud B se connecte
-polygone-node --connect /ip4/A_IP/tcp/4001
-```
+# Générer tes clés post-quantiques
+polygone keygen
 
-### 3. Envoyer un message chiffré
+# Démarrer ton nœud
+polygone start
 
-```rust
-use polygone::{Message, Cipher};
-use polygone_crypto::ml_kem::MLKEM1024;
-
-let keypair = MLKEM1024::generate();
-let message = Message::new("Secret data", &keypair.public);
-let encrypted = message.encrypt()?;
-```
-
-### 4. Partager avec Shamir
-
-```rust
-use polygone_crypto::shamir::ShamirScheme;
-
-let shares = ShamirScheme::split(secret, threshold: 4, total: 7);
-// Distribue 7 fragments à 7 personnes différentes
-// 4 suffisent pour reconstruire le secret
+# Envoyer un message
+polygone send "La vie privée est un droit."
 ```
 
 ---
@@ -115,70 +113,71 @@ let shares = ShamirScheme::split(secret, threshold: 4, total: 7);
 ## L'architecture
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                     POLYGONE STACK                        │
-├──────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌────────────┐    ┌────────────┐    ┌────────────┐    │
-│  │  polygone  │    │  polygone  │    │  polygone  │    │
-│  │    -app    │    │    -msg    │    │    -msh    │    │
-│  └─────┬──────┘    └─────┬──────┘    └─────┬──────┘    │
-│        │                  │                  │           │
-│  ┌─────▼──────────────────▼──────────────────▼─────┐    │
-│  │                  polygone-core                   │    │
-│  └───────────────────────┬─────────────────────────┘    │
-│                          │                               │
-│  ┌───────────────────────▼─────────────────────────┐  │
-│  │              polygone-crypto                       │  │
-│  │  ML-KEM-1024 │ AES-256-GCM │ Shamir │ BLAKE3     │  │
-│  └───────────────────────────────────────────────────┘  │
-│                                                          │
-│  ┌───────────────────────▼─────────────────────────────┐ │
-│  │              polygone-network                        │ │
-│  │     libp2p │ Kademlia DHT │ QUIC │ WebRTC          │ │
-│  └────────────────────────────────────────────────────┘ │
-│                                                          │
-└──────────────────────────────────────────────────────────┘
+polygone/
+├── polygone-app        # CLI — la porte d'entrée
+├── polygone-core       # Le cœur — protocole neuronal
+├── polygone-crypto     # ML-KEM-1024 · AES-256-GCM · Shamir · BLAKE3
+├── polygone-network    # libp2p · Kademlia DHT · QUIC · WebRTC
+├── polygone-msg        # Protocole de messagerie éphémère
+├── polygone-msh        # Shell interactif
+├── polygone-petals     # PETALS_NEURO — inférence LLM distribuée
+├── polygone-brain      # Cerveau IA — personnalités simulées
+├── polygone-shell      # Dashboard interactif
+└── polygone-drive      # Stockage distribué chiffré (soon)
 ```
 
 ---
 
-## PETALS_NEURO — Le protocole neuronal
+## PETALS_NEURO — Intelligence collective chiffrée
 
-> *"Intelligence is not individual. It emerges from connection."*
+> *"L'intelligence n'est pas dans le cerveau individuel. C'est dans la synchronisation des neurones."*
 
-PETALS_NEURO est la couche intelligence de Polygone. Les modèles IA partagent leurs **états neuronaux** de manière chiffrée post-quantique. Le réseau apprend collectivement.
+PETALS_NEURO permet à des nœuds Polygone d'exécuter des modèles de langage massifs en collaboration — sans jamais exposer le modèle complet à un seul nœud.
 
-- **Federated learning** : chaque nœud entraîne son modèle localement, partage les gradients chiffrés
-- **Synaptic routing** : les requêtes sont routées vers le nœud le plus pertinent
-- **Neural state transfer** : partage d'état entre modèles sans exposer les données
+Chaque couche du modèle est calculée par un nœud différent. Les hidden states voyagent chiffrés par ML-KEM entre chaque saut. Le réseau forme un **cerveau collectif**, résilient, et post-quantique.
 
 ```rust
-use polygone_petals::{PetalsNeuralState, FederatedCoordinator};
+use polygone_petals::{PetalsClient, InferenceParams};
 
-// Synchroniser l'état neuronal avec le réseau
-let state = PetalsNeuralState::from_model(&my_model);
-let encrypted = state.encrypt(ml_kem_public_key);
+let params = InferenceParams {
+    model: "meta-llama/Llama-3-70b".to_string(),
+    prompt: "Explique la conscience quantique.".to_string(),
+    max_new_tokens: 100,
+};
 
-// Participer à un round de federated learning
-let mut coordinator = FederatedCoordinator::new(min_nodes: 5);
-coordinator.run_round().await?;
+let response = client.generate(params).await?;
+println!("{}", response);
 ```
 
 ---
 
-## Statuts
+## Le manifeste
 
-| Composant | Status |
-|-----------|--------|
-| polygone-core | ✅ Stable |
-| polygone-crypto | ✅ Stable (audité) |
-| polygone-network | ✅ Stable |
-| polygone-msg | ✅ Stable |
-| polygone-msh | ✅ Stable |
-| polygone-app | 🔨 En cours |
-| polygone-petals | 🔨 En cours (PETALS_NEURO) |
-| **polygone-brain** | 🔨 En cours (personnalités simulées) |
+> *En 2030, ton ordinateur quantique pourra ouvrir tous tes secrets.*
+>
+> *La cryptographie post-quantique n'est pas une option. C'est la seule façon de communiquer en 2026.*
+>
+> *Polygone n'est pas un produit. C'est une position.*
+>
+> *Rejoins le réseau.*
+
+[Lis le manifeste complet →](POLYGONE_MANIFESTO.md)
+
+---
+
+## Statut des modules
+
+| Module | Status |
+|--------|--------|
+| `polygone-core` | ✅ Stable |
+| `polygone-crypto` | ✅ Stable — audité |
+| `polygone-network` | ✅ Stable |
+| `polygone-msg` | ✅ Stable |
+| `polygone-msh` | ✅ Stable |
+| `polygone-app` | ✅ Stable |
+| `polygone-petals` | 🚧 PETALS_NEURO |
+| `polygone-brain` | 🚧 Personnalités simulées |
+| `polygone-shell` | 🚧 Dashboard interactif |
 
 **Tests** : 19/19 passent ✅
 
@@ -186,30 +185,24 @@ coordinator.run_round().await?;
 
 ## Contribuer
 
-Polygone est open-source. Contributions welcome.
+Polygone est open source — MIT. Chaque ligne est auditable.
 
 ```bash
-# Fork, clone, build
 git clone https://github.com/lvs0/Polygone.git
 cd Polygone
 cargo build --release
-
-# Tester
 cargo test --all
-
-# Installer
-./install.sh
 ```
 
-Lisez [CONTRIBUTING.md](CONTRIBUTING.md) avant de contribuer.
+[Lis CONTRIBUTING.md avant →](CONTRIBUTING.md)
 
 ---
 
-## ⚠️ Le Quantum Threat
+## L'hexagone
 
-> En 2030, les ordinateurs quantiques auront assez de puissance pour casser RSA-4096 en **quelques heures**.
+En géométrie, l'hexagone est la forme qui utilise le **moins de matériau** pour enclose la plus grande surface. Optimal. Élégant.
 
-Polygone ne sera pas affecté. Parce qu'on a chiffré pour 2030 **aujourd'hui**.
+Le vide au centre, c'est ce qu'on protège.
 
 ---
 
@@ -219,6 +212,6 @@ Polygone ne sera pas affecté. Parce qu'on a chiffré pour 2030 **aujourd'hui**.
 
 *Il n'y a pas de Polygone. Il y a des milliers de polygones.*
 
-[GitHub](https://github.com/lvs0/Polygone) • [Specs](docs/) • [Architecture](SPEC.md)
+[GitHub](https://github.com/lvs0/Polygone) · [Specs](SPEC.md) · [Manifeste](POLYGONE_MANIFESTO.md) · [PETALS_NEURO](docs/PETALS_NEURO.md)
 
 </div>

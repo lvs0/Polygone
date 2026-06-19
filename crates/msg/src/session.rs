@@ -410,7 +410,7 @@ mod tests {
     #[test]
     fn test_envelope_serialization() {
         use polygone_crypto::generate_kem_key_pair;
-        let (sk, pk) = generate_kem_key_pair();
+        let (pk, sk) = generate_kem_key_pair();
         let session =
             MessageSession::new(sk.to_bytes(), pk.to_bytes());
         let msg = OutgoingMessage::plaintext(b"test");

@@ -1,268 +1,107 @@
-# 🌸 POLYGONE - Manifeste Produit
-
-**Version:** 2.0.0 - Enterprise Ready  
-**Date:** 22 Avril 2026  
-**Auteur:** l-vs (Hope Collective)  
-**License:** MIT Enterprise  
+# ⬡ POLYGONE
+### Le manifeste
 
 ---
 
-## 🎯 Vision
+**En 2030, ton ordinateur quantique pourra ouvrir tous tes secrets.**
 
-POLYGONE est l'écosystème de confidentialité post-quantique le plus avancé au monde, conçu pour protéger les données et l'intelligence dans l'ère quantique imminente.
+Les clés RSA que tu utilises aujourd'hui — celles qui protègent tes messages, tes fichiers, tes vies numériques — seront une blague pour une machine costing 1000$.
 
-> *"La confidentialité n'est pas une option, c'est un droit fondamental dans le monde numérique."*
+Ta conversation WhatsApp. Tes emails. Tes photos. Tes passwords. Tes pensées.
 
----
+Tout ouvert. Tout lu. Tout mémorisé.
 
-## 🏗️ Architecture Produit
-
-### **Cœur Réseau Polygone**
-- **Polygone-Petals**: LLM distribué avec fragmentation quantique
-- **Polygone-Hide**: Tunnel privacy zero-knowledge  
-- **Polygone-Core**: Protocole P2P post-quantique (ML-KEM)
-
-### **Interface Intelligence**
-- **MAX**: Assistant AI local avec interface glassmorphe
-- **AURA**: Interface desktop avancée avec intelligence émotionnelle
-- **SOE-ORRET**: Système cognitif multi-colonnes
-
-### **Système d'Exploitation**
-- **NEXUS OS**: OS personnel post-quantique complet
-- **NEXUS Shell**: Composant Wayland avec design "Grain Glass"
-- **NEXUS Store**: Ecosystème d'applications sécurisées
+**On n'a pas 4 ans pour agir. On a maintenant.**
 
 ---
 
-## 🚀 Fonctionnalités Enterprise
+## Ce qu'est Polygone
 
-### **Sécurité Post-Quantique**
-- ✅ Chiffrement ML-KEM-1024 pour tous les échanges
-- ✅ Fragmentation Shamir SSS-4-7 des données
-- ✅ Zero-knowledge architecture
-- ✅ Audit logging complet et immuable
+Polygone n'est pas une application de messagerie.
 
-### **Intelligence Distribuée**
-- ✅ Pipeline séquentiel de modèles LLM
-- ✅ Entraînement fédéré multi-nœuds
-- ✅ Mémoire hiérarchique ARIA (5 couches)
-- ✅ Système émotionnel PAD adaptatif
+C'est le **système immunitaire d'Internet.**
 
-### **Interface Universelle**
-- ✅ Mobile-first responsive design
-- ✅ Voice input/output natif
-- ✅ Multi-langue (FR, EN, ES, DE, ZH)
-- ✅ Accessibility WCAG 2.1 AA
+Chaque nœud est un neurone. Chaque message est une synapse chiffrée. Le réseau ne stocke rien — chaque fragment auto-détruit en 30 secondes. Et quand les ordinateurs quantiques arrivent, le chiffrement tient quand même. Parce qu'on utilise ML-KEM-1024. Le standard NIST. Pas une opinion.
 
-### **Déploiement Enterprise**
-- ✅ Installation one-click automatisée
-- ✅ Gestion centralisée des politiques
-- ✅ Multi-tenant avec isolation
-- ✅ Monitoring et métriques temps réel
+**La cryptographie post-quantique n'est pas une feature. C'est l'ADN.**
 
 ---
 
-## 📊 Cas d'Usage
+## Pourquoi ça marche
 
-### **Particuliers**
-- Navigation privée et sécurisée
-- Assistant AI personnel
-- Stockage distribué chiffré
-- Communication sécurisée
+On ne te demande pas de nous faire confiance.
 
-### **Professionnels**
-- VPN entreprise post-quantique
-- Collaboration sécurisée distribuée
-- Intelligence artificielle on-premise
-- Conformité RGPD/ZDLP
+On te demande de comprendre :
 
-### **Développeurs**
-- APIs REST/GraphQL complètes
-- SDKs Rust/Python/TypeScript
-- Documentation technique exhaustive
-- Sandbox de développement
+**1. Aucun serveur ne connaît tes secrets.**
+Tes messages sont fragmentés en 7 morceaux par l'algorithme de Shamir. 4 fragments sur 7 sont nécessaires pour reconstruire quoi que ce soit. Chaque fragment voyage par un chemin différent du réseau. Même si un attaquant contrôle 6 nœuds — il ne voit rien.
+
+**2. Aucun message n'est stocké.**
+30 secondes. C'est la durée de vie d'un message Polygone. Après ça, les fragments meurent. Pas d'archive. Pas d'historique. Pas de données à pirater en 2034.
+
+**3. Même les machines quantiques échouent.**
+ML-KEM-1024 n'est pas une hypothèse. C'est le standard du gouvernement américain pour la cryptographie post-quantique. NIST FIPS 203. Des cryptographes du monde entier ont passé 5 ans à essayer de le casser. Ils ont échoué.
 
 ---
 
-## 🛡️ Sécurité
+## Ce qu'on ne fait PAS
 
-### **Post-Quantique**
+On ne vend pas tes données. On n'a pas de serveur central. On ne demande pas ton numéro de téléphone. On ne fait pas de "monétisation". On n'a pas de "terms of service" de 47 pages qui te privent de tes droits.
+
+On construit quelque chose que les autres n'osent pas construire parce que c'est dur, parce que c'est pas rentable, parce que ça dérange.
+
+**Hope Collective construit Polygone parce que c'est juste.**
+
+---
+
+## L'hexagone
+
+L'hexagone Polygone n'est pas un logo. C'est une idée.
+
+En géométrie, l'hexagone est la forme qui utilise le moins de matériau pour enclose la plus grande surface. C'est élégant. C'est optimal. C'est ce que fait Polygone avec la cryptographie : chiffrer le maximum de liberté avec le minimum de complexité.
+
+Le vide au centre, c'est ce qu'on protège.
+
+---
+
+## La résistance n'est pas un choix esthétique.
+
+C'est un acte.
+
+Installer Polygone, c'est signer une lettre anonyme à l'humanité de 2030.
+
+C'est dire : *"J'existais. J'ai communiqué. J'ai pensé librement. Et personne n'avait le droit de lire."*
+
+Ce n'est pas de la paranoïa. C'est de la discipline.
+
+---
+
+## Le code est là
+
+Tout est open source. MIT. 100% Rust. Pas de dépendances douteuses. Pas de telemetry cachée.
+
+Tu peux lire chaque ligne. Tu peux auditer chaque algorithme. Tu peux le compiler toi-même.
+
+On ne te demande pas de nous croire. On te donne les outils pour vérifier.
+
+---
+
+## Rejoins le réseau.
+
+Commence avec rien. Un terminal. Une connexion.
+
+Deviens un neurone.
+
 ```
-Protocole: ML-KEM-1024
-Taille clé: 32768 bits
-Sécurité: 256-bit post-quantique
-Performance: <5ms overhead
-```
-
-### **Zero-Trust Architecture**
-- Authentification mutuelle systématique
-- Validation continue des communications
-- Isolation stricte des tenants
-- Audit trail immuable
-
-### **Conformité**
-- RGPR (Europe)
-- CCPA (Californie)
-- HIPAA (Santé)
-- SOX (Finance)
-
----
-
-## ⚡ Performance
-
-### **Benchmarks**
-```
-Débit Polygone-Hide: 1Gbps+ avec fragmentation
-Latence Petals: <100ms end-to-end
-Scalabilité: 10,000+ nœuds par cluster
-Disponibilité: 99.9% SLA
+curl -fsSL https://raw.githubusercontent.com/lvs0/Polygone/main/install.sh | bash
 ```
 
-### **Optimisations**
-- Connection pooling intelligent
-- Cache distribué adaptatif
-- Compression delta différentielle
-- Routage optimal dynamique
+30 secondes. Tu es dans le réseau.
+
+Bienvenue dans la résistance.
 
 ---
 
-## 🌍 Écosystème
+> *"Dans un monde où la surveillance est la norme, Polygone est l'exception qui défend ta liberté."*
 
-### **Applications Natives**
-- **NEXUS Browser**: Naviguation privée intégrée
-- **NEXUS Mail**: Email chiffré post-quantique
-- **NEXUS Drive**: Stockage distribué
-- **NEXUS Meet**: Visioconférence sécurisée
-
-### **Intégrations**
-- **Microsoft 365**: Bridge sécurité
-- **Google Workspace**: Connecteur privé
-- **Slack/Discord**: Communication sécurisée
-- **Salesforce**: CRM avec protection
-
----
-
-## 📈 Monétisation
-
-### **Modèle Freemium**
-- **Gratuit**: Usage personnel jusqu'à 5GB
-- **Pro**: €9.99/mois - Usage illimité + features enterprise
-- **Enterprise**: Sur devis - Custom + support 24/7
-
-### **Services Additionnels**
-- **Polygone Shield**: Protection avancée (+€4.99/mois)
-- **Polygone Analytics**: Dashboard entreprise (+€19.99/mois)
-- **Polygone Academy**: Formation certification (+€299/an)
-
----
-
-## 🎯 Roadmap 2026-2027
-
-### **Q3 2026**
-- [ ] Lancement NEXUS OS Beta
-- [ ] Applications mobiles natives
-- [ ] Intégration Cloud Providers
-- [ ] Certification ANSSI
-
-### **Q4 2026**
-- [ ] Hardware Polygone (routeurs sécurisés)
-- [ ] Polygone Mesh (IoT sécurisé)
-- [ ] Marketplace d'applications
-- [ ] SDKs multi-plateformes
-
-### **2027**
-- [ ] Quantum Resistance Layer v2
-- [ ] Intelligence collective distribuée
-- [ ] Edge computing intégré
-- [ ] Standardisation IETF
-
----
-
-## 📚 Documentation Technique
-
-### **Architecture**
-- [API Reference](./docs/api/)
-- [Protocol Specifications](./docs/protocols/)
-- [Security Whitepaper](./docs/security/)
-- [Deployment Guide](./docs/deployment/)
-
-### **Développement**
-- [Getting Started](./docs/development/)
-- [SDK Documentation](./docs/sdk/)
-- [Examples & Samples](./docs/examples/)
-- [Contributing Guidelines](./docs/contributing/)
-
----
-
-## 🏢 Déploiement
-
-### **Requirements**
-```
-Minimum:
-- OS: Linux/macOS/Windows 10+
-- RAM: 4GB
-- Stockage: 2GB
-- CPU: 2+ coeurs
-
-Recommandé:
-- OS: NEXUS OS ou Linux avec systemd
-- RAM: 8GB+
-- Stockage: 10GB+ SSD
-- CPU: 4+ coeurs 64-bit
-```
-
-### **Installation**
-```bash
-# One-click install
-curl -sSL https://install.polygone.ai | bash
-
-# Ou téléchargement manuel
-wget https://releases.polygone.ai/v2.0.0/polygone-installer.run
-chmod +x polygone-installer.run
-sudo ./polygone-installer.run
-```
-
----
-
-## 🤝 Support & Communauté
-
-### **Support Technique**
-- Email: support@polygone.ai
-- Chat: [support.polygone.ai](https://support.polygone.ai)
-- Téléphone: +33 (0) 1 234 567 890
-- SLA: 24/7 pour Enterprise
-
-### **Communauté**
-- Forum: [community.polygone.ai](https://community.polygone.ai)
-- Discord: [discord.gg/polygone](https://discord.gg/polygone)
-- GitHub: [github.com/polygone](https://github.com/polygone)
-- Documentation: [docs.polygone.ai](https://docs.polygone.ai)
-
----
-
-## 📊 Métriques de Succès
-
-### **Adoption**
-- **Target 2026**: 1M+ utilisateurs actifs
-- **Target 2027**: 10M+ utilisateurs actifs
-- **Enterprise**: 1000+ entreprises déployées
-
-### **Techniques**
-- **Performance**: <50ms latence moyenne
-- **Disponibilité**: 99.9%+ uptime
-- **Sécurité**: 0 incidents de sécurité
-- **Satisfaction**: 4.5/5.0+ rating utilisateur
-
----
-
-## 🌟 Vision Long Terme
-
-D'ici 2030, POLYGONE sera le standard mondial de la confidentialité numérique, intégrant nativement la résistance quantique dans toutes les communications et applications.
-
-> *"Dans un monde où la surveillance est la norme, POLYGONE est l'exception qui protège votre liberté numérique."*
-
----
-
-**© 2026 Hope Collective - Tous droits réservés**  
-**Built with ❤️ in France**  
-**Post-Quantum Security First**
+⬡

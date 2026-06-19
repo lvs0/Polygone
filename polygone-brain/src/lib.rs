@@ -1,8 +1,8 @@
-pub mod personalities;
 pub mod orchestrator;
+pub mod personalities;
 
-pub use personalities::*;
-pub use orchestrator::*;
+pub use personalities::Personality;
+pub use orchestrator::ReasoningOrchestrator;
 
 /// Brain entry point
 pub struct PolygoneBrain {
@@ -26,19 +26,23 @@ impl PolygoneBrain {
         Ok(())
     }
 
-    pub fn reason(&self, query: &str) -> Result<String, String> {
+    /// Reason about a query, using active personality or orchestrator
+    pub fn reason(&self, query: &str) -> String {
         match &self.current {
-            Some(personality) => {
-                personality.reason(query)
-            }
-            None => {
-                self.orchestrator.reason(query)
-            }
+            Some(personality) => personality.reason(query),
+            None => self.orchestrator.reason(query),
         }
     }
 
-    pub fn debate(&self, topic: &str) -> Result<Vec<String>, String> {
+    /// Run a multi-personality debate on a topic
+    pub fn debate(&self, topic: &str) -> Vec<String> {
         self.orchestrator.debate(topic)
+    }
+}
+
+impl Default for PolygoneBrain {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -65,5 +69,19 @@ mod tests {
         brain.activate_personality("feynman").unwrap();
         let result = brain.reason("Explain quantum entanglement simply");
         assert!(!result.is_empty());
+    }
+
+    #[test]
+    fn test_reason_without_personality() {
+        let brain = PolygoneBrain::new();
+        let result = brain.reason("What is distributed systems?");
+        assert!(!result.is_empty());
+    }
+
+    #[test]
+    fn test_debate() {
+        let brain = PolygoneBrain::new();
+        let debate = brain.debate("What is the nature of consciousness?");
+        assert!(!debate.is_empty());
     }
 }

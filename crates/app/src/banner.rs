@@ -3,16 +3,12 @@
 
 /// Banner affiché au démarrage de `polygone help` / sans arguments
 pub const BANNER: &str = r#"
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║          ⬡  P O L Y G O N E  —  v1.0.0               ║
-║                                                           ║
-║          Post-Quantum · Ephemeral · Zero Metadata        ║
-║                                                           ║
-║          ML-KEM-1024  ·  Shamir 4-of-7  ·  AES-256-GCM   ║
-║          BLAKE3 · Kademlia DHT · 30s Vaporization        ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
+███╗   ███╗ ██████╗ ██████╗ ████████╗██╗  ██╗   ██╗███╗   ███╗███████╗
+████╗ ████║██╔═══██╗██╔═══██╗╚══██╔══╝██║  ╚██╗ ██╔╝████╗ ████║██╔════╝
+██╔████╔██║██║   ██║██║   ██║   ██║   ██║   ╚████╔╝ ██╔████╔██║█████╗  
+██║╚██╔╝██║██║   ██║██║   ██║   ██║   ██║    ╚██╔╝  ██║╚██╔╝██║██╔══╝  
+██║ ╚═╝ ██║╚██████╔╝╚██████╗   ██║   ██║     ██║   ██║ ╚═╝ ██║███████╗
+╚═╝     ╚═╝ ╚═════╝  ⚪╚══════╝   ╚═╝   ╚═╝     ╚═╝   ╚═╝     ╚═╝╚══════╝
 "#;
 
 /// Petit logo hex pour affichage inline (CLI / logs)
@@ -41,6 +37,10 @@ Environment:
   POLYGONE_PORT      HTTP health port (default: 8080)
   POLYGONE_PEER_ID   Fixed peer ID (auto-generated if absent)
   POLYGONE_LOG       Log level: error|warn|info|debug (default: info)
+
+Example:
+  polygone keygen
+  polygone send "La vie privée est un droit, pas une option."
 "#;
 
 /// Message de démarrage du nœud

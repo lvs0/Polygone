@@ -28,12 +28,18 @@ impl ReasoningOrchestrator {
 
     /// General reasoning: pick the most relevant personality (simple heuristic)
     pub fn reason(&self, query: &str) -> String {
-        // For now, just cycle through or pick first
+        // For now, pick first personality as voice of the orchestrator
         if let Some(p) = self.personalities.first() {
             format!("[Orchestrator] {}", p.reason(query))
         } else {
-            format!("No personalities available")
+            "No personalities available".to_string()
         }
+    }
+}
+
+impl Default for ReasoningOrchestrator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

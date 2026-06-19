@@ -8,24 +8,21 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --black-void: #0a0a0f;
-            --deep-black: #050508;
-            --violet-neural: #7c3aed;
-            --violet-light: #a78bfa;
-            --cyan-quantum: #22d3ee;
-            --amber-warning: #f59e0b;
-            --green-healthy: #22c55e;
-            --red-attack: #ef4444;
-            --white-ghost: #f8fafc;
-            --gray-neutral: #94a3b8;
-            --gray-dark: #1e293b;
+            --void: #000000;
+            --deep: #050508;
+            --violet: #8b5cf6;
+            --violet-dim: #6d28d9;
+            --cyan: #22d3ee;
+            --white: #f8fafc;
+            --ghost: #cbd5e1;
+            --dim: #64748b;
         }
 
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -33,85 +30,44 @@
 
         html {
             scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--violet) var(--deep);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--deep); }
+        ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 2px; }
+
+        ::selection {
+            background: var(--violet);
+            color: var(--white);
         }
 
         body {
             font-family: 'Space Grotesk', system-ui, sans-serif;
-            background: var(--black-void);
-            color: var(--white-ghost);
-            line-height: 1.6;
+            background: var(--void);
+            color: var(--white);
+            line-height: 1.7;
             overflow-x: hidden;
         }
 
-        ::selection {
-            background: var(--violet-neural);
-            color: var(--white-ghost);
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--deep-black);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--violet-neural);
-            border-radius: 4px;
-        }
-
-        /* ═══════════════════════════════════════════
-           NEURAL NETWORK BACKGROUND
-           ═══════════════════════════════════════════ */
-        .neural-bg {
+        /* ═══════════════════════════════════
+           NEURAL BACKGROUND
+           ═══════════════════════════════════ */
+        #neural {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: 0;
-            opacity: 0.15;
+            opacity: 0.06;
             pointer-events: none;
         }
 
-        .node {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: var(--violet-neural);
-            border-radius: 50%;
-            animation: node-pulse 3s ease-in-out infinite;
-        }
-
-        .node::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            background: var(--violet-neural);
-            border-radius: 50%;
-            opacity: 0.2;
-            animation: glow-pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes node-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.5); opacity: 1; }
-        }
-
-        @keyframes glow-pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
-            50% { transform: translate(-50%, -50%) scale(2); opacity: 0.1; }
-        }
-
-        /* ═══════════════════════════════════════════
+        /* ═══════════════════════════════════
            LAYOUT
-           ═══════════════════════════════════════════ */
+           ═══════════════════════════════════ */
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 0 2rem;
             position: relative;
@@ -119,51 +75,57 @@
         }
 
         section {
-            padding: 6rem 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
         }
 
-        /* ═══════════════════════════════════════════
+        /* ═══════════════════════════════════
            HEADER
-           ═══════════════════════════════════════════ */
+           ═══════════════════════════════════ */
         header {
-            padding: 1.5rem 0;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             z-index: 100;
-            background: rgba(10, 10, 15, 0.9);
+            padding: 1.5rem 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+            -webkit-backdrop-filter: blur(20px);
         }
 
-        header .container {
+        .header-inner {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--violet-neural);
-            text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
         }
 
         .logo-hex {
             width: 28px;
             height: 28px;
-            background: linear-gradient(135deg, var(--violet-neural), var(--cyan-quantum));
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            animation: logo-pulse 4s ease-in-out infinite;
+            position: relative;
         }
 
-        @keyframes logo-pulse {
-            0%, 100% { filter: drop-shadow(0 0 5px var(--violet-neural)); }
-            50% { filter: drop-shadow(0 0 15px var(--violet-neural)); }
+        .logo-hex::before {
+            content: '⬡';
+            font-size: 28px;
+            color: var(--violet);
+            animation: hex-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes hex-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
         }
 
         nav {
@@ -173,856 +135,1172 @@
         }
 
         nav a {
-            color: var(--gray-neutral);
+            color: var(--dim);
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: color 0.3s;
+            letter-spacing: 0.5px;
         }
 
-        nav a:hover {
-            color: var(--white-ghost);
-        }
+        nav a:hover { color: var(--white); }
 
-        .nav-cta {
-            background: var(--violet-neural);
-            color: var(--white-ghost) !important;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
+        nav .btn-nav {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
+            color: var(--violet);
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
 
-        .nav-cta:hover {
-            background: var(--violet-light);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.4);
+        nav .btn-nav:hover {
+            background: var(--violet);
+            color: var(--white);
+            border-color: var(--violet);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
         }
 
-        /* ═══════════════════════════════════════════
-           HERO
-           ═══════════════════════════════════════════ */
+        /* ═══════════════════════════════════
+           SECTION 1: HERO — THE SHOCK
+           ═══════════════════════════════════ */
         .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 80px;
-            position: relative;
+            text-align: center;
+            padding: 8rem 0 6rem;
         }
 
-        .hero-content {
-            max-width: 800px;
-        }
-
-        .hero-badge {
+        .hero-date {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(124, 58, 237, 0.1);
-            border: 1px solid var(--violet-neural);
-            padding: 0.4rem 1rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            color: var(--violet-light);
-            margin-bottom: 1.5rem;
-            animation: badge-glow 3s ease-in-out infinite;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 3rem;
+            padding: 0.5rem 1.5rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 100px;
+            background: rgba(139, 92, 246, 0.05);
         }
 
-        @keyframes badge-glow {
-            0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.2); }
-            50% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); }
+        .hero-date span {
+            color: var(--violet);
         }
 
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 700;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--white-ghost) 0%, var(--violet-light) 50%, var(--cyan-quantum) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 2rem;
         }
 
-        .hero h1 span {
+        .hero h1 .line-1 {
             display: block;
-            font-size: 0.5em;
-            background: var(--gray-neutral);
-            -webkit-background-clip: text;
-            background-clip: text;
-            font-weight: 500;
+            color: var(--white);
+        }
+
+        .hero h1 .line-2 {
+            display: block;
+            color: var(--dim);
+            font-weight: 300;
+            font-size: 0.55em;
+            letter-spacing: 1px;
             margin-top: 0.5rem;
         }
 
-        .hero-subtitle {
-            font-size: 1.3rem;
-            color: var(--gray-neutral);
-            margin-bottom: 2.5rem;
-            max-width: 600px;
+        .hero-quote {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            color: var(--ghost);
+            max-width: 680px;
+            margin: 0 auto 3rem;
+            font-weight: 300;
+            line-height: 1.8;
         }
 
-        .hero-subtitle strong {
-            color: var(--violet-light);
+        .hero-quote strong {
+            color: var(--white);
+            font-weight: 600;
         }
 
-        .hero-actions {
+        .hero-cta {
             display: flex;
             gap: 1rem;
+            justify-content: center;
             flex-wrap: wrap;
         }
 
-        .btn {
+        .btn-primary {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 1rem 2rem;
-            border-radius: 8px;
+            background: var(--violet);
+            color: var(--white);
+            padding: 1rem 2.5rem;
+            border-radius: 100px;
             font-weight: 600;
             font-size: 1rem;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
+            border: 1px solid var(--violet);
+            letter-spacing: 0.5px;
             cursor: pointer;
-            border: none;
-            font-family: inherit;
-        }
-
-        .btn-primary {
-            background: var(--violet-neural);
-            color: var(--white-ghost);
-            box-shadow: 0 0 30px rgba(124, 58, 237, 0.3);
         }
 
         .btn-primary:hover {
-            background: var(--violet-light);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.5);
+            background: transparent;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.5), inset 0 0 40px rgba(139, 92, 246, 0.1);
         }
 
         .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             background: transparent;
-            color: var(--white-ghost);
-            border: 1px solid var(--gray-dark);
+            color: var(--ghost);
+            padding: 1rem 2.5rem;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            letter-spacing: 0.5px;
+            cursor: pointer;
         }
 
         .btn-secondary:hover {
-            border-color: var(--violet-neural);
-            background: rgba(124, 58, 237, 0.1);
+            border-color: rgba(255,255,255,0.3);
+            color: var(--white);
+            background: rgba(255,255,255,0.05);
         }
 
-        /* Stats */
-        .hero-stats {
+        /* Scroll hint */
+        .scroll-hint {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            gap: 3rem;
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(124, 58, 237, 0.2);
-        }
-
-        .stat {
-            text-align: left;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--cyan-quantum);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--gray-neutral);
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--dim);
+            font-size: 0.7rem;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            font-family: 'JetBrains Mono', monospace;
+            animation: float 2.5s ease-in-out infinite;
         }
 
-        /* ═══════════════════════════════════════════
-           FEATURES
-           ═══════════════════════════════════════════ */
-        .features {
-            background: linear-gradient(180deg, var(--black-void) 0%, var(--deep-black) 100%);
+        .scroll-hint::after {
+            content: '↓';
+            font-size: 1rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(4px); }
+        }
+
+        /* ═══════════════════════════════════
+           SECTION 2: THE THREAT
+           ═══════════════════════════════════ */
+        .threat {
+            background: linear-gradient(180deg, var(--void) 0%, #0a0005 50%, var(--void) 100%);
+            padding: 8rem 0;
+        }
+
+        .threat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .threat-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #ef4444;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .threat-label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .threat h2 {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 2rem;
+        }
+
+        .threat h2 .red {
+            color: #ef4444;
+            font-style: italic;
+            font-weight: 900;
+        }
+
+        .threat-text {
+            color: var(--ghost);
+            font-size: 1.1rem;
+            line-height: 1.9;
+        }
+
+        .threat-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .threat-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quantum-clock {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock-ring {
+            position: absolute;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 50%;
+            animation: ring-expand 3s ease-out infinite;
+        }
+
+        .clock-ring:nth-child(1) { width: 100%; height: 100%; animation-delay: 0s; }
+        .clock-ring:nth-child(2) { width: 75%; height: 75%; animation-delay: 1s; }
+        .clock-ring:nth-child(3) { width: 50%; height: 50%; animation-delay: 2s; }
+
+        @keyframes ring-expand {
+            0% { opacity: 0.8; transform: scale(1); border-color: rgba(239, 68, 68, 0.5); }
+            100% { opacity: 0; transform: scale(1.15); border-color: rgba(239, 68, 68, 0); }
+        }
+
+        .clock-core {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #ef4444;
+            text-align: center;
+            line-height: 1.6;
+            z-index: 1;
+        }
+
+        .clock-core .year {
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        /* ═══════════════════════════════════
+           SECTION 3: THE HEXAGON (pure visual)
+           ═══════════════════════════════════ */
+        .hex-section {
+            position: relative;
+            padding: 10rem 0;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hex-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hex-glow {
+            font-size: 400px;
+            color: var(--violet);
+            opacity: 0.04;
+            animation: hex-breathe 6s ease-in-out infinite;
+            user-select: none;
+        }
+
+        @keyframes hex-breathe {
+            0%, 100% { transform: scale(1); opacity: 0.04; }
+            50% { transform: scale(1.05); opacity: 0.07; }
+        }
+
+        .hex-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+        }
+
+        .hex-content .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--violet);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .hex-content .eyebrow::before,
+        .hex-content .eyebrow::after {
+            content: '';
+            width: 40px;
+            height: 1px;
+            background: var(--violet);
+            opacity: 0.5;
+        }
+
+        .hex-content h2 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+        }
+
+        .hex-content p {
+            color: var(--ghost);
+            font-size: 1.2rem;
+            line-height: 1.9;
+            font-weight: 300;
+        }
+
+        /* ═══════════════════════════════════
+           SECTION 4: HOW IT WORKS
+           ═══════════════════════════════════ */
+        .how {
+            padding: 8rem 0;
+            background: linear-gradient(180deg, var(--void) 0%, #050512 100%);
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 5rem;
         }
 
-        .section-tag {
-            font-size: 0.85rem;
-            color: var(--cyan-quantum);
+        .section-header .tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 1rem;
+            color: var(--cyan);
+            margin-bottom: 1.5rem;
+            display: block;
         }
 
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
         }
 
-        .section-desc {
-            color: var(--gray-neutral);
-            max-width: 600px;
+        .section-header .desc {
+            color: var(--dim);
+            font-size: 1.1rem;
+            max-width: 500px;
             margin: 0 auto;
         }
 
-        .features-grid {
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .step {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: 80px 1fr auto;
             gap: 2rem;
-        }
-
-        .feature-card {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(34, 211, 238, 0.02) 100%);
-            border: 1px solid rgba(124, 58, 237, 0.2);
+            align-items: center;
+            padding: 2.5rem 3rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.02);
             border-radius: 16px;
-            padding: 2rem;
+            margin-bottom: 1rem;
             transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
         }
 
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--violet-neural), var(--cyan-quantum));
-            opacity: 0;
-            transition: opacity 0.4s ease;
+        .step:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.05);
+            transform: translateX(8px);
         }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--violet-neural);
-            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.2);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .feature-icon.quantum {
-            background: rgba(34, 211, 238, 0.1);
-            color: var(--cyan-quantum);
-        }
-
-        .feature-icon.shamir {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--amber-warning);
-        }
-
-        .feature-icon.neural {
-            background: rgba(124, 58, 237, 0.1);
-            color: var(--violet-neural);
-        }
-
-        .feature-icon::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--cyan-quantum), var(--violet-neural));
-            opacity: 0;
-            z-index: -1;
-            transition: opacity 0.4s ease;
-        }
-
-        .feature-card:hover .feature-icon::after {
-            opacity: 0.5;
-        }
-
-        .feature-card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-card p {
-            color: var(--gray-neutral);
-            font-size: 0.95rem;
-        }
-
-        .feature-tag {
-            display: inline-block;
-            font-size: 0.75rem;
+        .step-num {
             font-family: 'JetBrains Mono', monospace;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            margin-top: 1rem;
-            background: rgba(124, 58, 237, 0.1);
-            color: var(--violet-light);
-        }
-
-        /* ═══════════════════════════════════════════
-           CODE
-           ═══════════════════════════════════════════ */
-        .code-section {
-            background: var(--deep-black);
-        }
-
-        .code-demo {
-            background: var(--black-void);
-            border: 1px solid rgba(124, 58, 237, 0.3);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .code-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem 1.5rem;
-            background: rgba(124, 58, 237, 0.05);
-            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
-        }
-
-        .code-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .code-dot.red { background: var(--red-attack); }
-        .code-dot.yellow { background: var(--amber-warning); }
-        .code-dot.green { background: var(--green-healthy); }
-
-        .code-filename {
-            margin-left: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--gray-neutral);
-        }
-
-        .code-content {
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            line-height: 1.8;
-            overflow-x: auto;
-        }
-
-        .code-content .keyword { color: var(--violet-light); }
-        .code-content .function { color: var(--cyan-quantum); }
-        .code-content .string { color: var(--green-healthy); }
-        .code-content .comment { color: var(--gray-neutral); font-style: italic; }
-        .code-content .type { color: var(--amber-warning); }
-
-        /* ═══════════════════════════════════════════
-           ARCHITECTURE
-           ═══════════════════════════════════════════ */
-        .architecture {
-            background: linear-gradient(180deg, var(--deep-black) 0%, var(--black-void) 100%);
-        }
-
-        .arch-diagram {
-            background: var(--deep-black);
-            border: 1px solid rgba(124, 58, 237, 0.2);
-            border-radius: 16px;
-            padding: 3rem;
-            margin-top: 2rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        .arch-diagram::before {
-            content: 'POLYGONE STACK';
-            position: absolute;
-            top: -12px;
-            left: 2rem;
-            background: var(--black-void);
-            padding: 0 1rem;
-            color: var(--violet-light);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+            color: var(--dim);
             letter-spacing: 2px;
         }
 
-        /* ═══════════════════════════════════════════
-           FOOTER
-           ═══════════════════════════════════════════ */
-        footer {
-            background: var(--deep-black);
-            padding: 3rem 0;
-            border-top: 1px solid rgba(124, 58, 237, 0.2);
+        .step h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
-        .footer-content {
+        .step p {
+            color: var(--dim);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .step-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--violet);
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        /* ═══════════════════════════════════
+           SECTION 5: LIVE DEMO
+           ═══════════════════════════════════ */
+        .demo {
+            padding: 8rem 0;
+            background: var(--void);
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .terminal {
+            background: #0a0a10;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.8;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+        }
+
+        .terminal-header {
+            background: rgba(255,255,255,0.04);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .term-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .term-dot.red { background: #ef4444; }
+        .term-dot.yellow { background: #f59e0b; }
+        .term-dot.green { background: #22c55e; }
+
+        .term-title {
+            margin-left: 1rem;
+            color: var(--dim);
+            font-size: 0.75rem;
+        }
+
+        .term-body {
+            padding: 1.5rem;
+        }
+
+        .term-line { display: flex; margin-bottom: 0.3rem; }
+        .term-prompt { color: var(--violet); margin-right: 0.75rem; user-select: none; }
+        .term-cmd { color: var(--white); }
+        .term-comment { color: var(--dim); font-style: italic; }
+        .term-output { color: var(--ghost); padding-left: 1.5rem; }
+        .term-success { color: #22c55e; }
+        .term-warning { color: #f59e0b; }
+        .term-info { color: var(--cyan); }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.1em;
+            background: var(--violet);
+            margin-left: 2px;
+            animation: cursor-blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes cursor-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .demo-text h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-text p {
+            color: var(--ghost);
+            font-size: 1.05rem;
+            line-height: 1.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-text .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .demo-text .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--ghost);
+            font-size: 0.95rem;
+        }
+
+        .demo-text .feature-list li::before {
+            content: '⬡';
+            color: var(--violet);
+            font-size: 0.8rem;
+        }
+
+        /* ═══════════════════════════════════
+           SECTION 6: INVITE / VIRAL
+           ═══════════════════════════════════ */
+        .invite {
+            padding: 8rem 0;
+            background: linear-gradient(180deg, var(--void) 0%, #050008 100%);
+        }
+
+        .invite-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(34, 211, 238, 0.05) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 24px;
+            padding: 4rem;
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .invite-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .invite-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .invite h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 1rem;
+        }
+
+        .invite p {
+            color: var(--ghost);
+            margin-bottom: 2.5rem;
+            font-size: 1.05rem;
+        }
+
+        .invite-cmd {
+            display: inline-block;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--cyan);
+            margin-bottom: 2rem;
+        }
+
+        .poem-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-top: 1.5rem;
+            font-style: italic;
+            color: var(--ghost);
+            font-size: 0.95rem;
+            line-height: 2;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .poem-box .ttl {
+            position: absolute;
+            top: 0.75rem;
+            right: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--dim);
+            letter-spacing: 2px;
+            font-style: normal;
+        }
+
+        /* ═══════════════════════════════════
+           SECTION 7: FOOTER
+           ═══════════════════════════════════ */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 4rem 0 3rem;
+            background: var(--void);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-brand p {
+            color: var(--dim);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            line-height: 1.7;
+        }
+
+        .footer-col h4 {
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin-bottom: 1.25rem;
+        }
+
+        .footer-col a {
+            display: block;
+            color: var(--ghost);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            transition: color 0.3s;
+        }
+
+        .footer-col a:hover { color: var(--white); }
+
+        .footer-bottom {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .footer-bottom p {
+            color: var(--dim);
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .footer-text {
-            color: var(--gray-neutral);
-            font-size: 0.9rem;
-        }
-
-        .footer-text a {
-            color: var(--violet-light);
+        .footer-bottom a {
+            color: var(--violet);
             text-decoration: none;
         }
 
-        .footer-text a:hover {
-            text-decoration: underline;
-        }
+        .footer-bottom a:hover { text-decoration: underline; }
 
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .footer-links a {
-            color: var(--gray-neutral);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            color: var(--white-ghost);
-        }
-
-        /* ═══════════════════════════════════════════
-           ANIMATIONS
-           ═══════════════════════════════════════════ */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes scan {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100vh); }
-        }
-
-        .scroll-indicator {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: float 2s ease-in-out infinite;
-        }
-
-        .scroll-indicator span {
-            display: block;
-            width: 24px;
-            height: 40px;
-            border: 2px solid var(--gray-neutral);
-            border-radius: 20px;
-            position: relative;
-        }
-
-        .scroll-indicator span::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 8px;
-            background: var(--violet-neural);
-            border-radius: 2px;
-            animation: scroll-dot 2s ease-in-out infinite;
-        }
-
-        @keyframes scroll-dot {
-            0%, 100% { opacity: 1; top: 8px; }
-            50% { opacity: 0.3; top: 16px; }
-        }
-
-        /* ═══════════════════════════════════════════
-           RESPONSIVE
-           ═══════════════════════════════════════════ */
+        /* ═══════════════════════════════════
+           MOBILE
+           ═══════════════════════════════════ */
         @media (max-width: 768px) {
-            nav {
-                display: none;
-            }
-
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero-stats {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
+            nav { display: none; }
+            .hero h1 { letter-spacing: -1px; }
+            .threat-grid, .demo-grid { grid-template-columns: 1fr; }
+            .threat-visual { display: none; }
+            .step { grid-template-columns: 1fr; gap: 0.75rem; }
+            .step-badge { display: none; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+            .invite-card { padding: 2.5rem 1.5rem; }
         }
+
+        /* ═══════════════════════════════════
+           ANIMATIONS ON SCROLL
+           ═══════════════════════════════════ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
     </style>
 </head>
 <body>
-    <!-- Neural Network Background -->
-    <canvas id="neuralCanvas" class="neural-bg"></canvas>
 
-    <!-- Header -->
-    <header>
-        <div class="container">
+<canvas id="neural"></canvas>
+
+<!-- HEADER -->
+<header>
+    <div class="container">
+        <div class="header-inner">
             <a href="#" class="logo">
                 <div class="logo-hex"></div>
                 POLYGONE
             </a>
             <nav>
-                <a href="#features">Features</a>
-                <a href="#code">Code</a>
-                <a href="#architecture">Architecture</a>
-                <a href="https://github.com/lvs0/Polygone" class="nav-cta">GitHub</a>
+                <a href="#how">Comment ça marche</a>
+                <a href="#demo">Demo</a>
+                <a href="https://github.com/lvs0/Polygone">GitHub</a>
+                <a href="#join" class="btn-nav">Rejoindre</a>
             </nav>
         </div>
-    </header>
+    </div>
+</header>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <span>⬡</span> Post-Quantum Ready — NIST Standard
-                </div>
-                
-                <h1>
-                    Le système nerveux d'Internet
-                    <span>Chiffré. Distribué. Vivant.</span>
-                </h1>
-
-                <p class="hero-subtitle">
-                    Chaque nœud est un <strong>neurone</strong>. Chaque message est une <strong>synapse</strong>. 
-                    Chaque attaque est <strong>guérie</strong>. La cryptographie post-quantique n'est pas une 
-                    feature — c'est l'<strong>ADN</strong>.
-                </p>
-
-                <div class="hero-actions">
-                    <a href="#code" class="btn btn-primary">
-                        ⬡ Commencer
-                    </a>
-                    <a href="https://github.com/lvs0/Polygone" class="btn btn-secondary">
-                        GitHub →
-                    </a>
-                </div>
-
-                <div class="hero-stats">
-                    <div class="stat">
-                        <div class="stat-value">ML-KEM-1024</div>
-                        <div class="stat-label">Post-Quantum Encryption</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">4-of-7</div>
-                        <div class="stat-label">Shamir Secret Sharing</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">100%</div>
-                        <div class="stat-label">Open Source</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="scroll-indicator">
-                <span></span>
-            </div>
+<!-- SECTION 1: HERO -->
+<section class="hero" id="hero">
+    <div class="container">
+        <div class="hero-date">
+            <span>⬡</span> Post-Quantum Ready — NIST Standard Since 2024
         </div>
-    </section>
 
-    <!-- Features -->
-    <section class="features" id="features">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">Pourquoi Polygone</div>
-                <h2 class="section-title">Pas un messenger.<br>Un réseau neuronal.</h2>
-                <p class="section-desc">
-                    Polygone n'est pas une alternative à Signal. C'est une nouvelle forme 
-                    d'intelligence distribuée, chiffrée contre les machines quantiques de 2030.
-                </p>
-            </div>
+        <h1>
+            <span class="line-1">Le système nerveux<br>d'Internet</span>
+            <span class="line-2">Chiffré · Distribué · Vivant</span>
+        </h1>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon quantum">⚛</div>
-                    <h3>Cryptographie Post-Quantique</h3>
+        <p class="hero-quote">
+            En 2030, les ordinateurs quantiques liront tous tes secrets.<br>
+            <strong>Chaque message que tu envoies aujourd'hui sans Polygone<br>
+            est un message qu'on pourra lire dans 5 ans.</strong>
+        </p>
+
+        <div class="hero-cta">
+            <a href="#join" class="btn-primary">⬡ Rejoindre le réseau</a>
+            <a href="#how" class="btn-secondary">Comment ça marche →</a>
+        </div>
+
+        <div class="scroll-hint">Scroll</div>
+    </div>
+</section>
+
+<!-- SECTION 2: THE THREAT -->
+<section class="threat" id="threat">
+    <div class="container">
+        <div class="threat-grid">
+            <div class="reveal">
+                <div class="threat-label">
+                    <span></span> Countdown Active
+                </div>
+                <h2>En 2030,<br>ils <span class="red">ouvriront tout.</span></h2>
+                <div class="threat-text">
                     <p>
-                        ML-KEM-1024, le standard NIST 2024. En 2030, les ordis quantiques 
-                        pourront casser RSA en quelques heures. Polygone sera toujours chiffré.
+                        Les clés RSA qui protègent tes messages aujourd'hui —
+                        les mêmes utilisées par WhatsApp, Signal, tes sites bancaires —
+                        seront une blague pour une machine quantique costing 1000$.
                     </p>
-                    <span class="feature-tag">ML-KEM-1024</span>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon shamir">🔑</div>
-                    <h3>Shamir 4-of-7</h3>
                     <p>
-                        Tu ne perds jamais ta clé. 4 fragments sur 7 suffisent pour 
-                        tout reconstruire. Distribue-les à tes amis, ta famille, tes serveurs.
-                        Aucun tiers de confiance.
+                        Tes conversations. Tes fichiers. Tes mots de passe.
+                        Tes pensées numériques.
+                        <strong>Tout lu. Tout mémorisé. Tout exploité.</strong>
                     </p>
-                    <span class="feature-tag">Zero Trust</span>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon neural">🧠</div>
-                    <h3>Auto-Guérison</h3>
                     <p>
-                        Byzantine Fault Tolerance = système immunitaire. Un nœud compromis ? 
-                        Le réseau l'isole en moins d'une seconde. L'attaque meurt. Polygone survit.
+                        La cryptographie post-quantique n'est pas une option.
+                        C'est la seule façon de communiquer en 2026.
                     </p>
-                    <span class="feature-tag">Byzantine Fault Tolerance</span>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Code -->
-    <section class="code-section" id="code">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">Quick Start</div>
-                <h2 class="section-title">Démarrer en 30 secondes</h2>
-                <p class="section-desc">
-                    Cargo install. Deux lignes de code. Tu es dans le réseau.
-                </p>
-            </div>
-
-            <div class="code-demo">
-                <div class="code-header">
-                    <span class="code-dot red"></span>
-                    <span class="code-dot yellow"></span>
-                    <span class="code-dot green"></span>
-                    <span class="code-filename">terminal</span>
-                </div>
-                <div class="code-content">
-<span class="comment"># Installer Polygone</span>
-<span class="keyword">cargo</span> install polygone
-
-<span class="comment"># Démarrer un nœud</span>
-polygone-node --identity ./my-identity.p2p
-
-<span class="comment"># Envoyer un message chiffré</span>
-<span class="keyword">use</span> polygone::{Message, Cipher};
-<span class="keyword">use</span> polygone_crypto::<span class="type">ml_kem::MLKEM1024</span>;
-
-<span class="keyword">let</span> keypair = MLKEM1024::<span class="function">generate</span>();
-<span class="keyword">let</span> message = Message::<span class="function">new</span>(<span class="string">"Secret data"</span>, &keypair.public);
-<span class="keyword">let</span> encrypted = message.<span class="function">encrypt</span>()?;
-
-<span class="comment">// Partager avec Shamir 4-of-7</span>
-<span class="keyword">use</span> polygone_crypto::<span class="type">shamir::ShamirScheme</span>;
-
-<span class="keyword">let</span> shares = ShamirScheme::<span class="function">split</span>(secret, threshold: <span class="number">4</span>, total: <span class="number">7</span>);
-<span class="comment">// Distribue 7 fragments. 4 suffisent pour reconstruire.</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Architecture -->
-    <section class="architecture" id="architecture">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">Architecture</div>
-                <h2 class="section-title">Le Stack</h2>
-                <p class="section-desc">
-                    100% Rust. Chaque crate est un pilier. Ensemble, elles forment 
-                    le système nerveux d'Internet.
-                </p>
-            </div>
-
-            <div class="arch-diagram">
-┌──────────────────────────────────────────────────────────────────┐
-│                          POLYGONE STACK                            │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   ┌────────────┐    ┌────────────┐    ┌────────────┐            │
-│   │ polygone   │    │  polygone  │    │  polygone  │            │
-│   │   -app     │    │   -msg     │    │   -msh     │            │
-│   └─────┬──────┘    └─────┬──────┘    └─────┬──────┘            │
-│         │                  │                  │                   │
-│   ┌─────▼──────────────────▼──────────────────▼─────┐            │
-│   │                 polygone-core                     │            │
-│   │        Neural Network + Message Protocol         │            │
-│   └───────────────────────┬─────────────────────────┘            │
-│                           │                                        │
-│   ┌───────────────────────▼─────────────────────────────────┐   │
-│   │                 polygone-crypto                           │   │
-│   │  ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌─────────┐     │   │
-│   │  │ ML-KEM   │ │  AES-256 │ │ Shamir  │ │ BLAKE3  │     │   │
-│   │  │ -1024    │ │  -GCM    │ │  4-of-7 │ │         │     │   │
-│   │  └──────────┘ └──────────┘ └─────────┘ └─────────┘     │   │
-│   └───────────────────────────────────────────────────────────┘   │
-│                                                                   │
-│   ┌───────────────────────▼─────────────────────────────────┐   │
-│   │                 polygone-network                          │   │
-│   │   libp2p │ Kademlia DHT │ QUIC │ WebRTC                  │   │
-│   └───────────────────────────────────────────────────────────┘   │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="logo-hex"></div>
-                    <div class="footer-text">
-                        Fait avec 🦀 par <a href="https://github.com/lvs0">l-vs</a><br>
-                        Open-source sous MIT License
+            <div class="threat-visual reveal reveal-delay-2">
+                <div class="quantum-clock">
+                    <div class="clock-ring"></div>
+                    <div class="clock-ring"></div>
+                    <div class="clock-ring"></div>
+                    <div class="clock-core">
+                        <span class="year">2030</span>
+                        Quantum<br>Computers<br>Arrive<br>
+                        <span style="color: var(--dim); font-size: 0.75rem; margin-top: 0.5rem; display: block;">Your data is already stored</span>
                     </div>
                 </div>
-                <div class="footer-links">
-                    <a href="https://github.com/lvs0/Polygone">GitHub</a>
-                    <a href="docs/PETALS_NEURO_SPEC.md">PETALS_NEURO</a>
-                    <a href="SPEC.md">Specs</a>
-                    <a href="BRAND.md">Brand</a>
-                </div>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script>
-        // ═══════════════════════════════════════════
-        // Neural Network Canvas Animation
-        // ═══════════════════════════════════════════
-        const canvas = document.getElementById('neuralCanvas');
-        const ctx = canvas.getContext('2d');
+<!-- SECTION 3: THE HEXAGON -->
+<section class="hex-section" id="philosophy">
+    <div class="hex-center">
+        <div class="hex-glow">⬡</div>
+    </div>
+    <div class="container">
+        <div class="hex-content reveal">
+            <div class="eyebrow">Pourquoi l'hexagone</div>
+            <h2>
+                L'hexagone est la forme<br>
+                qui utilise le <em>moins de matériau</em><br>
+                pour enclose la plus<br>
+                <strong>grande surface</strong>.
+            </h2>
+            <p>
+                C'est optimal. C'est élégant.<br>
+                C'est ce que fait Polygone avec la cryptographie —<br>
+                chiffrer le maximum de liberté avec le minimum de complexité.
+                <br><br>
+                Le vide au centre, c'est ce qu'on protège.
+            </p>
+        </div>
+    </div>
+</section>
 
-        let width, height;
-        let nodes = [];
-        let connections = [];
+<!-- SECTION 4: HOW IT WORKS -->
+<section class="how" id="how">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="tag">// Comment ça marche</span>
+            <h2>Pas un messenger.<br>Un système immunitaire.</h2>
+            <p class="desc">
+                Chaque message Polygone traverse le réseau comme une impulsion
+                neuronale — chiffré, fragmenté, puis mort en 30 secondes.
+            </p>
+        </div>
 
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
+        <div class="steps">
+            <div class="step reveal">
+                <div class="step-num">01</div>
+                <div>
+                    <h3>ML-KEM-1024 — Clé incassable</h3>
+                    <p>Chaque nœud génère une clé post-quantique NIST. Quand tu envoies un message, il est chiffré avec la clé publique du destinataire. Même un ordinateur quantique mettrait des années à la casser.</p>
+                </div>
+                <div class="step-badge">NIST FIPS 203</div>
+            </div>
 
-        function init() {
-            resize();
-            nodes = [];
-            connections = [];
+            <div class="step reveal reveal-delay-1">
+                <div class="step-num">02</div>
+                <div>
+                    <h3>Shamir 4-of-7 — Zéro point de défaillance</h3>
+                    <p>Le message chiffré est coupé en 7 fragments. Chaque fragment voyage par un chemin différent. 4 fragments suffisent pour reconstruire — 3 fragments révèlent ZERO information.</p>
+                </div>
+                <div class="step-badge">Information-theoretic</div>
+            </div>
+
+            <div class="step reveal reveal-delay-2">
+                <div class="step-num">03</div>
+                <div>
+                    <h3>30 secondes — Puis c'est mort</h3>
+                    <p>Aucune donnée n'est stockée. Après 30 secondes, chaque fragment s'auto-détruit. Pas d'historique. Pas d'archive. Pas de données à pirater dans 5 ans.</p>
+                </div>
+                <div class="step-badge">Zero persistence</div>
+            </div>
+
+            <div class="step reveal reveal-delay-3">
+                <div class="step-num">04</div>
+                <div>
+                    <h3>Byzantine Fault Tolerance — Auto-guérison</h3>
+                    <p>Un nœud compromis ? Le réseau l'isole en moins d'une seconde. L'attaque meurt. Polygone survit. Le réseau est son propre système immunitaire.</p>
+                </div>
+                <div class="step-badge">BFT</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 5: DEMO -->
+<section class="demo" id="demo">
+    <div class="container">
+        <div class="demo-grid">
+            <div class="terminal reveal">
+                <div class="terminal-header">
+                    <span class="term-dot red"></span>
+                    <span class="term-dot yellow"></span>
+                    <span class="term-dot green"></span>
+                    <span class="term-title">terminal — polygone</span>
+                </div>
+                <div class="term-body" id="term-body">
+                    <div class="term-line">
+                        <span class="term-prompt">❯</span>
+                        <span class="term-cmd">curl -fsSL polyg.one/install | bash</span>
+                    </div>
+                    <div class="term-output term-comment"># Installation en cours...</div>
+                    <div class="term-output term-success">✓ Téléchargement terminé</div>
+                    <div class="term-output term-success">✓ Compilation Rust (100%)</div>
+                    <div class="term-output term-success">✓ Clés ML-KEM-1024 générées</div>
+                    <div class="term-output term-info">⬡ Connexion au réseau neuronal...</div>
+                    <br>
+                    <div class="term-line">
+                        <span class="term-prompt">❯</span>
+                        <span class="term-cmd">polygone send "La vie privée n'est pas un luxe."</span>
+                    </div>
+                    <div class="term-output term-comment"># Message fragmenté en 7parts // seuil: 4</div>
+                    <div class="term-output term-info">Fragment 1 → transit</div>
+                    <div class="term-output term-info">Fragment 2 → transit</div>
+                    <div class="term-output term-info">Fragment 3 → transit</div>
+                    <div class="term-output term-info">Fragment 4 → transit</div>
+                    <div class="term-output term-success">⬡ Message livré // TTL: 30s // 0 serveur central</div>
+                    <br>
+                    <div class="term-line">
+                        <span class="term-prompt">❯</span>
+                        <span class="term-cmd">polygone invite</span>
+                    </div>
+                    <div class="term-output term-comment"># Génération d'une invitation poétique...</div>
+                    <div class="term-output">
+                        <span class="term-info">
+「 Chaque mot que tu murmures<br>
+　　　devient une synapse<br>
+　　　　dans le réseau<br>
+　　　　　　qui ne s'oublie jamais.<br><br>
+　　　　Rejoins-moi. 」<br>
+　　　　　　— expire dans 30s
+                        </span>
+                    </div>
+                    <br>
+                    <div class="term-line">
+                        <span class="term-prompt">❯</span>
+                        <span class="term-cmd" id="term-cursor">_</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-text reveal reveal-delay-2">
+                <span class="tag" style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--cyan); display: block; margin-bottom: 1rem;">// Terminal</span>
+                <h2>Deux lignes.<br>Tu es dans le réseau.</h2>
+                <p>
+                    Pas de compte. Pas de numéro de téléphone. Pas de serveur central.
+                    Juste du Rust, du ML-KEM, et une conviction :
+                    la vie privée est un droit, pas une feature.
+                </p>
+                <ul class="feature-list">
+                    <li>100% Open Source — MIT License</li>
+                    <li>0 données collectées</li>
+                    <li>Fonctionne sur Linux, macOS, Windows</li>
+                    <li>Rust — pas de runtime, pas de GC, pas de surprises</li>
+                    <li>Communique avec le monde entier</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 6: JOIN / INVITE -->
+<section class="invite" id="join">
+    <div class="container">
+        <div class="invite-card reveal">
+            <span class="invite-icon">⬡</span>
+            <h2>Rejoins la résistance.</h2>
+            <p>Chaque nœud Polygone est un neurone. Plus il y a de nœuds, plus le réseau est intelligent, rapide, résilient.</p>
             
-            // Create nodes
-            const numNodes = Math.floor((width * height) / 15000);
-            for (let i = 0; i < numNodes; i++) {
-                nodes.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.5,
-                    vy: (Math.random() - 0.5) * 0.5,
-                    radius: Math.random() * 2 + 1,
-                    pulse: Math.random() * Math.PI * 2
-                });
-            }
+            <div class="invite-cmd">curl -fsSL polyg.one/install | bash</div>
 
-            // Pre-calculate connections
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const dx = nodes[i].x - nodes[j].x;
-                    const dy = nodes[i].y - nodes[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 150) {
-                        connections.push([i, j, dist]);
-                    }
-                }
-            }
-        }
+            <div class="poem-box">
+                <span class="ttl">// expire dans 30s</span>
+                Chaque silence a un écho.<br>
+                Chaque conversation une signature.<br>
+                Chaque fragment une preuve :<br>
+                <strong>tu existais. Tu pensais librement.</strong><br>
+                Et personne n'avait le droit de lire.
+            </div>
+        </div>
+    </div>
+</section>
 
-        function animate() {
-            ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
-            ctx.fillRect(0, 0, width, height);
+<!-- FOOTER -->
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo" style="font-size: 1.2rem;">
+                    <div class="logo-hex"></div>
+                    POLYGONE
+                </a>
+                <p>
+                    Le système nerveux d'Internet. Chiffré post-quantique.
+                    Open source. Construit par Hope Collective, maintenu par le réseau.
+                    <br><br>
+                    <a href="https://github.com/lvs0/Polygone" style="color: var(--violet);">github.com/lvs0/Polygone →</a>
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Produit</h4>
+                <a href="#how">Comment ça marche</a>
+                <a href="#demo">Demo</a>
+                <a href="POLYGONE_MANIFESTO.md">Manifeste</a>
+                <a href="SPEC.md">Spécifications</a>
+            </div>
+            <div class="footer-col">
+                <h4>Écosystème</h4>
+                <a href="https://github.com/lvs0/Polygone-Petals">Polygone-Petals</a>
+                <a href="https://github.com/lvs0/Polygone-Drive">Polygone-Drive</a>
+                <a href="https://github.com/lvs0/Polygone-Hide">Polygone-Hide</a>
+                <a href="https://github.com/lvs0/Polygone-Brain">Polygone-Brain</a>
+            </div>
+            <div class="footer-col">
+                <h4>Communauté</h4>
+                <a href="https://github.com/lvs0/Polygone/issues">Issues</a>
+                <a href="https://github.com/lvs0/Polygone/discussions">Discussions</a>
+                <a href="CONTRIBUTING.md">Contribuer</a>
+                <a href="https://github.com/lvs0">l-vs on GitHub</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>MIT License — Fait avec 🦀 Rust</p>
+            <p>Hope Collective · <a href="https://github.com/lvs0/Polygone">github.com/lvs0/Polygone</a></p>
+        </div>
+    </div>
+</footer>
 
-            // Update and draw nodes
-            nodes.forEach((node, i) => {
-                node.x += node.vx;
-                node.y += node.vy;
-                node.pulse += 0.02;
+<script>
+    // ═══════════════════════════════
+    //  NEURAL NETWORK CANVAS
+    // ═══════════════════════════════
+    const canvas = document.getElementById('neural');
+    const ctx = canvas.getContext('2d');
+    let nodes = [];
+    const NODE_COUNT = 60;
+    const CONNECTION_DISTANCE = 180;
 
-                // Bounce off edges
-                if (node.x < 0 || node.x > width) node.vx *= -1;
-                if (node.y < 0 || node.y > height) node.vy *= -1;
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
 
-                // Draw node
-                const alpha = 0.5 + Math.sin(node.pulse) * 0.3;
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(124, 58, 237, ${alpha})`;
-                ctx.fill();
-
-                // Glow
-                const gradient = ctx.createRadialGradient(
-                    node.x, node.y, 0,
-                    node.x, node.y, node.radius * 5
-                );
-                gradient.addColorStop(0, `rgba(124, 58, 237, ${alpha * 0.3})`);
-                gradient.addColorStop(1, 'rgba(124, 58, 237, 0)');
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius * 5, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.fill();
+    function initNodes() {
+        nodes = [];
+        for (let i = 0; i < NODE_COUNT; i++) {
+            nodes.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                r: 2 + Math.random() * 3,
+                pulse: Math.random() * Math.PI * 2,
+                pulseSpeed: 0.01 + Math.random() * 0.02,
             });
+        }
+    }
 
-            // Draw connections
-            connections.forEach(([i, j, baseDist]) => {
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Nodes
+        nodes.forEach(n => {
+            n.x += n.vx;
+            n.y += n.vy;
+            n.pulse += n.pulseSpeed;
+
+            if (n.x < 0) n.x = canvas.width;
+            if (n.x > canvas.width) n.x = 0;
+            if (n.y < 0) n.y = canvas.height;
+            if (n.y > canvas.height) n.y = 0;
+
+            const pulseAlpha = 0.3 + Math.sin(n.pulse) * 0.3;
+            const gradient = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4);
+            gradient.addColorStop(0, `rgba(139, 92, 246, ${pulseAlpha})`);
+            gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r * 4, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        });
+
+        // Connections
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
                 const dx = nodes[i].x - nodes[j].x;
                 const dy = nodes[i].y - nodes[j].y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < 150) {
-                    const alpha = (1 - dist / 150) * 0.3;
+                if (dist < CONNECTION_DISTANCE) {
+                    const alpha = (1 - dist / CONNECTION_DISTANCE) * 0.15;
                     ctx.beginPath();
                     ctx.moveTo(nodes[i].x, nodes[i].y);
                     ctx.lineTo(nodes[j].x, nodes[j].y);
-                    
-                    // Gradient from violet to cyan
-                    const gradient = ctx.createLinearGradient(
-                        nodes[i].x, nodes[i].y,
-                        nodes[j].x, nodes[j].y
-                    );
-                    gradient.addColorStop(0, `rgba(124, 58, 237, ${alpha})`);
-                    gradient.addColorStop(1, `rgba(34, 211, 238, ${alpha})`);
-                    
-                    ctx.strokeStyle = gradient;
+                    ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
                 }
-            });
-
-            requestAnimationFrame(animate);
+            }
         }
 
-        window.addEventListener('resize', () => {
-            resize();
-            init();
-        });
+        requestAnimationFrame(draw);
+    }
 
-        init();
-        animate();
-    </script>
+    window.addEventListener('resize', () => { resize(); initNodes(); });
+    resize();
+    initNodes();
+    draw();
+
+    // ═══════════════════════════════
+    //  SCROLL REVEAL
+    // ═══════════════════════════════
+    const revealElements = document.querySelectorAll('.reveal');
+
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.15 });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+</script>
+
 </body>
 </html>
