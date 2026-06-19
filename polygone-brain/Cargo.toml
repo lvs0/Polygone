@@ -1,0 +1,16 @@
+[package]
+name = "polygone-brain"
+version = "0.1.0"
+edition = "2021"
+authors = ["l-vs (Hope)", "Zoe"]
+description = "Polygone Brain: simulated personalities for distributed AI orchestration"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+anyhow = "1"
+tracing = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    plan: free
+    region: oregon
+    buildCommand: ""
+    startCommand: ./polygone start
+    healthCheckPath: /health
+    healthCheckInterval: 30
+    healthCheckTimeout: 5
+    healthCheckGracePeriod: 10
+    envVars:
+      - key: PORT
+        sync: false

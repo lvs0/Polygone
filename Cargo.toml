@@ -4,6 +4,7 @@ members = [
     "polygone-core",
     "polygone-shell",
     "polygone-petals",
+    "polygone-brain",
     "crates/app",
     "crates/common",
     "crates/crypto",
