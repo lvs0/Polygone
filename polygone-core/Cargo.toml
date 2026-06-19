@@ -1,20 +1,25 @@
 [package]
-name = "polygone"
-version = "0.1.0"
+name = "polygone-core"
+version = "1.0.0"
 edition = "2021"
-authors = ["l-vs (Hope)"]
-description = "Polygone core: crypto, network primitives, and shared types."
 license = "MIT"
+authors = ["Lévy <polygone@proton.me>"]
+description = "⬡ Polygone Core — the organism's nervous system"
+
+[lib]
+path = "src/lib.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-anyhow = "1"
-tracing = "0.1"
+libp2p = { version = "0.56", features = ["kad", "noise", "tcp", "yamux", "identify"] }
+ml-kem = "0.2"
+ml-dsa = "0.2"
+aes-gcm = "0.10"
+blake3 = "1.5"
+rand = "0.8"
 serde = { version = "1", features = ["derive"] }
-bincode = "1"
-thiserror = "1"
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
 
-# Dépendances des crates fondamentales (workpace members)
-polygone-common = { path = "../crates/common" }
-polygone-crypto = { path = "../crates/crypto" }
-polygone-network = { path = "../crates/network" }
+[features]
+default = []
