@@ -11,6 +11,8 @@
 [![Rust](https://img.shields.io/badge/Made%20in-100%25%20Rust-000?style=flat-square&logo=rust)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-MIT-7c3aed?style=flat-square)](LICENSE)
 
+[**⬡ Manifesto**](MANIFESTO.md) · [**Design philosophy**](docs/DESIGN_PHILOSOPHY.md) · [**Philosophy Engine**](docs/PHILOSOPHY_ENGINE.md) · [**Ecosystem map**](docs/ECOSYSTEM_MAP.md) · [**Positioning**](docs/OPEN_SOURCE_POSITIONING.md) · [**Community Doctrine**](COMMUNITY_DOCTRINE.md)
+
 </div>
 
 ---
