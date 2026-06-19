@@ -6,7 +6,7 @@ authors = ["l-vs (Hope)"]
 description = "Interactive TUI Dashboard for the Polygone Network"
 
 [dependencies]
-polygone = { path = "../polygone-core" }
+polygone-core = { path = "../polygone-core" }
 
 # TUI (Ratatui + Crossterm)
 ratatui = "0.26"

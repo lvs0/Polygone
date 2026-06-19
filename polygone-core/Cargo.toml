@@ -13,13 +13,18 @@ path = "src/lib.rs"
 tokio = { version = "1", features = ["full"] }
 libp2p = { version = "0.56", features = ["kad", "noise", "tcp", "yamux", "identify"] }
 ml-kem = "0.2"
-ml-dsa = "0.2"
+ml-dsa = "0.1"
 aes-gcm = "0.10"
 blake3 = "1.5"
 rand = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", features = ["serde"] }
+
+# Workspace crates
+polygone-common = { path = "../crates/common" }
+polygone-crypto = { path = "../crates/crypto" }
+polygone-network = { path = "../crates/network" }
 
 [features]
 default = []

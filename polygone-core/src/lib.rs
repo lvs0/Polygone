@@ -15,9 +15,14 @@
 #![allow(missing_docs)]
 #![forbid(unsafe_code)]
 
+// Proof-of-presence tracker (organism-level, no-stake presence proof)
+pub mod presence;
+
 // ============================================================================
 // FOUNDATIONS — re-export primitives
 // ============================================================================
+
+use std::sync::Arc;
 
 pub use polygone_common::{
     error::PolygoneError,
@@ -47,12 +52,9 @@ pub use polygone_network::{
 // ============================================================================
 
 pub mod organism {
-    //! The living concepts that give Polygone its **soul**.
-    //!
-    //! Apple sells products. We sell **privacy as a state of being**.
-
-    use std::sync::Arc;
-    use std::time::{Duration, Instant};
+    /// The living concepts that give Polygone its **soul**.
+    /// Apple sells products. We sell **privacy as a state of being**.
+    ///
     use serde::{Deserialize, Serialize};
 
     /// The Polygone **Pulse** — a 32‑byte heartbeat emitted by every node.

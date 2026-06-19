@@ -11,6 +11,8 @@ tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 anyhow = "1"
 tracing = "0.1"
+polygone-crypto = { path = "../crates/crypto" }
+polygone-common = { path = "../crates/common" }
 
 [dev-dependencies]
 tokio-test = "0.4"
