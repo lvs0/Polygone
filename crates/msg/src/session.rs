@@ -169,14 +169,16 @@ impl MessageSession {
             .into_iter()
             .enumerate()
             .map(|(i, fragment)| {
-                // Derive per-fragment nonce from the main nonce + index
-                let mut nonce_extended = [0u8; 12];
-                nonce_extended.copy_from_slice(&nonce);
-                nonce_extended[11] = i as u8;
-
-                let (frag_ciphertext, _) =
+                // encrypt() returns a fresh random nonce per call
+                let (frag_ciphertext, frag_nonce) =
                     polygone_crypto::encrypt(sk_ref, &fragment.data, b"polygone-fragment")
                         .expect("fragment encryption must succeed");
+
+                // Store frag_nonce || frag_ciphertext in ciphertext_fragment
+                let mut frag_with_nonce =
+                    Vec::with_capacity(frag_nonce.len() + frag_ciphertext.len());
+                frag_with_nonce.extend_from_slice(&frag_nonce);
+                frag_with_nonce.extend_from_slice(&frag_ciphertext);
 
                 Envelope {
                     message_id: MessageId::from_ciphertext(&ciphertext),
@@ -184,9 +186,11 @@ impl MessageSession {
                     total_fragments: total as u8,
                     threshold: threshold as u8,
                     encapsulated_key: encapsulated_key.clone(),
-                    nonce: nonce_extended.to_vec(),
-                    ciphertext_fragment: frag_ciphertext,
+                    nonce: frag_nonce.to_vec(),
+                    ciphertext_fragment: frag_with_nonce,
                     plaintext_hash: plaintext_hash.clone(),
+                    inner_ciphertext: ciphertext.clone(),
+                    inner_nonce: nonce.to_vec(),
                 }
             })
             .collect();
@@ -299,18 +303,14 @@ impl MessageSession {
         let mut decrypted_fragments = Vec::with_capacity(envelopes.len());
 
         for env in &envelopes {
-            // Recover per-fragment nonce
-            let mut nonce_extended = [0u8; 12];
-            nonce_extended.copy_from_slice(&env.nonce);
-            nonce_extended[11] = env.fragment_index as u8;
+            // Split the stored frag_nonce || frag_ciphertext
+            let (frag_nonce_bytes, frag_ct_bytes) =
+                env.ciphertext_fragment.split_at(12);
+            let mut frag_nonce = [0u8; 12];
+            frag_nonce.copy_from_slice(frag_nonce_bytes);
 
-            let fragment_data = polygone_crypto::decrypt(
-                sk_ref,
-                &env.ciphertext_fragment,
-                &nonce_extended,
-                b"polygone-fragment",
-            )
-            .map_err(|_| SessionError::DecryptionFailed)?;
+            let fragment_data = polygone_crypto::decrypt(sk_ref, frag_ct_bytes, &frag_nonce, b"polygone-fragment")
+                .map_err(|_| SessionError::DecryptionFailed)?;
 
             decrypted_fragments.push(polygone_crypto::ShamirFragment {
                 id: FragmentId::new(env.fragment_index + 1),
@@ -321,20 +321,18 @@ impl MessageSession {
         // Sort by fragment index
         decrypted_fragments.sort_by_key(|f| f.id.as_u8());
 
-        // Reconstruct ciphertext from Shamir fragments
-        let cipher_key = polygone_crypto::reconstruct_secret(decrypted_fragments, threshold)
+        // Reconstruct the AES-GCM ciphertext from Shamir fragments
+        let _cipher_key = polygone_crypto::reconstruct_secret(decrypted_fragments, threshold)
             .ok_or(SessionError::ShamirReconstruct)?;
 
-        // Decrypt ciphertext with main nonce (index 0)
-        let main_nonce = {
-            let mut n = [0u8; 12];
-            n.copy_from_slice(&envelopes[0].nonce);
-            n
-        };
+        // Decrypt the message using the ML-KEM shared secret and the stored ciphertext
+        let inner_ct = &envelopes[0].inner_ciphertext;
+        let mut main_nonce = [0u8; 12];
+        main_nonce.copy_from_slice(&envelopes[0].inner_nonce);
 
         let plaintext = polygone_crypto::decrypt(
             sk_ref,
-            cipher_key.as_slice(),
+            inner_ct,
             &main_nonce,
             b"polygone-message-v1",
         )
@@ -367,8 +365,8 @@ mod tests {
     fn test_send_receive_roundtrip() {
         use polygone_crypto::generate_kem_key_pair;
 
-        let (my_sk, my_pk) = generate_kem_key_pair();
-        let (peer_sk, peer_pk) = generate_kem_key_pair();
+        let (my_pk, my_sk) = generate_kem_key_pair();
+        let (peer_pk, peer_sk) = generate_kem_key_pair();
 
         // Alice sends to Bob (keys as raw bytes via .to_bytes())
         let alice =
@@ -385,14 +383,20 @@ mod tests {
             "should produce 7 fragments for default config"
         );
 
-        // Bob collects 4+ envelopes
-        for env in envelopes.iter().take(4) {
+        // Bob collects threshold-1 envelopes (not ready yet)
+        for env in envelopes.iter().take(3) {
             let ready = bob
                 .collect_envelope(env.clone())
                 .expect("collect should succeed");
-            assert!(!ready, "not ready with only 4 (threshold = 4)");
+            assert!(!ready, "not ready with only 3 envelopes (threshold = 4)");
         }
-        // Fifth fragment triggers reassembly signal
+        // Bob collects the threshold envelope (now ready)
+        let env4 = &envelopes[3];
+        let ready = bob
+            .collect_envelope(env4.clone())
+            .expect("collect should succeed");
+        assert!(ready, "should be ready with 4 envelopes (threshold = 4)");
+        // Bob collects one more envelope (still ready)
         let env5 = &envelopes[4];
         let ready = bob
             .collect_envelope(env5.clone())
@@ -414,7 +418,7 @@ mod tests {
         let session =
             MessageSession::new(sk.to_bytes(), pk.to_bytes());
         let msg = OutgoingMessage::plaintext(b"test");
-        let envelopes = session.encapsulate(msg).unwrap();
+        let envelopes = session.encapsulate(msg).expect("encapsulate should succeed");
 
         for env in &envelopes {
             let bytes = env.to_bytes();

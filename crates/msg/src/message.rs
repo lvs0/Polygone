@@ -116,12 +116,16 @@ pub struct Envelope {
     /// ML-KEM-1024 encapsulated key (sent with every fragment).
     /// The recipient uses this to derive the session key for AES-GCM.
     pub encapsulated_key: Vec<u8>,
-    /// AES-256-GCM nonce used for fragment encryption.
+    /// AES-256-GCM nonce used for fragment encryption (per-fragment random nonce).
     pub nonce: Vec<u8>,
     /// Encrypted fragment bytes (Shamir share under AES-GCM session key).
     pub ciphertext_fragment: Vec<u8>,
     /// SHA-256 digest of the full plaintext (for integrity check after reassembly).
     pub plaintext_hash: Vec<u8>,
+    /// The AES-GCM ciphertext of the full message (stored for reassembly).
+    pub inner_ciphertext: Vec<u8>,
+    /// The AES-GCM nonce used for the full message encryption.
+    pub inner_nonce: Vec<u8>,
 }
 
 impl Envelope {
