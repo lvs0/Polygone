@@ -22,6 +22,7 @@ async fn test_announce_and_transfer_large_fake() {
         chunk: None,
         payload: None,
         sig: Some("sig_fake".to_string()),
+        signer_pk: None,
         nonce: "nonce1".to_string(),
         timestamp: 1234567890,
     };
@@ -45,6 +46,7 @@ async fn test_announce_and_transfer_large_fake() {
         }),
         payload: Some(fake_data.clone()),
         sig: Some("sig_xf".to_string()),
+        signer_pk: None,
         nonce: "nonce3".to_string(),
         timestamp: 1234567910,
     };

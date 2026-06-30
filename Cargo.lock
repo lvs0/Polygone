@@ -3102,11 +3102,15 @@ name = "msh"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "ed25519-dalek",
+ "hex",
  "libp2p 0.53.2",
+ "rand 0.8.6",
  "serde",
  "serde_json",
  "tokio",
  "uuid",
+ "zeroize",
 ]
 
 [[package]]
