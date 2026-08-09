@@ -89,3 +89,8 @@ MIT. Chaque ligne est auditable.
 ---
 
 ⬡ Polygone — *l'information n'existe pas, elle traverse.*
+
+
+---
+
+**Soutenir** — [`payrequest.me/lvs0`](https://payrequest.me/lvs0)
