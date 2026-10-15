@@ -7,7 +7,7 @@
 
 use polygone_common::SessionKey;
 use polygone_crypto::{decapsulate, decrypt, encapsulate, encrypt, generate_kem_key_pair};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 const ITERS_AES: usize = 100_000;
 const ITERS_KEM: usize = 20_000;
@@ -108,19 +108,19 @@ fn main() {
     println!("| Operation | Iterations | Total time | µs / op | Throughput |");
     println!("|-----------|-----------|------------|---------|------------|");
     println!(
-        "| AES-256-GCM encrypt (256 B AA) | {:,} | {:.2?} | {:.1} µs | {:.1} KB/s |",
+        "| AES-256-GCM encrypt (256 B AA) | {} | {:.2?} | {:.1} µs | {:.1} KB/s |",
         ITERS_AES, t_enc, per_op_enc_us, enc_tp
     );
     println!(
-        "| AES-256-GCM encrypt+decrypt     | {:,} | {:.2?} | {:.1} µs | {:.1} KB/s |",
+        "| AES-256-GCM encrypt+decrypt     | {} | {:.2?} | {:.1} µs | {:.1} KB/s |",
         ITERS_AES, t_full, per_op_full_us, full_tp
     );
     println!(
-        "| ML-KEM-1024 encapsulate | {:,} | {:.2?} | {:.1} µs |  —  |",
+        "| ML-KEM-1024 encapsulate | {} | {:.2?} | {:.1} µs |  —  |",
         ITERS_KEM, t_encaps, per_op_encaps_us
     );
     println!(
-        "| ML-KEM-1024 roundtrip   | {:,} | {:.2?} | {:.1} µs |  —  |\n",
+        "| ML-KEM-1024 roundtrip   | {} | {:.2?} | {:.1} µs |  —  |\n",
         ITERS_KEM, t_kem_rt, per_op_kem_rt_us
     );
 

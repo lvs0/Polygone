@@ -163,7 +163,7 @@ impl SyncNode {
 ///
 /// Property: two nodes with the same history always converge to the same state,
 /// regardless of the order in which updates are received.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TwoPSet {
     /// element → Set of unique add-tags
     adds: HashMap<Vec<u8>, Vec<u64>>,
@@ -173,17 +173,6 @@ pub struct TwoPSet {
     tag_counter: u64,
     /// Per-node tag offsets for uniqueness across nodes
     node_tag_offsets: HashMap<[u8; 32], u64>,
-}
-
-impl Default for TwoPSet {
-    fn default() -> Self {
-        Self {
-            adds: HashMap::new(),
-            removes: std::collections::HashSet::new(),
-            tag_counter: 0,
-            node_tag_offsets: HashMap::new(),
-        }
-    }
 }
 
 impl TwoPSet {
@@ -323,7 +312,7 @@ impl DistributedState {
     /// Merge another node's state (CRDT merge — idempotent, commutative).
     pub fn merge(&mut self, other: &DistributedState) {
         for (id, other_reg) in &other.nodes {
-            let entry = self.nodes.entry(*id).or_insert_with(LWWRegister::default);
+            let entry = self.nodes.entry(*id).or_default();
             entry.merge(other_reg);
         }
         self.routing.merge(&other.routing);
