@@ -10,12 +10,12 @@
 //! - `behaviour` — libp2p NetworkBehaviour composition.
 //! - `dispatch` — Fragment dispatch orchestrator (Shamir → encrypt → route → collect).
 
-pub mod node;
 pub mod behaviour;
 pub mod dispatch;
+pub mod node;
 
+pub use dispatch::{DispatchError, FragmentDispatcher};
 pub use node::P2PNode;
-pub use dispatch::{FragmentDispatcher, DispatchError};
 
 #[cfg(test)]
 mod tests;

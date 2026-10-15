@@ -5,8 +5,8 @@
 //! encrypted under the session key and routed to a specific node determined
 //! by the deterministic topology.
 
-use serde::{Deserialize, Serialize};
 use crate::NodeId;
+use serde::{Deserialize, Serialize};
 
 /// Opaque identifier for a fragment (1-indexed, matching Shamir share index).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

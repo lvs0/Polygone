@@ -20,13 +20,16 @@ impl ModelRelay {
 
     /// Run inference on a batch of hidden states for the assigned layers.
     pub fn run_segment(&self, xs: &Tensor) -> anyhow::Result<Tensor> {
-        println!("  [PETALS] Computing layers {} to {}...", self.start_layer, self.end_layer);
-        
+        println!(
+            "  [PETALS] Computing layers {} to {}...",
+            self.start_layer, self.end_layer
+        );
+
         // MOCK: In a real implementation, we would apply the transformer blocks here.
-        // For the v0.1 prototype, we simulate the computation by adding a tiny noise 
+        // For the v0.1 prototype, we simulate the computation by adding a tiny noise
         // or a constant to show the tensor has been "processed".
         let output = xs.add(&xs.clone())?; // Dummy operation
-        
+
         Ok(output)
     }
 }
@@ -34,7 +37,7 @@ impl ModelRelay {
 /// Helper to serialize/deserialize tensors for P2P transit.
 pub mod tensor_util {
     use super::*;
-    use byteorder::{ReadBytesExt, WriteBytesExt, LittleEndian};
+    use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
     pub fn serialize(t: &Tensor) -> anyhow::Result<(Vec<u8>, Vec<usize>)> {
         let mut data = Vec::new();

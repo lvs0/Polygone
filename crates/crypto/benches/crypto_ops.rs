@@ -5,14 +5,14 @@
 //! This measures wall-clock time for a fixed number of operations and
 //! prints a markdown table so the results can be saved directly.
 
-use std::time::Instant;
-use polygone_crypto::{encrypt, decrypt, encapsulate, decapsulate, generate_kem_key_pair};
 use polygone_common::SessionKey;
+use polygone_crypto::{decapsulate, decrypt, encapsulate, encrypt, generate_kem_key_pair};
+use std::time::Instant;
 
-const ITERS_AES: usize  = 100_000;
-const ITERS_KEM: usize  = 20_000;
-const WARMUP_AES: usize  = 10_000;
-const WARMUP_KEM: usize   = 2_000;
+const ITERS_AES: usize = 100_000;
+const ITERS_KEM: usize = 20_000;
+const WARMUP_AES: usize = 10_000;
+const WARMUP_KEM: usize = 2_000;
 
 fn bench_bytes() -> Vec<u8> {
     // Mimic a typical Polygone session key exchange payload: 256 bytes.
@@ -20,18 +20,22 @@ fn bench_bytes() -> Vec<u8> {
 }
 
 fn bench_aes_encrypt() -> Duration {
-    let key  = SessionKey::new([0xABu8; 32]);
-    let pt   = bench_bytes();
-    let t0   = Instant::now();
-    for _ in 0..WARMUP_AES { let _ = encrypt(&key, &pt, &[]); }
-    for _ in 0..ITERS_AES  { let _ = encrypt(&key, &pt, &[]); }
+    let key = SessionKey::new([0xABu8; 32]);
+    let pt = bench_bytes();
+    let t0 = Instant::now();
+    for _ in 0..WARMUP_AES {
+        let _ = encrypt(&key, &pt, &[]);
+    }
+    for _ in 0..ITERS_AES {
+        let _ = encrypt(&key, &pt, &[]);
+    }
     t0.elapsed()
 }
 
 fn bench_aes_full_roundtrip() -> Duration {
-    let key  = SessionKey::new([0xABu8; 32]);
-    let pt   = bench_bytes();
-    let t0   = Instant::now();
+    let key = SessionKey::new([0xABu8; 32]);
+    let pt = bench_bytes();
+    let t0 = Instant::now();
     for _ in 0..WARMUP_AES {
         let (ct, n) = encrypt(&key, &pt, &[]).unwrap();
         let _ = decrypt(&key, &ct, &n, &[]).unwrap();
@@ -46,8 +50,12 @@ fn bench_aes_full_roundtrip() -> Duration {
 fn bench_kem_encapsulate() -> Duration {
     let (pk, _sk) = generate_kem_key_pair();
     let t0 = Instant::now();
-    for _ in 0..WARMUP_KEM { let _ = encapsulate(&pk); }
-    for _ in 0..ITERS_KEM  { let _ = encapsulate(&pk); }
+    for _ in 0..WARMUP_KEM {
+        let _ = encapsulate(&pk);
+    }
+    for _ in 0..ITERS_KEM {
+        let _ = encapsulate(&pk);
+    }
     t0.elapsed()
 }
 
@@ -73,23 +81,26 @@ fn throughput(iters: usize, dur: std::time::Duration, payload_bytes: usize) -> f
 fn main() {
     let pt_bytes = 256;
 
-    eprintln!("=== polygone-crypto benchmark ({} iters AAD, {} KEM) ===\n", ITERS_AES, ITERS_KEM);
+    eprintln!(
+        "=== polygone-crypto benchmark ({} iters AAD, {} KEM) ===\n",
+        ITERS_AES, ITERS_KEM
+    );
     eprintln!("Warming up …");
 
-    let t_enc  = bench_aes_encrypt();
+    let t_enc = bench_aes_encrypt();
     let t_full = bench_aes_full_roundtrip();
     let t_encaps = bench_kem_encapsulate();
     let t_kem_rt = bench_kem_roundtrip();
 
-    let enc_tp  = throughput(ITERS_AES, t_enc,  pt_bytes);
+    let enc_tp = throughput(ITERS_AES, t_enc, pt_bytes);
     let full_tp = throughput(ITERS_AES, t_full, pt_bytes * 2); // encrypt + decrypt pass
     let kem_enc_tp = throughput(ITERS_KEM, t_encaps, 0);
-    let kem_rt_tp  = throughput(ITERS_KEM, t_kem_rt,  0);
+    let kem_rt_tp = throughput(ITERS_KEM, t_kem_rt, 0);
 
-    let per_op_enc_us      = (t_enc.as_secs_f64() / ITERS_AES as f64) * 1_000_000.0;
-    let per_op_full_us     = (t_full.as_secs_f64() / ITERS_AES as f64) * 1_000_000.0;
-    let per_op_encaps_us   = (t_encaps.as_secs_f64() / ITERS_KEM as f64) * 1_000_000.0;
-    let per_op_kem_rt_us   = (t_kem_rt.as_secs_f64() / ITERS_KEM as f64) * 1_000_000.0;
+    let per_op_enc_us = (t_enc.as_secs_f64() / ITERS_AES as f64) * 1_000_000.0;
+    let per_op_full_us = (t_full.as_secs_f64() / ITERS_AES as f64) * 1_000_000.0;
+    let per_op_encaps_us = (t_encaps.as_secs_f64() / ITERS_KEM as f64) * 1_000_000.0;
+    let per_op_kem_rt_us = (t_kem_rt.as_secs_f64() / ITERS_KEM as f64) * 1_000_000.0;
 
     // ── Markdown ─────────────────────────────────────────────────────────
     println!("# polygone-crypto Benchmark Results\n");
@@ -115,7 +126,10 @@ fn main() {
 
     // ── Speed ratio ───────────────────────────────────────────────────────
     let speedup = per_op_kem_rt_us / per_op_full_us;
-    println!("> AES-256-GCM roundtrip is **{:.1} × faster** than ML-KEM-1024 roundtrip.\n", speedup);
+    println!(
+        "> AES-256-GCM roundtrip is **{:.1} × faster** than ML-KEM-1024 roundtrip.\n",
+        speedup
+    );
 
     // ── Environment ───────────────────────────────────────────────────────
     let sys = sys_info::hostname().unwrap_or_else(|_| "unknown".into());

@@ -1,4 +1,4 @@
-use zeroize::{Zeroize};
+use zeroize::Zeroize;
 
 #[derive(Debug, Clone, Zeroize)]
 pub struct SessionKey([u8; 32]);

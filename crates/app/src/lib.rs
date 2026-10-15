@@ -5,4 +5,4 @@
 
 pub mod banner;
 
-pub use banner::{BANNER, HEX_ICON, HELP_TEXT};
+pub use banner::{BANNER, HELP_TEXT, HEX_ICON};

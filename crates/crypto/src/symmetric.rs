@@ -1,6 +1,6 @@
 use aes_gcm::{
-    Aes256Gcm,
     aead::{Aead, KeyInit, Nonce, Payload},
+    Aes256Gcm,
 };
 use polygone_common::SessionKey;
 use rand;
@@ -38,7 +38,13 @@ pub fn encrypt(
 
     let ciphertext = cipher
         // AadIsPassed: Payload { msg, aad } carries the AAD through encrypt_in_place
-        .encrypt(nonce, Payload { msg: plaintext, aad })
+        .encrypt(
+            nonce,
+            Payload {
+                msg: plaintext,
+                aad,
+            },
+        )
         .map_err(|_| SymmetricError::EncryptionFailed)?;
 
     Ok((ciphertext, nonce_bytes))
@@ -66,7 +72,10 @@ pub fn decrypt(
     let nonce = Nonce::<Aes256Gcm>::from_slice(nonce);
 
     // AadIsUsed: Pass aad explicitly via Payload struct so the tag check covers it
-    let payload = Payload { msg: ciphertext, aad };
+    let payload = Payload {
+        msg: ciphertext,
+        aad,
+    };
 
     cipher
         .decrypt(nonce, payload)
@@ -278,7 +287,7 @@ mod tests {
         let key = test_key();
         let plaintext = b"message protected by aad";
         let correct_aad = b"correct-aad";
-        let wrong_aad   = b"wrong-aad";
+        let wrong_aad = b"wrong-aad";
 
         let (ciphertext, nonce) = encrypt(&key, plaintext, correct_aad).unwrap();
         let result = decrypt(&key, &ciphertext, &nonce, wrong_aad);
@@ -299,11 +308,14 @@ mod tests {
         let plaintext = b"aad-comparison-text";
 
         let (ct_empty, n_empty) = encrypt(&key, plaintext, b"").unwrap();
-        let (ct_aad,   n_aad)   = encrypt(&key, plaintext, b"some-aad").unwrap();
+        let (ct_aad, n_aad) = encrypt(&key, plaintext, b"some-aad").unwrap();
 
         // Each decrypts correctly with its own AAD
         assert_eq!(decrypt(&key, &ct_empty, &n_empty, b"").unwrap(), plaintext);
-        assert_eq!(decrypt(&key, &ct_aad, &n_aad, b"some-aad").unwrap(), plaintext);
+        assert_eq!(
+            decrypt(&key, &ct_aad, &n_aad, b"some-aad").unwrap(),
+            plaintext
+        );
 
         // Wrong-AAD must fail in both directions
         assert!(

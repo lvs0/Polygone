@@ -1,5 +1,3 @@
-
-
 /// A simulated personality with a distinct reasoning style
 #[derive(Debug, Clone)]
 pub struct Personality {
@@ -74,12 +72,25 @@ impl Personality {
             "rousseau" => Ok(Personality {
                 name: "Rousseau",
                 style: ReasoningStyle::Narrative,
-                knowledge_domains: vec!["political philosophy", "education", "social contract", "nature", "freedom"],
+                knowledge_domains: vec![
+                    "political philosophy",
+                    "education",
+                    "social contract",
+                    "nature",
+                    "freedom",
+                ],
             }),
             "musk" => Ok(Personality {
                 name: "Musk",
                 style: ReasoningStyle::Experimental,
-                knowledge_domains: vec!["engineering", "physics", "business", "space", "AI", "renewable energy"],
+                knowledge_domains: vec![
+                    "engineering",
+                    "physics",
+                    "business",
+                    "space",
+                    "AI",
+                    "renewable energy",
+                ],
             }),
             _ => Err(format!("Unknown personality: {}", name)),
         }

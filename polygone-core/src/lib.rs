@@ -26,25 +26,25 @@ use std::sync::Arc;
 
 pub use polygone_common::{
     error::PolygoneError,
+    fragment::{
+        CollectRequest, CollectedFragments, DispatchConfig, DispatchResult, FragmentAck,
+        FragmentId, FragmentPayload,
+    },
+    node::{NodeId, NodeInfo},
     packet::{Packet, PacketType},
     session::{Session, SessionKey},
-    node::{NodeId, NodeInfo},
-    fragment::{
-        FragmentId, FragmentPayload, DispatchResult, FragmentAck,
-        CollectRequest, CollectedFragments, DispatchConfig,
-    },
 };
 
 pub use polygone_crypto::{
+    hash::hash_data,
     kem::{decapsulate, encapsulate, generate_kem_key_pair, PublicKey, SecretKey},
     shamir::{reconstruct_secret, split_secret, Fragment as ShamirFragment},
     symmetric::{decrypt, encrypt, SymmetricError},
-    hash::hash_data,
 };
 
 pub use polygone_network::{
+    dispatch::{DispatchError, FragmentDispatcher},
     node::P2PNode,
-    dispatch::{FragmentDispatcher, DispatchError},
 };
 
 // ============================================================================
@@ -84,9 +84,9 @@ pub mod organism {
     pub struct Vitality {
         pub node_hash: Vec<u8>,
         pub uptime_seconds: u64,
-        pub throughput_bps: f64,        // bytes per second currently routed
-        pub entropy: f64,                // Shannon entropy of recent traffic
-        pub coherence: f64,              // alignment with the DHT (0..1)
+        pub throughput_bps: f64, // bytes per second currently routed
+        pub entropy: f64,        // Shannon entropy of recent traffic
+        pub coherence: f64,      // alignment with the DHT (0..1)
         pub last_pulse: i64,
     }
 
@@ -129,7 +129,10 @@ pub mod organism {
         }
 
         pub fn with_thresholds(threshold_coherence: f64, max_orphan_pulses: u32) -> Self {
-            Self { threshold_coherence, max_orphan_pulses }
+            Self {
+                threshold_coherence,
+                max_orphan_pulses,
+            }
         }
 
         /// Decide whether a node should be **revived** (more pulses kept),
@@ -202,7 +205,10 @@ pub mod organism {
 
     impl EchoChain {
         pub fn new(max_entries: usize) -> Self {
-            Self { entries: Vec::new(), max_entries }
+            Self {
+                entries: Vec::new(),
+                max_entries,
+            }
         }
 
         pub fn record(&mut self, kind: EchoKind, details: impl Into<String>) {

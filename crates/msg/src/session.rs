@@ -78,7 +78,10 @@ pub enum SessionError {
     InvalidFragmentIndex,
 
     #[error("envelope message ID mismatch: expected {expected}, got {actual}")]
-    MessageIdMismatch { expected: MessageId, actual: MessageId },
+    MessageIdMismatch {
+        expected: MessageId,
+        actual: MessageId,
+    },
 }
 
 /// Holds cryptographic state for a send/receive session with a peer.
@@ -147,8 +150,9 @@ impl MessageSession {
         // ── Step 2: AES-256-GCM encrypt plaintext ───────────────────────
         let plaintext = &msg.payload;
 
-        let (ciphertext, nonce) = polygone_crypto::encrypt(sk_ref, plaintext, b"polygone-message-v1")
-            .map_err(|_| SessionError::EncryptionFailed)?;
+        let (ciphertext, nonce) =
+            polygone_crypto::encrypt(sk_ref, plaintext, b"polygone-message-v1")
+                .map_err(|_| SessionError::EncryptionFailed)?;
 
         // ── Step 3: BLAKE3 plaintext hash for integrity ──────────────────
         let plaintext_hash = polygone_crypto::hash::hash_data(plaintext).to_vec();
@@ -210,7 +214,10 @@ impl MessageSession {
         let fragments = incoming.entry(msg_id).or_insert_with(Vec::new);
 
         // Skip duplicates
-        if fragments.iter().any(|e| e.fragment_index == envelope.fragment_index) {
+        if fragments
+            .iter()
+            .any(|e| e.fragment_index == envelope.fragment_index)
+        {
             return Ok(fragments.len() >= self.config.threshold);
         }
 
@@ -233,9 +240,9 @@ impl MessageSession {
     pub fn reassemble(&self, message_id: MessageId) -> Result<Message, SessionError> {
         let envelope_batch = {
             let mut incoming = self.incoming.write();
-            incoming.remove(&message_id).ok_or_else(|| {
-                SessionError::InsufficientFragments(self.config.threshold, 0)
-            })?
+            incoming
+                .remove(&message_id)
+                .ok_or_else(|| SessionError::InsufficientFragments(self.config.threshold, 0))?
         };
 
         if envelope_batch.len() < self.config.threshold {
@@ -254,8 +261,7 @@ impl MessageSession {
     fn do_ml_kem_encapsulate(&self) -> Result<(Vec<u8>, [u8; 32]), String> {
         use polygone_crypto::{encapsulate, pk_from_bytes};
 
-        let pk = pk_from_bytes(&self.peer_public_key)
-            .map_err(|e| e.to_string())?;
+        let pk = pk_from_bytes(&self.peer_public_key).map_err(|e| e.to_string())?;
 
         let (ct, ss) = encapsulate(&pk);
         let mut key_bytes = [0u8; 32];
@@ -267,8 +273,7 @@ impl MessageSession {
     fn do_ml_kem_decapsulate(&self, encapsulated_key: &[u8]) -> Result<[u8; 32], String> {
         use polygone_crypto::{decapsulate, sk_from_bytes};
 
-        let sk = sk_from_bytes(&self.my_secret_key)
-            .map_err(|e| e.to_string())?;
+        let sk = sk_from_bytes(&self.my_secret_key).map_err(|e| e.to_string())?;
 
         let ss = decapsulate(encapsulated_key, &sk);
         let mut key_bytes = [0u8; 32];
@@ -304,13 +309,13 @@ impl MessageSession {
 
         for env in &envelopes {
             // Split the stored frag_nonce || frag_ciphertext
-            let (frag_nonce_bytes, frag_ct_bytes) =
-                env.ciphertext_fragment.split_at(12);
+            let (frag_nonce_bytes, frag_ct_bytes) = env.ciphertext_fragment.split_at(12);
             let mut frag_nonce = [0u8; 12];
             frag_nonce.copy_from_slice(frag_nonce_bytes);
 
-            let fragment_data = polygone_crypto::decrypt(sk_ref, frag_ct_bytes, &frag_nonce, b"polygone-fragment")
-                .map_err(|_| SessionError::DecryptionFailed)?;
+            let fragment_data =
+                polygone_crypto::decrypt(sk_ref, frag_ct_bytes, &frag_nonce, b"polygone-fragment")
+                    .map_err(|_| SessionError::DecryptionFailed)?;
 
             decrypted_fragments.push(polygone_crypto::ShamirFragment {
                 id: FragmentId::new(env.fragment_index + 1),
@@ -330,13 +335,9 @@ impl MessageSession {
         let mut main_nonce = [0u8; 12];
         main_nonce.copy_from_slice(&envelopes[0].inner_nonce);
 
-        let plaintext = polygone_crypto::decrypt(
-            sk_ref,
-            inner_ct,
-            &main_nonce,
-            b"polygone-message-v1",
-        )
-        .map_err(|_| SessionError::DecryptionFailed)?;
+        let plaintext =
+            polygone_crypto::decrypt(sk_ref, inner_ct, &main_nonce, b"polygone-message-v1")
+                .map_err(|_| SessionError::DecryptionFailed)?;
 
         // Integrity check
         let computed_hash = polygone_crypto::hash::hash_data(&plaintext);
@@ -369,14 +370,15 @@ mod tests {
         let (peer_pk, peer_sk) = generate_kem_key_pair();
 
         // Alice sends to Bob (keys as raw bytes via .to_bytes())
-        let alice =
-            MessageSession::new(my_sk.to_bytes(), peer_pk.to_bytes());
+        let alice = MessageSession::new(my_sk.to_bytes(), peer_pk.to_bytes());
         let bob = MessageSession::new(peer_sk.to_bytes(), my_pk.to_bytes());
 
         let original = OutgoingMessage::new(b"Hello, Polygone!", Some("greeting".into()));
 
         // Alice encapsulates
-        let envelopes = alice.encapsulate(original).expect("encapsulation should succeed");
+        let envelopes = alice
+            .encapsulate(original)
+            .expect("encapsulation should succeed");
         assert_eq!(
             envelopes.len(),
             7,
@@ -415,10 +417,11 @@ mod tests {
     fn test_envelope_serialization() {
         use polygone_crypto::generate_kem_key_pair;
         let (pk, sk) = generate_kem_key_pair();
-        let session =
-            MessageSession::new(sk.to_bytes(), pk.to_bytes());
+        let session = MessageSession::new(sk.to_bytes(), pk.to_bytes());
         let msg = OutgoingMessage::plaintext(b"test");
-        let envelopes = session.encapsulate(msg).expect("encapsulate should succeed");
+        let envelopes = session
+            .encapsulate(msg)
+            .expect("encapsulate should succeed");
 
         for env in &envelopes {
             let bytes = env.to_bytes();

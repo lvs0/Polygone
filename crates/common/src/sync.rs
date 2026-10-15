@@ -242,9 +242,8 @@ impl TwoPSet {
     fn gen_tag(&mut self, node_id: [u8; 32]) -> u64 {
         self.tag_counter += 1;
         // Embed node_id prefix for uniqueness
-        let node_prefix = u64::from_le_bytes(
-            <[u8; 8]>::try_from(&node_id[..8]).unwrap_or([0u8; 8]),
-        );
+        let node_prefix =
+            u64::from_le_bytes(<[u8; 8]>::try_from(&node_id[..8]).unwrap_or([0u8; 8]));
         node_prefix.wrapping_mul(1_000_000) + self.tag_counter
     }
 }
@@ -555,9 +554,18 @@ mod tests {
         let mut n3 = make_node(3);
 
         // Give all nodes non-zero capabilities so weight > 0
-        n1.capabilities = Capabilities { cpu_score: 1.0, ..Default::default() };
-        n2.capabilities = Capabilities { cpu_score: 1.0, ..Default::default() };
-        n3.capabilities = Capabilities { cpu_score: 1.0, ..Default::default() };
+        n1.capabilities = Capabilities {
+            cpu_score: 1.0,
+            ..Default::default()
+        };
+        n2.capabilities = Capabilities {
+            cpu_score: 1.0,
+            ..Default::default()
+        };
+        n3.capabilities = Capabilities {
+            cpu_score: 1.0,
+            ..Default::default()
+        };
 
         let nodes = vec![n1, n2, n3];
 

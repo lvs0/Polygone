@@ -39,7 +39,7 @@
 pub mod message;
 pub mod session;
 
-pub use message::{Message, OutgoingMessage, Envelope, MessageId, MessageMeta};
+pub use message::{Envelope, Message, MessageId, MessageMeta, OutgoingMessage};
 pub use session::{MessageSession, SessionError};
 
 /// Current protocol version for wire compatibility checks.

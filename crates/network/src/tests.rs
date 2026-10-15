@@ -7,7 +7,9 @@
 //! - Fragment metadata structures
 
 use crate::P2PNode;
-use polygone_common::{NodeId, SessionKey, DispatchConfig, FragmentId, FragmentPayload, FragmentAck};
+use polygone_common::{
+    DispatchConfig, FragmentAck, FragmentId, FragmentPayload, NodeId, SessionKey,
+};
 
 #[test]
 fn test_p2p_node_initialization() {

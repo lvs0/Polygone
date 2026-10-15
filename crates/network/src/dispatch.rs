@@ -39,10 +39,9 @@
 //! - Response: `PolygoneResponse::DriveStore { success: true }` as acknowledgment
 
 use polygone_common::{
-    FragmentId, FragmentPayload, DispatchConfig,
-    FragmentAck, NodeId, SessionKey,
+    DispatchConfig, FragmentAck, FragmentId, FragmentPayload, NodeId, SessionKey,
 };
-use polygone_crypto::{encrypt, decrypt, reconstruct_secret, ShamirFragment};
+use polygone_crypto::{decrypt, encrypt, reconstruct_secret, ShamirFragment};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -90,7 +89,9 @@ impl FragmentDispatcher {
         let mut payloads = Vec::with_capacity(fragments.len());
 
         for (id, data, destination) in fragments {
-            let aad = format!("polygone-fragment-{}", id.as_u8()).as_bytes().to_vec();
+            let aad = format!("polygone-fragment-{}", id.as_u8())
+                .as_bytes()
+                .to_vec();
             let (ciphertext, nonce) = encrypt(&self.session_key, &data, &aad)
                 .map_err(|_| DispatchError::EncryptionFailed { fragment_id: id })?;
 
@@ -158,9 +159,13 @@ impl FragmentDispatcher {
         &self,
         payload: &FragmentPayload,
     ) -> Result<(FragmentId, Vec<u8>), DispatchError> {
-        let aad = format!("polygone-fragment-{}", payload.id.as_u8()).as_bytes().to_vec();
+        let aad = format!("polygone-fragment-{}", payload.id.as_u8())
+            .as_bytes()
+            .to_vec();
         let plaintext = decrypt(&self.session_key, &payload.ciphertext, &payload.nonce, &aad)
-            .map_err(|_| DispatchError::DecryptionFailed { fragment_id: payload.id })?;
+            .map_err(|_| DispatchError::DecryptionFailed {
+                fragment_id: payload.id,
+            })?;
 
         Ok((payload.id, plaintext))
     }
@@ -183,7 +188,8 @@ impl FragmentDispatcher {
             return None;
         }
 
-        let fragments: Vec<ShamirFragment> = self.collected
+        let fragments: Vec<ShamirFragment> = self
+            .collected
             .iter()
             .map(|(id, data)| ShamirFragment {
                 id: *id,
@@ -298,9 +304,8 @@ mod tests {
         let key = test_session_key();
         let mut dispatcher = FragmentDispatcher::new([0u8; 32], key, DispatchConfig::default());
 
-        let raw_fragments: Vec<(FragmentId, Vec<u8>, NodeId)> = vec![
-            (FragmentId::new(1), vec![1, 2, 3], test_node_id(1)),
-        ];
+        let raw_fragments: Vec<(FragmentId, Vec<u8>, NodeId)> =
+            vec![(FragmentId::new(1), vec![1, 2, 3], test_node_id(1))];
 
         let payloads = dispatcher.prepare_payloads(raw_fragments).unwrap();
         dispatcher.enqueue(payloads);
@@ -326,8 +331,8 @@ mod tests {
         dispatcher.store_fragment(FragmentId::new(3), vec![3]);
 
         assert!(!dispatcher.has_sufficient_fragments(4)); // need 4, have 3
-        assert!(dispatcher.has_sufficient_fragments(3));  // need 3, have 3
-        assert!(dispatcher.has_sufficient_fragments(2));  // need 2, have 3
+        assert!(dispatcher.has_sufficient_fragments(3)); // need 3, have 3
+        assert!(dispatcher.has_sufficient_fragments(2)); // need 2, have 3
     }
 
     #[test]
@@ -352,7 +357,8 @@ mod tests {
         let receiver = FragmentDispatcher::new([0u8; 32], key.clone(), DispatchConfig::default());
         let mut collected = HashMap::new();
 
-        for payload in &payloads[..3] { // only need threshold=3
+        for payload in &payloads[..3] {
+            // only need threshold=3
             let (id, data) = receiver.receive_fragment(payload).unwrap();
             collected.insert(id, data);
         }

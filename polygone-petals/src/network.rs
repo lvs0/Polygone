@@ -1,6 +1,4 @@
-use libp2p::{
-    identify, kad, request_response, swarm::NetworkBehaviour, StreamProtocol
-};
+use libp2p::{identify, kad, request_response, swarm::NetworkBehaviour, StreamProtocol};
 use serde::{Deserialize, Serialize};
 
 /// Sequential inference request.
@@ -33,9 +31,11 @@ pub struct PetalsBehaviour {
     pub request_response: request_response::cbor::Behaviour<InferenceRequest, InferenceResponse>,
 }
 
-pub fn build_swarm(keypair: libp2p::identity::Keypair) -> anyhow::Result<libp2p::Swarm<PetalsBehaviour>> {
+pub fn build_swarm(
+    keypair: libp2p::identity::Keypair,
+) -> anyhow::Result<libp2p::Swarm<PetalsBehaviour>> {
     let local_peer_id = libp2p::PeerId::from(keypair.public());
-    
+
     let kad_store = kad::store::MemoryStore::new(local_peer_id);
     let mut kad_config = kad::Config::default();
     kad_config.set_protocol_names(vec![StreamProtocol::new("/pg-petals/kad/1.0.0")]);
@@ -46,7 +46,10 @@ pub fn build_swarm(keypair: libp2p::identity::Keypair) -> anyhow::Result<libp2p:
         keypair.public(),
     ));
 
-    let protocols = [(StreamProtocol::new("/pg-petals/infer/1.0.0"), request_response::ProtocolSupport::Full)];
+    let protocols = [(
+        StreamProtocol::new("/pg-petals/infer/1.0.0"),
+        request_response::ProtocolSupport::Full,
+    )];
     let cfg = request_response::Config::default();
     let request_response = request_response::cbor::Behaviour::new(protocols, cfg);
 
