@@ -52,7 +52,7 @@ jobs:
           set -e
           if [ "$rc" -ne 0 ] && [ -n "${PR_NUMBER}" ]; then
             {
-              echo "## Clippy a échoué (exit $rc) — 100 dernières lignes"
+              echo "## Clippy a échoué (exit $rc) — 300 dernières lignes"
               echo ""
               echo "----8<----"
               tail -n 300 /tmp/clippy.log

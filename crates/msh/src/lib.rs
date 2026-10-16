@@ -3,7 +3,6 @@ use rand::{rngs::OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
-use zeroize::Zeroize;
 
 pub type ModelId = String; // BLAKE3 hash
 pub type Signature = String; // Ed25519 signature (hex)
