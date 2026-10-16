@@ -13,6 +13,8 @@ impl Default for P2PNode {
 
 impl P2PNode {
     pub fn new() -> Self {
-        Self { node_id: NodeId([0u8; 32]) }
+        Self {
+            node_id: NodeId([0u8; 32]),
+        }
     }
 }

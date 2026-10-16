@@ -12,9 +12,9 @@
 //! - Each share is destined for exactly one ephemeral node.
 //! - Share data is zeroed on Drop (via Zeroize).
 
-use polygone_common::{SessionKey, FragmentId};
-use sharks::{Share, Sharks};
+use polygone_common::{FragmentId, SessionKey};
 use serde::{Deserialize, Serialize};
+use sharks::{Share, Sharks};
 use zeroize::Zeroize;
 
 /// One fragment of a split secret, destined for a single ephemeral node.
@@ -51,7 +51,12 @@ impl Drop for Fragment {
 /// assert_eq!(fragments.len(), 7);
 /// ```
 pub fn split_secret(secret: &SessionKey, threshold: u8, n: u8) -> Vec<Fragment> {
-    assert!(threshold > 0 && threshold <= n, "invalid threshold/n: t={}, n={}", threshold, n);
+    assert!(
+        threshold > 0 && threshold <= n,
+        "invalid threshold/n: t={}, n={}",
+        threshold,
+        n
+    );
 
     let sharks = Sharks(threshold);
     let dealer = sharks.dealer(secret.as_slice());
@@ -165,7 +170,13 @@ mod tests {
         let key = test_key();
         for n in 2..=10 {
             let fragments = split_secret(&key, 2, n);
-            assert_eq!(fragments.len() as u8, n, "expected {} fragments, got {}", n, fragments.len());
+            assert_eq!(
+                fragments.len() as u8,
+                n,
+                "expected {} fragments, got {}",
+                n,
+                fragments.len()
+            );
         }
     }
 
@@ -197,7 +208,10 @@ mod tests {
 
         // n-1 fragments must fail
         let recovered_short = reconstruct_secret(fragments[..(n - 1) as usize].to_vec(), n);
-        assert!(recovered_short.is_none(), "n-1 fragments with threshold=n must fail");
+        assert!(
+            recovered_short.is_none(),
+            "n-1 fragments with threshold=n must fail"
+        );
 
         // all n must succeed
         let recovered_all = reconstruct_secret(fragments.clone(), n);
@@ -231,7 +245,10 @@ mod tests {
         shuffled.shuffle(&mut rng);
 
         let recovered = reconstruct_secret(shuffled, t);
-        assert!(recovered.is_some(), "reconstruction with shuffled fragments must succeed");
+        assert!(
+            recovered.is_some(),
+            "reconstruction with shuffled fragments must succeed"
+        );
         assert_eq!(recovered.unwrap().as_slice(), key.as_slice());
     }
 
@@ -272,7 +289,10 @@ mod tests {
     #[test]
     fn reconstruct_with_empty_fragment_set_returns_none() {
         let result = reconstruct_secret(vec![], 3);
-        assert!(result.is_none(), "empty fragment set with threshold 3 must return None");
+        assert!(
+            result.is_none(),
+            "empty fragment set with threshold 3 must return None"
+        );
     }
 
     #[test]

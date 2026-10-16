@@ -156,7 +156,9 @@ impl Default for KemKeyCache {
 
 impl KemKeyCache {
     pub fn new() -> Self {
-        Self { keys: std::collections::HashMap::new() }
+        Self {
+            keys: std::collections::HashMap::new(),
+        }
     }
 
     pub fn get(&self, peer: &str) -> Option<&(Vec<u8>, Vec<u8>)> {
@@ -221,9 +223,18 @@ mod tests {
     fn test_security_level() {
         let cascade = Cascade::default();
 
-        assert_eq!(cascade.security_level(OpComplexity::Instant), SecurityLevel::LocalOnly);
-        assert_eq!(cascade.security_level(OpComplexity::Fast), SecurityLevel::EndToEnd);
-        assert_eq!(cascade.security_level(OpComplexity::Secure), SecurityLevel::PostQuantum);
+        assert_eq!(
+            cascade.security_level(OpComplexity::Instant),
+            SecurityLevel::LocalOnly
+        );
+        assert_eq!(
+            cascade.security_level(OpComplexity::Fast),
+            SecurityLevel::EndToEnd
+        );
+        assert_eq!(
+            cascade.security_level(OpComplexity::Secure),
+            SecurityLevel::PostQuantum
+        );
     }
 
     #[test]

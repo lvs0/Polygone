@@ -1,5 +1,4 @@
-use blake3;
-use msh::{Envelope, Blake3Hash};
+use msh::{Blake3Hash, Envelope};
 use std::time::Instant;
 use tokio::sync::mpsc;
 
@@ -10,9 +9,7 @@ async fn test_announce_and_transfer_large_fake() {
 
     // Simuler un "modèle" de 1 Mo de données
     let fake_data = vec![13u8; 1_048_576];
-    let fake_hash = Blake3Hash::from(
-        blake3::hash(&fake_data).to_string()
-    );
+    let fake_hash = Blake3Hash::from(blake3::hash(&fake_data).to_string());
 
     // Annonce
     let announce = Envelope {
@@ -58,7 +55,10 @@ async fn test_announce_and_transfer_large_fake() {
     assert_eq!(got.model_id, Some(fake_hash));
     let p = got.payload.unwrap();
     assert_eq!(p.len(), 1_048_576);
-    assert_eq!(blake3::hash(&p).to_string(), blake3::hash(&fake_data).to_string());
+    assert_eq!(
+        blake3::hash(&p).to_string(),
+        blake3::hash(&fake_data).to_string()
+    );
 
     println!("[TEST] Transfert simulé 1 Mo - latence: {:?}", elapsed);
 }

@@ -1,8 +1,8 @@
 mod banner; // defined in src/banner.rs
+use axum::{routing::get, Router};
 use banner::{BANNER, HELP_TEXT};
 use clap::{Parser, Subcommand};
 use std::net::SocketAddr;
-use axum::{routing::get, Router};
 
 #[derive(Parser)]
 #[command(name = "polygone")]

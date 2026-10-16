@@ -1,9 +1,8 @@
 use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey};
-use rand::{RngCore, rngs::OsRng};
+use rand::{rngs::OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
-use zeroize::Zeroize;
 
 pub type ModelId = String; // BLAKE3 hash
 pub type Signature = String; // Ed25519 signature (hex)
@@ -24,14 +23,20 @@ impl NodeKeypair {
         let signing_key = SigningKey::from_bytes(&bytes);
         let verifying_key = signing_key.verifying_key();
         // Secret bytes go out of scope here and get dropped (stack memory)
-        Self { signing_key, verifying_key }
+        Self {
+            signing_key,
+            verifying_key,
+        }
     }
 
     /// Derive from raw 32-byte seed
     pub fn from_bytes(seed: &[u8; 32]) -> Self {
         let signing_key = SigningKey::from_bytes(seed);
         let verifying_key = signing_key.verifying_key();
-        Self { signing_key, verifying_key }
+        Self {
+            signing_key,
+            verifying_key,
+        }
     }
 
     /// Get the public key bytes (hex)
@@ -46,15 +51,16 @@ impl NodeKeypair {
 
     /// Verify a hex signature against a message, return Ok(()) or Err
     pub fn verify(&self, msg: &[u8], sig_hex: &str) -> Result<(), ed25519_dalek::SignatureError> {
-        let bytes = hex::decode(sig_hex)
-            .map_err(|_| ed25519_dalek::SignatureError::new())?;
+        let bytes = hex::decode(sig_hex).map_err(|_| ed25519_dalek::SignatureError::new())?;
         if bytes.len() != 64 {
             return Err(ed25519_dalek::SignatureError::new());
         }
         let mut arr = [0u8; 64];
         arr.copy_from_slice(&bytes);
         let sig = ed25519_dalek::Signature::from_bytes(&arr);
-        self.verifying_key.verify(msg, &sig).map_err(|_| ed25519_dalek::SignatureError::new())
+        self.verifying_key
+            .verify(msg, &sig)
+            .map_err(|_| ed25519_dalek::SignatureError::new())
     }
 }
 
@@ -189,7 +195,10 @@ pub struct AppState {
 
 impl AppState {
     pub fn fresh() -> Self {
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         Self {
             status: NodeStatus {
                 node_id: "unknown".to_string(),
@@ -200,16 +209,28 @@ impl AppState {
             },
             peers: vec![],
             services: vec![
-                ServiceInfo { name: "Drive".to_string(), active: true },
-                ServiceInfo { name: "Msg".to_string(), active: true },
-                ServiceInfo { name: "Mesh".to_string(), active: false },
+                ServiceInfo {
+                    name: "Drive".to_string(),
+                    active: true,
+                },
+                ServiceInfo {
+                    name: "Msg".to_string(),
+                    active: true,
+                },
+                ServiceInfo {
+                    name: "Mesh".to_string(),
+                    active: false,
+                },
             ],
             started_at: now,
         }
     }
 
     pub fn update_uptime(&mut self) {
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         self.status.uptime_seconds = now.saturating_sub(self.started_at);
     }
 }
@@ -225,7 +246,10 @@ impl Envelope {
             sig: None,
             signer_pk: None,
             nonce: Uuid::new_v4().to_string(),
-            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+            timestamp: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
         }
     }
 

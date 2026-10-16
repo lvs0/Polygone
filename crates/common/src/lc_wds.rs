@@ -162,7 +162,7 @@ impl ClusterTopology {
             .or_insert_with(|| LatencyCluster::new(lo_ms, hi_ms));
         // let key = entry.members.len();
         entry.members.insert(pubkey);
-        
+
         self.clusters.get(&id).unwrap()
     }
 
@@ -278,6 +278,9 @@ mod tests {
         let hash = [0u8; 32];
         let a = vec![[2u8; 32], [1u8; 32], [3u8; 32]];
         let b = vec![[1u8; 32], [3u8; 32], [2u8; 32]];
-        assert_eq!(elect_global_leader(&a, &hash), elect_global_leader(&b, &hash));
+        assert_eq!(
+            elect_global_leader(&a, &hash),
+            elect_global_leader(&b, &hash)
+        );
     }
 }

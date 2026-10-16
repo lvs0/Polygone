@@ -26,7 +26,11 @@ struct SimNode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Tier { Fiber, Mobile, Satellite }
+enum Tier {
+    Fiber,
+    Mobile,
+    Satellite,
+}
 
 impl SimNode {
     fn avg_rtt(&self) -> u32 {
@@ -58,15 +62,15 @@ impl SimNode {
 impl Tier {
     fn band(&self) -> (u32, u32) {
         match self {
-            Tier::Fiber    => (1, 10),
-            Tier::Mobile   => (20, 80),
+            Tier::Fiber => (1, 10),
+            Tier::Mobile => (20, 80),
             Tier::Satellite => (400, 700),
         }
     }
     fn label(&self) -> &'static str {
         match self {
-            Tier::Fiber    => "FIBER ◉",
-            Tier::Mobile   => "MOBILE ◎",
+            Tier::Fiber => "FIBER ◉",
+            Tier::Mobile => "MOBILE ◎",
             Tier::Satellite => "SAT ●",
         }
     }
@@ -123,25 +127,74 @@ fn compute_global_leader_hash(
 fn main() {
     banner();
 
-    let state_hash = [0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
-                      0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0,
-                      0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
-                      0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00];
+    let state_hash = [
+        0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE,
+        0xF0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE,
+        0xFF, 0x00,
+    ];
 
     // ── Network: 8 nodes × 3 tiers ───────────────────────────────
     let nodes = vec![
         // Tire A: Fiber (Paris DC)
-        SimNode { name: "Alpha", pubkey: [1; 32], rtt_ms: vec![2,3,4,2,3,3,2], weight: 920, tier: Tier::Fiber },
-        SimNode { name: "Beta",  pubkey: [2; 32], rtt_ms: vec![3,2,4,3,2,3,3], weight: 870, tier: Tier::Fiber },
-        SimNode { name: "Gamma", pubkey: [3; 32], rtt_ms: vec![4,4,3,4,3,4,3], weight: 780, tier: Tier::Fiber },
+        SimNode {
+            name: "Alpha",
+            pubkey: [1; 32],
+            rtt_ms: vec![2, 3, 4, 2, 3, 3, 2],
+            weight: 920,
+            tier: Tier::Fiber,
+        },
+        SimNode {
+            name: "Beta",
+            pubkey: [2; 32],
+            rtt_ms: vec![3, 2, 4, 3, 2, 3, 3],
+            weight: 870,
+            tier: Tier::Fiber,
+        },
+        SimNode {
+            name: "Gamma",
+            pubkey: [3; 32],
+            rtt_ms: vec![4, 4, 3, 4, 3, 4, 3],
+            weight: 780,
+            tier: Tier::Fiber,
+        },
         // Tire B: Mobile (mixed France)
-        SimNode { name: "Delta",   pubkey: [4; 32], rtt_ms: vec![30,40,50,35,28,45,55], weight: 650, tier: Tier::Mobile },
-        SimNode { name: "Epsilon", pubkey: [5; 32], rtt_ms: vec![40,30,60,42,38,50,48], weight: 600, tier: Tier::Mobile },
+        SimNode {
+            name: "Delta",
+            pubkey: [4; 32],
+            rtt_ms: vec![30, 40, 50, 35, 28, 45, 55],
+            weight: 650,
+            tier: Tier::Mobile,
+        },
+        SimNode {
+            name: "Epsilon",
+            pubkey: [5; 32],
+            rtt_ms: vec![40, 30, 60, 42, 38, 50, 48],
+            weight: 600,
+            tier: Tier::Mobile,
+        },
         // Tire C: Satellite (Africa/Asia)
-        SimNode { name: "Zeta",  pubkey: [6; 32], rtt_ms: vec![500,480,520,490,510,470,495], weight: 820, tier: Tier::Satellite },
-        SimNode { name: "Eta",   pubkey: [7; 32], rtt_ms: vec![480,500,490,520,470,510,480], weight: 790, tier: Tier::Satellite },
+        SimNode {
+            name: "Zeta",
+            pubkey: [6; 32],
+            rtt_ms: vec![500, 480, 520, 490, 510, 470, 495],
+            weight: 820,
+            tier: Tier::Satellite,
+        },
+        SimNode {
+            name: "Eta",
+            pubkey: [7; 32],
+            rtt_ms: vec![480, 500, 490, 520, 470, 510, 480],
+            weight: 790,
+            tier: Tier::Satellite,
+        },
         // Bonus: node bridging fiber+wifi (variable)
-        SimNode { name: "Theta", pubkey: [8; 32], rtt_ms: vec![4,5,3,55,60,450,420], weight: 750, tier: Tier::Mobile },
+        SimNode {
+            name: "Theta",
+            pubkey: [8; 32],
+            rtt_ms: vec![4, 5, 3, 55, 60, 450, 420],
+            weight: 750,
+            tier: Tier::Mobile,
+        },
     ];
 
     let topo = SimTopology::new(&nodes);
@@ -162,15 +215,25 @@ fn main() {
         tire_leaders.push((leader_name, *tier));
 
         let tier_weight: u32 = tire_nodes.iter().map(|n| n.weight).sum();
-        println!("  Tire {:8} | {} members | total_weight={:4} | leader = {}",
-                 tier.label(), members.len(), tier_weight, leader_name);
+        println!(
+            "  Tire {:8} | {} members | total_weight={:4} | leader = {}",
+            tier.label(),
+            members.len(),
+            tier_weight,
+            leader_name
+        );
 
-        let mut priorities: Vec<_> = tire_nodes.iter()
+        let mut priorities: Vec<_> = tire_nodes
+            .iter()
             .map(|n| (n.name, n.priority(&state_hash)))
             .collect();
         priorities.sort_by_key(|(_, p)| *p);
         for (name, p) in priorities.iter() {
-            let marker = if *name == leader_name { "◀ LEADER" } else { "        " };
+            let marker = if *name == leader_name {
+                "◀ LEADER"
+            } else {
+                "        "
+            };
             let ph = &hex::encode(p)[..8];
             println!("      {} {:8}  0x{}", marker, name, ph);
         }
@@ -180,9 +243,7 @@ fn main() {
     // ── Step 3: Global leader ─────────────────────────────────────
     let ghash = compute_global_leader_hash(&tire_leaders, &state_hash);
     println!("═══ STEP 3: Global Leader Election ═══");
-    let sorted_names: Vec<_> = tire_leaders.iter()
-        .map(|(n, _)| *n)
-        .collect::<Vec<_>>();
+    let sorted_names: Vec<_> = tire_leaders.iter().map(|(n, _)| *n).collect::<Vec<_>>();
     println!("  Tire leaders (sorted): {:?}", sorted_names);
     println!("  HASH = BLAKE3(sorted_tire_leaders || state_hash)");
     println!("  → global_leader_hash = 0x{}\n", &hex::encode(ghash)[..16]);
@@ -192,10 +253,15 @@ fn main() {
         let mut sorted: Vec<(&'static str, Tier)> = tire_leaders.clone();
         sorted.sort_by_key(|(name, _)| *name);
         let mut h = Hasher::new();
-        for (nm, _) in &sorted { h.update(nm.as_bytes()); }
+        for (nm, _) in &sorted {
+            h.update(nm.as_bytes());
+        }
         h.update(&state_hash);
         if *h.finalize().as_bytes() == ghash {
-            println!("  ◈ ◈ ◈ GLOBAL LEADER = {} (weight={}) ◈ ◈ ◈", n.name, n.weight);
+            println!(
+                "  ◈ ◈ ◈ GLOBAL LEADER = {} (weight={}) ◈ ◈ ◈",
+                n.name, n.weight
+            );
         }
     }
     println!();
@@ -207,18 +273,32 @@ fn main() {
     for i in 0..8 {
         let mut sh = state_hash;
         sh[0] = i as u8;
-        let leaders: Vec<_> = topo.bands.values()
+        let leaders: Vec<_> = topo
+            .bands
+            .values()
             .map(|(tier, members)| {
-                let tire_nodes: Vec<_> = nodes.iter().filter(|n| members.contains(&n.name)).collect();
+                let tire_nodes: Vec<_> =
+                    nodes.iter().filter(|n| members.contains(&n.name)).collect();
                 (elect_tire_leader(&tire_nodes, &sh).unwrap_or("?"), *tier)
             })
             .collect();
         let h = hex::encode(compute_global_leader_hash(&leaders, &state_hash))[..8].to_string();
         let marker = if i == 0 { "◀ REF" } else { "    " };
-        let status = if prev.as_ref().map(|p| p == &h).unwrap_or(false) { "SAME" } else if i > 0 { "DIFF" } else { "    " };
-        println!("  {} state_hash[0]=#{:02X}: 0x{}  ({})", marker, i, h, status);
+        let status = if prev.as_ref().map(|p| p == &h).unwrap_or(false) {
+            "SAME"
+        } else if i > 0 {
+            "DIFF"
+        } else {
+            "    "
+        };
+        println!(
+            "  {} state_hash[0]=#{:02X}: 0x{}  ({})",
+            marker, i, h, status
+        );
         if let Some(p) = prev {
-            if p != h { consistent = false; }
+            if p != h {
+                consistent = false;
+            }
         }
         prev = Some(h);
     }
@@ -229,13 +309,29 @@ fn main() {
 
     // ── Step 5: Latency isolation ──────────────────────────────────
     println!("═══ STEP 5: Latency Isolation ═══");
-    let max_slow = nodes.iter().filter(|n| n.tier == Tier::Satellite).map(|n| n.avg_rtt()).max().unwrap_or(0);
-    let max_fast = nodes.iter().filter(|n| n.tier == Tier::Fiber).map(|n| n.avg_rtt()).max().unwrap_or(0);
+    let max_slow = nodes
+        .iter()
+        .filter(|n| n.tier == Tier::Satellite)
+        .map(|n| n.avg_rtt())
+        .max()
+        .unwrap_or(0);
+    let max_fast = nodes
+        .iter()
+        .filter(|n| n.tier == Tier::Fiber)
+        .map(|n| n.avg_rtt())
+        .max()
+        .unwrap_or(0);
     println!("  ┌──────────────────────────────────────────────────────────┐");
     println!("  │  Consensus latency comparison                            │");
     println!("  │                                                          │");
-    println!("  │  Pure WDS   → must wait for slowest node: {}ms            │", max_slow);
-    println!("  │  LC-WDS     → fiber tire is alone, moves at: ~{}ms       │", max_fast);
+    println!(
+        "  │  Pure WDS   → must wait for slowest node: {}ms            │",
+        max_slow
+    );
+    println!(
+        "  │  LC-WDS     → fiber tire is alone, moves at: ~{}ms       │",
+        max_fast
+    );
     println!("  │                                                          │");
     println!("  │  ✓ Satellite nodes cost ZERO to fiber-tier consensus     │");
     println!("  │  ✓ 495ms → 4ms (10,000% faster for fiber tier)         │");
@@ -255,18 +351,21 @@ fn banner() {
 
 fn print_cluster_table(topo: &SimTopology, nodes: &[SimNode]) {
     for (id, (tier, members)) in &topo.bands {
-        let total_weight: u32 = nodes.iter()
+        let total_weight: u32 = nodes
+            .iter()
             .filter(|n| members.contains(&n.name))
             .map(|n| n.weight)
             .sum();
         let names_str = members.join(", ");
-        println!("  Tire {:8} | {:15} | {:6}-{:<6}ms | {:3} nodes | weight={:4}",
-                 tier.label(),
-                 names_str,
-                 tier.band().0,
-                 tier.band().1,
-                 members.len(),
-                 total_weight);
+        println!(
+            "  Tire {:8} | {:15} | {:6}-{:<6}ms | {:3} nodes | weight={:4}",
+            tier.label(),
+            names_str,
+            tier.band().0,
+            tier.band().1,
+            members.len(),
+            total_weight
+        );
     }
 }
 

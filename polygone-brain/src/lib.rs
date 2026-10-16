@@ -1,11 +1,14 @@
 mod orchestrator;
 mod personalities;
 
-use polygone_crypto::{
-    kem::{decapsulate, encapsulate, generate_kem_key_pair, PublicKey, SecretKey},
-    symmetric::{decrypt, encrypt},
-};
 use polygone_common::SessionKey;
+use polygone_crypto::{
+    kem::{encapsulate, generate_kem_key_pair},
+    symmetric::encrypt,
+};
+
+/// Pensée chiffrée : (ciphertext AES, ciphertext KEM, nonce AES)
+pub type SecureThought = (Vec<u8>, Vec<u8>, [u8; 12]);
 
 pub use orchestrator::ReasoningOrchestrator;
 pub use personalities::Personality;
@@ -46,12 +49,12 @@ impl PolygoneBrain {
     }
 
     /// Securely exchange a thought between personalities using post-quantum cryptography
-    /// 
+    ///
     /// # Arguments
     /// * `sender_name` - Name of the sending personality
     /// * `recipient_name` - Name of the receiving personality
     /// * `thought` - The thought to be securely transmitted
-    /// 
+    ///
     /// # Returns
     /// * `Ok((ciphertext, kem_ciphertext, nonce))` - The encrypted thought, KEM encapsulation, and AES nonce
     /// * `Err(String)` - Error message if personalities not found or crypto operation fails
@@ -60,27 +63,26 @@ impl PolygoneBrain {
         sender_name: &str,
         recipient_name: &str,
         thought: &str,
-    ) -> Result<(Vec<u8>, Vec<u8>, [u8; 12]), String> {
+    ) -> Result<SecureThought, String> {
         // Look up the personalities to verify they exist
         let _sender = Personality::from_name(sender_name)
             .map_err(|_| format!("Sender personality '{}' not found", sender_name))?;
         let _recipient = Personality::from_name(recipient_name)
             .map_err(|_| format!("Recipient personality '{}' not found", recipient_name))?;
-        
+
         // Generate a KEM key pair for the recipient (in practice, these would be pre-shared)
-        let (recipient_pk, recipient_sk) = generate_kem_key_pair();
-        
+        let (recipient_pk, _recipient_sk) = generate_kem_key_pair();
+
         // Encapsulate a shared secret using the recipient's public key
         let (kem_ciphertext, shared_secret) = encapsulate(&recipient_pk);
-        
+
         // Convert the shared secret to a SessionKey for symmetric encryption
         let session_key = SessionKey::new(shared_secret.as_slice().to_vec().try_into().unwrap());
-        
+
         // Encrypt the thought using AES-256-GCM
-        let (ciphertext, nonce) = encrypt(&session_key, thought.as_bytes(), &[]).map_err(|_| 
-            "Encryption failed".to_string()
-        )?;
-        
+        let (ciphertext, nonce) = encrypt(&session_key, thought.as_bytes(), &[])
+            .map_err(|_| "Encryption failed".to_string())?;
+
         Ok((ciphertext, kem_ciphertext, nonce))
     }
 }

@@ -7,9 +7,23 @@ pub struct ReasoningOrchestrator {
 
 impl ReasoningOrchestrator {
     pub fn new() -> Self {
-        let mut orchestrator = ReasoningOrchestrator { personalities: Vec::new() };
+        let mut orchestrator = ReasoningOrchestrator {
+            personalities: Vec::new(),
+        };
         // Initialize with a diverse set
-        let names = ["einstein", "feynman", "turing", "lovelace", "newton", "curie", "darwin", "satoshi", "schopenhauer", "rousseau", "musk"];
+        let names = [
+            "einstein",
+            "feynman",
+            "turing",
+            "lovelace",
+            "newton",
+            "curie",
+            "darwin",
+            "satoshi",
+            "schopenhauer",
+            "rousseau",
+            "musk",
+        ];
         for name in names {
             if let Ok(p) = Personality::from_name(name) {
                 orchestrator.personalities.push(p);

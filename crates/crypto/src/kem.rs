@@ -9,7 +9,9 @@
 
 use polygone_common::SessionKey;
 use pqcrypto_mlkem::mlkem1024;
-use pqcrypto_traits::kem::{PublicKey as PubKeyTrait, SecretKey as SecKeyTrait, SharedSecret as _, Ciphertext as _};
+use pqcrypto_traits::kem::{
+    Ciphertext as _, PublicKey as PubKeyTrait, SecretKey as SecKeyTrait, SharedSecret as _,
+};
 
 pub const PK_SIZE: usize = 1568;
 pub const SK_SIZE: usize = 3168;
@@ -24,7 +26,9 @@ pub fn pk_from_bytes(bytes: &[u8]) -> Result<PublicKey, &'static str> {
     if bytes.len() != PK_SIZE {
         return Err("invalid pk length");
     }
-    Ok(PublicKey(mlkem1024::PublicKey::from_bytes(bytes).expect("validated size")))
+    Ok(PublicKey(
+        mlkem1024::PublicKey::from_bytes(bytes).expect("validated size"),
+    ))
 }
 
 /// Construct a SecretKey from raw bytes (wire format).
@@ -35,7 +39,9 @@ pub fn sk_from_bytes(bytes: &[u8]) -> Result<SecretKey, &'static str> {
     if bytes.len() != SK_SIZE {
         return Err("invalid sk length");
     }
-    Ok(SecretKey(mlkem1024::SecretKey::from_bytes(bytes).expect("validated size")))
+    Ok(SecretKey(
+        mlkem1024::SecretKey::from_bytes(bytes).expect("validated size"),
+    ))
 }
 
 pub struct PublicKey(mlkem1024::PublicKey);

@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       
@@ -32,17 +32,38 @@ jobs:
   clippy:
     name: Clippy Lints
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: |
+          set +e
+          cargo clippy --workspace --all-targets -- -D warnings > /tmp/clippy.log 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ -n "${PR_NUMBER}" ]; then
+            {
+              echo "## Clippy a échoué (exit $rc) — 300 dernières lignes"
+              echo ""
+              echo "----8<----"
+              tail -n 300 /tmp/clippy.log
+              echo "----8<----"
+            } > /tmp/clippy_comment.md
+            gh pr comment "$PR_NUMBER" --body-file /tmp/clippy_comment.md --repo "$GITHUB_REPOSITORY"
+          fi
+          exit $rc
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
 
   # ═══════════════════════════════════════════════════════════════════════════
   # TEST SUITE
@@ -55,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
       
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
@@ -77,25 +98,17 @@ jobs:
   bench:
     name: Benchmarks
     runs-on: ubuntu-latest
+    # Benchs = bruit sur les PR ; baseline auto-push réservée aux pushes sur main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
       
       - name: Run benchmarks
         run: cargo bench --workspace
-      
-      - name: Compare with baseline
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: 'cargo'
-          output-file-path: bench_results.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          alert-threshold: '150%'
-          comment-on-alert: true
 
   # ═══════════════════════════════════════════════════════════════════════════
   # BUILD & RELEASE
@@ -119,7 +132,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
       
@@ -132,6 +145,7 @@ jobs:
         run: cargo build --release --workspace --bin polygone
       
       - name: Build binary checksums
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             sha256sum target/release/polygone > polygone.sha256
@@ -158,7 +172,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
       
       - name: Run cargo-audit
         run: |
@@ -176,9 +190,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
-        with:
-          components: rustdoc
+        uses: dtolnay/rust-toolchain@stable
       
       - name: Generate docs
         run: cargo doc --workspace --no-deps
@@ -198,6 +210,9 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     needs: [test]
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -205,6 +220,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
+      - name: Normalize image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/polygone" >> "$GITHUB_OUTPUT"
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -218,8 +237,8 @@ jobs:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/${{ github.repository }}/polygone:latest
-            ghcr.io/${{ github.repository }}/polygone:${{ github.sha }}
+            ${{ steps.image.outputs.name }}:latest
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

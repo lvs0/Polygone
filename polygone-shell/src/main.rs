@@ -1,13 +1,13 @@
 pub mod ui;
 
-use std::io;
-use std::time::{Duration, Instant};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
+use std::io;
+use std::time::{Duration, Instant};
 
 pub fn run_shell() -> Result<(), Box<dyn std::error::Error>> {
     enable_raw_mode()?;

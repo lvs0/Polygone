@@ -163,7 +163,7 @@ impl SyncNode {
 ///
 /// Property: two nodes with the same history always converge to the same state,
 /// regardless of the order in which updates are received.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TwoPSet {
     /// element → Set of unique add-tags
     adds: HashMap<Vec<u8>, Vec<u64>>,
@@ -173,17 +173,6 @@ pub struct TwoPSet {
     tag_counter: u64,
     /// Per-node tag offsets for uniqueness across nodes
     node_tag_offsets: HashMap<[u8; 32], u64>,
-}
-
-impl Default for TwoPSet {
-    fn default() -> Self {
-        Self {
-            adds: HashMap::new(),
-            removes: std::collections::HashSet::new(),
-            tag_counter: 0,
-            node_tag_offsets: HashMap::new(),
-        }
-    }
 }
 
 impl TwoPSet {
@@ -242,9 +231,8 @@ impl TwoPSet {
     fn gen_tag(&mut self, node_id: [u8; 32]) -> u64 {
         self.tag_counter += 1;
         // Embed node_id prefix for uniqueness
-        let node_prefix = u64::from_le_bytes(
-            <[u8; 8]>::try_from(&node_id[..8]).unwrap_or([0u8; 8]),
-        );
+        let node_prefix =
+            u64::from_le_bytes(<[u8; 8]>::try_from(&node_id[..8]).unwrap_or([0u8; 8]));
         node_prefix.wrapping_mul(1_000_000) + self.tag_counter
     }
 }
@@ -324,7 +312,7 @@ impl DistributedState {
     /// Merge another node's state (CRDT merge — idempotent, commutative).
     pub fn merge(&mut self, other: &DistributedState) {
         for (id, other_reg) in &other.nodes {
-            let entry = self.nodes.entry(*id).or_insert_with(LWWRegister::default);
+            let entry = self.nodes.entry(*id).or_default();
             entry.merge(other_reg);
         }
         self.routing.merge(&other.routing);
@@ -555,9 +543,18 @@ mod tests {
         let mut n3 = make_node(3);
 
         // Give all nodes non-zero capabilities so weight > 0
-        n1.capabilities = Capabilities { cpu_score: 1.0, ..Default::default() };
-        n2.capabilities = Capabilities { cpu_score: 1.0, ..Default::default() };
-        n3.capabilities = Capabilities { cpu_score: 1.0, ..Default::default() };
+        n1.capabilities = Capabilities {
+            cpu_score: 1.0,
+            ..Default::default()
+        };
+        n2.capabilities = Capabilities {
+            cpu_score: 1.0,
+            ..Default::default()
+        };
+        n3.capabilities = Capabilities {
+            cpu_score: 1.0,
+            ..Default::default()
+        };
 
         let nodes = vec![n1, n2, n3];
 

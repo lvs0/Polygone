@@ -15,17 +15,31 @@ pub struct AppState {
 pub fn draw(f: &mut Frame, app: &AppState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(3),
-            Constraint::Min(0),
-            Constraint::Length(3),
-        ].as_ref())
+        .constraints(
+            [
+                Constraint::Length(3),
+                Constraint::Min(0),
+                Constraint::Length(3),
+            ]
+            .as_ref(),
+        )
         .split(f.size());
 
     // --- Header ---
-    let header = Paragraph::new(format!(" ⬡ POLYGONE-SHELL | Peer: {} | Session: {}", app.peer_id, app.session_id))
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-        .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(Color::DarkGray)));
+    let header = Paragraph::new(format!(
+        " ⬡ POLYGONE-SHELL | Peer: {} | Session: {}",
+        app.peer_id, app.session_id
+    ))
+    .style(
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
+    )
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray)),
+    );
     f.render_widget(header, chunks[0]);
 
     // --- Body ---
@@ -42,7 +56,13 @@ pub fn draw(f: &mut Frame, app: &AppState) {
     f.render_widget(dashboard, body_chunks[0]);
 
     // Logs / Activity Feed
-    let logs_text = app.logs.iter().rev().cloned().collect::<Vec<_>>().join("\n");
+    let logs_text = app
+        .logs
+        .iter()
+        .rev()
+        .cloned()
+        .collect::<Vec<_>>()
+        .join("\n");
     let logs = Paragraph::new(logs_text)
         .block(Block::default().title(" [ LOGS ] ").borders(Borders::ALL))
         .style(Style::default().fg(Color::Green));
