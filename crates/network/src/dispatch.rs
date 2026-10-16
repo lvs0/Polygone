@@ -129,7 +129,7 @@ impl FragmentDispatcher {
 
         let mut batch = Vec::new();
 
-        for (_id, (attempts, last_attempt, payload)) in self.pending.iter_mut() {
+        for (attempts, last_attempt, payload) in self.pending.values_mut() {
             let should_dispatch = *attempts == 0
                 || (*attempts < max_retries && now.duration_since(*last_attempt) > timeout);
 

@@ -55,7 +55,7 @@ jobs:
               echo "## Clippy a échoué (exit $rc) — 100 dernières lignes"
               echo ""
               echo "----8<----"
-              tail -n 100 /tmp/clippy.log
+              tail -n 300 /tmp/clippy.log
               echo "----8<----"
             } > /tmp/clippy_comment.md
             gh pr comment "$PR_NUMBER" --body-file /tmp/clippy_comment.md --repo "$GITHUB_REPOSITORY"
