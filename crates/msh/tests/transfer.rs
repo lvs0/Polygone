@@ -1,4 +1,3 @@
-use blake3;
 use msh::{Blake3Hash, Envelope};
 use std::time::Instant;
 use tokio::sync::mpsc;
