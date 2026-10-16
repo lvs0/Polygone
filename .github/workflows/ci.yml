@@ -32,6 +32,9 @@ jobs:
   clippy:
     name: Clippy Lints
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,7 +45,25 @@ jobs:
           components: clippy
       
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: |
+          set +e
+          cargo clippy --workspace --all-targets -- -D warnings > /tmp/clippy.log 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ -n "${PR_NUMBER}" ]; then
+            {
+              echo "## Clippy a échoué (exit $rc) — 100 dernières lignes"
+              echo ""
+              echo "----8<----"
+              tail -n 100 /tmp/clippy.log
+              echo "----8<----"
+            } > /tmp/clippy_comment.md
+            gh pr comment "$PR_NUMBER" --body-file /tmp/clippy_comment.md --repo "$GITHUB_REPOSITORY"
+          fi
+          exit $rc
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
 
   # ═══════════════════════════════════════════════════════════════════════════
   # TEST SUITE
