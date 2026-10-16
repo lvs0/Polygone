@@ -77,6 +77,8 @@ jobs:
   bench:
     name: Benchmarks
     runs-on: ubuntu-latest
+    # Benchs = bruit sur les PR ; baseline auto-push réservée aux pushes sur main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,16 +88,6 @@ jobs:
       
       - name: Run benchmarks
         run: cargo bench --workspace
-      
-      - name: Compare with baseline
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: 'cargo'
-          output-file-path: bench_results.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          alert-threshold: '150%'
-          comment-on-alert: true
 
   # ═══════════════════════════════════════════════════════════════════════════
   # BUILD & RELEASE
@@ -132,6 +124,7 @@ jobs:
         run: cargo build --release --workspace --bin polygone
       
       - name: Build binary checksums
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             sha256sum target/release/polygone > polygone.sha256
@@ -195,7 +188,7 @@ jobs:
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
-      needs: [test]
+    needs: [test]
     permissions:
       contents: read
       packages: write
